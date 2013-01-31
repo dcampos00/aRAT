@@ -1,0 +1,12 @@
+{% extends 'base.djhtml' %}
+
+{% block PageTitle %}- Home{% endblock %}
+{% block ContentTitle %}Home{% endblock %}
+
+{% block Content %}
+bien logueado
+{% endblock %}
+
+{% block ReadOnlyContent %}
+ReadOnly
+{% endblock %}

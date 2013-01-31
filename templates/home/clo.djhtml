@@ -1,0 +1,105 @@
+{% extends 'base.djhtml' %}
+
+{% block PageTitle %}- CLO{% endblock %}
+
+{% block ContentTitle %}
+  CentralLO Configuration
+{% endblock %}
+
+{% block Content %}
+<ul class="nav nav-tabs" id="centrallosTab">
+{% for centrallo in centrallos %}
+  <li><a href="#{{ centrallo|lower }}">{{ centrallo }}</a></li>
+{% endfor %}
+</ul>  
+
+<div class="tab-content" id="centrallosContent">
+  {% for centrallo, clos in clos.items %}
+    <div class="tab-pane" id="{{ centrallo|lower }}">  
+      <div class="row-fluid">
+	<div id="alerts-{{ centrallo|lower }}"></div>
+	<div class="row-fluid">
+	  <div class="span12">
+	    <div class="row-fluid">
+	      <table class="table table-bordered">
+		{% for clo in clos %}
+		  {% if forloop.first %}
+		    <thead>
+		      <tr>
+			<th>Antenna</th>			
+			{% for i in clo %}<th>{{ i }}</th>{% endfor %}
+		      </tr>
+		    </thead>
+		<tbody>
+	      {% else %}
+	      <tr class="">
+		<td class="change-antenna">
+		  <div class="text-antenna">Unassigned</div>
+		</td>
+		{% for i in clo %}<td>{{ i }}</td>{% endfor %}
+	      </tr>
+	    {% endif %}
+	      {% if forloop.last %}</tbody>{% endif %}
+	      {% endfor %}
+	      </table>    
+	    </div>  
+	  </div>
+	</div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="antenna-change-select hide original">
+  <input type="hidden" data-rel="select2" data-placeholder="Antenna"/>
+  <button type="button" class="btn btn-primary"><i class="icon-ok"></i></button>
+  <button type="button" class="btn btn-cancel-select"><i class="icon-remove"></i></button>
+</div>
+
+<div id="debug">DIV DEBUG</div>
+{% endblock %}
+
+{% block Javascript %}
+  <script type="text/javascript">
+    var antennas = [
+    {% for antenna in antennas %}{id: {{ forloop.counter }}, text: '{{ antenna }}'}{% if not forloop.last %}, {% endif %}{% endfor %}
+    ];
+
+  $(document).ready(function () {
+    
+    $("#centrallosTab a:first").tab('show');
+    $("#centrallosTab a").click(function (e){
+      e.preventDefault();
+      $(this).tab('show');
+    });
+
+    $("td.change-antenna").click(function(e) {
+      if($(".antenna-change-select").is(":visible")){
+        $(".antenna-change-select").hide();
+        $(".text-antenna").show();
+      }
+
+      if($(this).children(".text-antenna").is(":visible")){
+        $(this).children(".text-antenna").hide();
+
+        if($(this).children(".antenna-change-select")[0]){
+          $(this).children(".antenna-change-select").show();    
+        } else {
+          $(this).append($(".antenna-change-select.original").clone());
+          $(this).children(".antenna-change-select").removeClass('original').show();
+          $(this).find("[data-rel='select2'],[rel='select2']").select2({data: antennas});
+        }
+      }
+    });
+
+    $(document).on("click",".btn-cancel-select", function(e) {
+      e.preventDefault();
+      if($(this).parent().is(":visible")){
+        $(this).parents("td").children(".text-antenna").show();
+        $(this).parent(".antenna-change-select").remove();
+      }
+      e.stopPropagation();    
+    }); 
+  });
+  </script>
+{% endblock %}
