@@ -194,7 +194,7 @@
 	<!-- bootbox.min.js -->
 	<script src="{{ STATIC_URL }}js/bootbox.min.js"></script>
 	<!-- selec2.min.js for better selects fields -->
-	<script src="{{ STATIC_URL }}js/select2.js"></script>
+	<script src="{{ STATIC_URL }}js/select2.min.js"></script>
 	<!-- application script for Charisma demo -->	
 	<!-- <script src="{{ STATIC_URL }}js/charisma.js"></script> -->
 	<!-- application aRAT script -->
