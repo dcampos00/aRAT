@@ -34,7 +34,7 @@
 	      {% else %}
 	      <tr class="">
 		<td class="change-antenna">
-		  <div class="text-antenna">Unassigned</div>
+		  <div class="text-antenna">Unassigned{{ forloop.counter }}</div>
 		</td>
 		{% for i in clo %}<td>{{ i }}</td>{% endfor %}
 	      </tr>
@@ -73,22 +73,51 @@
       $(this).tab('show');
     });
 
+    $("tbody").sortable({
+      items: "td.change-antenna",
+      helper: "clone",
+      distance: 5,
+      opacity: .7,
+      start: function(e, ui){
+        $("tbody").find("td:hidden").show();    
+        ui.item.data("original-parent", ui.item.parent())
+      },
+      beforeStop: function(e, ui){
+        var sibling = ui.item.siblings(".change-antenna");    
+        sibling.data("original-parent", sibling.parent());
+        ui.item.data("original-parent").prepend(sibling);
+        var sortable = ui.item.parent().parent();
+        
+        bootbox.confirm("Are you sure?", function(result) {
+          if(result){
+            ui.item.data("original-parent").prepend(ui.item.siblings(".change-antenna"));
+          } else {
+            sortable.sortable("cancel");
+            sibling.data("original-parent").prepend(sibling);
+            sibling.siblings(".ui-sortable-placeholder").remove();    
+          }
+        });
+      },
+    });
+
     $("td.change-antenna").click(function(e) {
       if($(".antenna-change-select").is(":visible")){
         $(".antenna-change-select").hide();
         $(".text-antenna").show();
+        $("tbody").sortable( "disable" );
       }
 
       if($(this).children(".text-antenna").is(":visible")){
         $(this).children(".text-antenna").hide();
 
         if($(this).children(".antenna-change-select")[0]){
-          $(this).children(".antenna-change-select").show();    
+          $(this).children(".antenna-change-select").show();
         } else {
           $(this).append($(".antenna-change-select.original").clone());
           $(this).children(".antenna-change-select").removeClass('original').show();
           $(this).find("[data-rel='select2'],[rel='select2']").select2({data: antennas});
         }
+        $("tbody").sortable( "disable" );
       }
     });
 
@@ -97,9 +126,10 @@
       if($(this).parent().is(":visible")){
         $(this).parents("td").children(".text-antenna").show();
         $(this).parent(".antenna-change-select").remove();
+        $("tbody").sortable( "enable" );
       }
       e.stopPropagation();    
-    }); 
+    });
   });
   </script>
 {% endblock %}
