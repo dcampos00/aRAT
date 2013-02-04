@@ -4,7 +4,8 @@ from django.shortcuts import render_to_response
 
 # models
 from aRAT.apps.home.models import Antenna
-from aRAT.apps.common.models import settings
+from aRAT.apps.common.models import settings as app_settings
+from django.conf import settings
 
 # necessary imports to authenticate system
 import logging
@@ -21,23 +22,19 @@ def login_user_view(request):
         return HttpResponseRedirect('/')
 
     if request.method == "POST":
-        form = LoginForm(request.POST)
+        form = request.POST
 
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
+        username = form['username'].strip()
+        password = form['password']
+        
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return HttpResponseRedirect('/')
+        else:
+            state = 'Your username and/or password were incorrect.'
 
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return HttpResponseRedirect('/')
-            else:
-                state = 'Your username and/or password were incorrect.'
-
-    else:
-        form = LoginForm()
-
-    ctx = {'state': state, 'username': username, 'form': form}
+    ctx = {'state': state, 'username': username}
     return render_to_response('home/login.djhtml', ctx, context_instance=RequestContext(request))
 
 def logout_user_view(request):
@@ -48,7 +45,7 @@ def home_view(request):
     if not request.user.is_authenticated():
         return HttpResponseRedirect("/login")
 
-    block_status = settings.objects.get(setting='BLOCK')
+    block_status = app_settings.objects.get(setting='BLOCK')
     ctx = {'read_only': block_status.value}
     return render_to_response('home/index.djhtml', ctx, context_instance=RequestContext(request))
 
@@ -59,7 +56,7 @@ def ste_configuration_view(request):
     if not request.user.is_authenticated():
         return HttpResponseRedirect("/login")
 
-    block_status = settings.objects.get(setting='BLOCK')
+    block_status = app_settings.objects.get(setting='BLOCK')
 
     vendors = [i.strip() for i in open(settings.CONFIGURATION_DIR+'vendors.cfg').readlines() if i.strip()]
     stes = Antenna().STEs
@@ -105,7 +102,7 @@ def pad_configuration_view(request):
     if not request.user.is_authenticated():
         return HttpResponseRedirect("/login")
 
-    block_status = settings.objects.get(setting='BLOCK')
+    block_status = app_settings.objects.get(setting='BLOCK')
 
     locations = [i.strip() for i in open(settings.CONFIGURATION_DIR+'locations.cfg').readlines() if i.strip()]
     antennas = [i.strip().split()[0] for i in open(settings.CONFIGURATION_DIR+'antennas.cfg').readlines() if i.strip()]
@@ -137,7 +134,7 @@ def corr_configuration_view(request):
     if not request.user.is_authenticated():
         return HttpResponseRedirect("/login")
 
-    block_status = settings.objects.get(setting='BLOCK')
+    block_status = app_settings.objects.get(setting='BLOCK')
 
     correlators = [i.strip() for i in open(settings.CONFIGURATION_DIR+'correlators.cfg').readlines() if i.strip()]
     antennas = [i.strip().split()[0] for i in open(settings.CONFIGURATION_DIR+'antennas.cfg').readlines() if i.strip()]
@@ -170,13 +167,13 @@ def clo_configuration_view(request):
     if not request.user.is_authenticated():
         return HttpResponseRedirect("/login")
 
-    block_status = settings.objects.get(setting='BLOCK')
+    block_status = app_settings.objects.get(setting='BLOCK')
 
     centrallos = [i.strip() for i in open(settings.CONFIGURATION_DIR+'centrallos.cfg').readlines() if i.strip()]
     antennas = [i.strip().split()[0] for i in open(settings.CONFIGURATION_DIR+'antennas.cfg').readlines() if i.strip()]
 
     clos = [(c, []) for c in centrallos]
-    clos = dict(c for c in centrallos)
+    clos = dict(c for c in clos)
 
     for clo in open(settings.CONFIGURATION_DIR+'clo.cfg').readlines():
         clo.strip()
