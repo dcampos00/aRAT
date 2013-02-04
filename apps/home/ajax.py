@@ -5,43 +5,55 @@ from dajaxice.decorators import dajaxice_register
 from aRAT.apps.home.models import Antenna
 from django.db.models import F, Q
 
-from aRAT.apps.common.models import settings
+from aRAT.apps.common.models import settings as app_settings
 
 
 @dajaxice_register
-def ste_update_alerts(request, div_alert, div_modal, ste_id='', antenna_id=''):
+def ste_update_alerts(request, ste_id='', antenna_id=''):
     """
-    Function that allow keep update the alerts for pads if tf... STEs
+    Function that allow keep update the requests for pads
 
     Arguments:
-    - `div_alert`: place where the alerts will be placed (e.g: #div_alert)
-    - `pad`: id value of a pad that will be requested
-    - `antenna`: id value of an antenna that will be assigned to a pad
+    - `ste_id`:
+    - `antenna_id`:
     """
 
     dajax = Dajax() # object that manage the AJAX connection
     
     # if the application is block the function does not anything
-    if settings.objects.get(setting='BLOCK').value:
+    if app_settings.objects.get(setting='BLOCK').value:
         return dajax.json()
+
+    # first the antenna information is updated
+    if antenna_id != '':
+        antenna = Antenna.objects.get(id=antenna_id)
+        if ste_id != '' and ste_id != antenna.current_ste:
+            antenna.requested_ste = ste_id
+        else:
+            antenna.requested_ste = None
+        antenna.save()
+
+    # is loaded all current status of the ste configuration
+    antennas = Antenna.objects.all()
+    for antenna in antennas:
+        dajax.add_data({'antenna': {'id': antenna.id, 'name': antenna.name}, 'ste': {'id': antenna.requested_ste, 'name': antenna.get_requested_ste_display()}}, 'update_status')
 
     return dajax.json()
 
 @dajaxice_register
-def pad_update_alerts(request, ste, div_alert, div_modal, pad_id='', antenna_id=''):
+def pad_update_alerts(request, pad_id='', antenna_id=''):
     """
     Function that allow keep update the alerts for pads if tf... STEs
 
     Arguments:
-    - `div_alert`: place where the alerts will be placed (e.g: #div_alert)
-    - `pad`: id value of a pad that will be requested
-    - `antenna`: id value of an antenna that will be assigned to a pad
+    - `pad_id`: id value of a pad that will be requested
+    - `antenna_id`: id value of an antenna that will be assigned to a pad
     """
 
     dajax = Dajax()
 
     # if the application is block the function does not anything
-    if settings.objects.get(setting='BLOCK').value:
+    if app_settings.objects.get(setting='BLOCK').value:
         return dajax.json()
     
     return dajax.json()
@@ -51,7 +63,7 @@ def corr_update_alerts(request, div_alert, div_modal, caimap='', drxbbpr0_id='',
     dajax = Dajax()
 
     # if the application is block the function does not anything
-    if settings.objects.get(setting='BLOCK').value:
+    if app_settings.objects.get(setting='BLOCK').value:
         return dajax.json()
 
     return dajax.json()
