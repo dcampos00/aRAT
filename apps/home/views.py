@@ -10,9 +10,6 @@ from aRAT.apps.common.models import settings
 import logging
 from django.contrib.auth import authenticate, login, logout
 
-# forms
-from aRAT.apps.home.forms import LoginForm, STEForm
-
 def login_user_view(request):
     """
     View to login in authenticate system
