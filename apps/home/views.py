@@ -68,7 +68,10 @@ def ste_configuration_view(request):
     stes = Antenna().STEs
 #    stes = [i.strip().split()[0] for i in open('aRAT/configuration/stes.cfg').readlines() if i.strip()]
     
-    antennas = {v:[] for v in vendors}
+    
+    antennas = [(v, []) for v in vendors]
+    antennas = dict(v for v in antennas)
+
     for name_antenna in open(settings.CONFIGURATION_DIR+'antennas.cfg').readlines():
         name_antenna.strip()
         if name_antenna:
@@ -110,7 +113,9 @@ def pad_configuration_view(request):
     locations = [i.strip() for i in open(settings.CONFIGURATION_DIR+'locations.cfg').readlines() if i.strip()]
     antennas = [i.strip().split()[0] for i in open(settings.CONFIGURATION_DIR+'antennas.cfg').readlines() if i.strip()]
 
-    pads = {l:[] for l in locations}
+    pads = [(l, []) for l in locations]
+    pads = dict(l for l in pads)
+
     for pad in open(settings.CONFIGURATION_DIR+'pads.cfg').readlines():
         pad.strip()
         if pad:
@@ -139,7 +144,9 @@ def corr_configuration_view(request):
 
     correlators = [i.strip() for i in open(settings.CONFIGURATION_DIR+'correlators.cfg').readlines() if i.strip()]
     antennas = [i.strip().split()[0] for i in open(settings.CONFIGURATION_DIR+'antennas.cfg').readlines() if i.strip()]
-    corrs = {c:[] for c in correlators}
+
+    corrs = [(c, []) for c in correlators]
+    corrs = dict(c for c in corrs)
 
     for corr in open(settings.CONFIGURATION_DIR+'corr.cfg').readlines():
         corr.strip()
@@ -170,7 +177,9 @@ def clo_configuration_view(request):
 
     centrallos = [i.strip() for i in open(settings.CONFIGURATION_DIR+'centrallos.cfg').readlines() if i.strip()]
     antennas = [i.strip().split()[0] for i in open(settings.CONFIGURATION_DIR+'antennas.cfg').readlines() if i.strip()]
-    clos = {c:[] for c in centrallos}
+
+    clos = [(c, []) for c in centrallos]
+    clos = dict(c for c in centrallos)
 
     for clo in open(settings.CONFIGURATION_DIR+'clo.cfg').readlines():
         clo.strip()
