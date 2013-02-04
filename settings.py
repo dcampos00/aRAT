@@ -198,19 +198,9 @@ LOGGING = {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
-        },
-        'logfile': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': 'logs/django.log'
         }
     },
     'loggers': {
-        'dajaxice': {
-            'handlers': ['logfile'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
         'django.request': {
             'handlers': ['mail_admins'],
             'level': 'ERROR',
