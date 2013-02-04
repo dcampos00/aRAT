@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.conf import settings
 # Create your models here.
 
 class Antenna(models.Model):
@@ -11,7 +11,7 @@ class Antenna(models.Model):
     
     # ste configuration fields
 
-    STEs = tuple([tuple([ln, i.strip()]) for ln, i in enumerate(open("aRAT/configuration/stes.cfg")) if i.strip()])
+    STEs = tuple([tuple([ln, i.strip()]) for ln, i in enumerate(open(settings.CONFIGURATION_DIR+"stes.cfg")) if i.strip()])
 
     current_ste = models.IntegerField(null=True, choices=STEs)
     requested_ste = models.IntegerField(null=True, blank=True, choices=STEs)
