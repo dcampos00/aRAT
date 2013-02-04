@@ -30,6 +30,8 @@ AUTHENTICATION_BACKENDS = (
 
 # END LDAP Configuration
 
+CONFIGURATION_DIR = os.path.join( os.path.dirname( os.path.abspath(__file__) ), 'configuration/' )
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
