@@ -1,3 +1,4 @@
+{% load dajaxice_templatetags %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,7 +17,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 	<!-- The styles -->
-	<link id="bs-css" href="{{ STATIC_URL }}css/bootstrap-cyborg.css" rel="stylesheet">
+	<link id="bs-css" href="{{ STATIC_URL }}css/bootstrap-cyborg.min.css" rel="stylesheet">
 	<style type="text/css">
 	  body {
 		padding-bottom: 40px;
@@ -52,7 +53,11 @@
 
 	<!-- The fav icon -->
 	<link rel="shortcut icon" href="{{ STATIC_URL }}img/favicon.ico">
-		
+<style type="text/css" media="screen">
+  .alert{
+  margin-bottom: 0.5%;  
+  }
+</style>		
 </head>
 
 <body>
@@ -194,6 +199,10 @@
 	<script src="{{ STATIC_URL }}js/bootbox.min.js"></script>
 	<!-- selec2.min.js for better selects fields -->
 	<script src="{{ STATIC_URL }}js/select2.min.js"></script>
+	<!-- dajaxice.js -->
+	{% dajaxice_js_import %}
+	<!-- jquery.dajax.core.js ajax django library -->
+	<script src="{{ STATIC_URL }}js/jquery.dajax.core.js"></script>
 	<!-- application script for Charisma demo -->	
 	<!-- <script src="{{ STATIC_URL }}js/charisma.js"></script> -->
 	<!-- application aRAT script -->
