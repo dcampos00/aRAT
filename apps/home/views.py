@@ -3,7 +3,7 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 
 # models
-from aRAT.apps.home.models import PAD, Antenna, STE, DRX, SAS_LLC
+from aRAT.apps.home.models import Antenna
 from aRAT.apps.common.models import settings
 
 # necessary imports to authenticate system
@@ -55,6 +55,49 @@ def home_view(request):
     ctx = {'read_only': block_status.value}
     return render_to_response('home/index.djhtml', ctx, context_instance=RequestContext(request))
 
+def ste_configuration_view(request):
+    # variable error is defined
+    error = ''
+
+    if not request.user.is_authenticated():
+        return HttpResponseRedirect("/login")
+
+    block_status = settings.objects.get(setting='BLOCK')
+
+    vendors = [i.strip() for i in open(settings.CONFIGURATION_DIR+'vendors.cfg').readlines() if i.strip()]
+    stes = Antenna().STEs
+#    stes = [i.strip().split()[0] for i in open('aRAT/configuration/stes.cfg').readlines() if i.strip()]
+    
+    antennas = {v:[] for v in vendors}
+    for name_antenna in open(settings.CONFIGURATION_DIR+'antennas.cfg').readlines():
+        name_antenna.strip()
+        if name_antenna:
+            name_antenna, vendor = name_antenna.split()
+
+            if Antenna.objects.filter(name=name_antenna):
+                antenna = Antenna.objects.get(name=name_antenna)
+                antennas[vendor].append(antenna)
+            else:
+                for ste in stes:
+                    if 'VENDOR' in ste:
+                        default_ste = ste[0]
+                        break
+                    else:
+                        error = 'The Vendor STE does not exist.'
+
+                new_antenna = Antenna(name=name_antenna, current_ste=default_ste)
+                new_antenna.save()
+                antennas[vendor].append(new_antenna)
+
+    # variables are passed to the view
+    ctx = {'error': error,
+           'read_only':block_status.value,
+           'vendors': vendors,
+           'stes':stes,
+           'antennas': antennas
+           }
+    return render_to_response('home/ste.djhtml', ctx, context_instance=RequestContext(request))
+
 def pad_configuration_view(request):
     # variable error is defined
     error = ''
@@ -64,11 +107,11 @@ def pad_configuration_view(request):
 
     block_status = settings.objects.get(setting='BLOCK')
 
-    locations = [i.strip() for i in open('aRAT/configuration/locations.cfg').readlines() if i.strip()]
-    antennas = [i.strip().split()[0] for i in open('aRAT/configuration/antennas.cfg').readlines() if i.strip()]
+    locations = [i.strip() for i in open(settings.CONFIGURATION_DIR+'locations.cfg').readlines() if i.strip()]
+    antennas = [i.strip().split()[0] for i in open(settings.CONFIGURATION_DIR+'antennas.cfg').readlines() if i.strip()]
 
     pads = {l:[] for l in locations}
-    for pad in open('aRAT/configuration/pads.cfg').readlines():
+    for pad in open(settings.CONFIGURATION_DIR+'pads.cfg').readlines():
         pad.strip()
         if pad:
             pad, location = pad.split()
@@ -82,34 +125,6 @@ def pad_configuration_view(request):
            }
     return render_to_response('home/pad.djhtml', ctx, context_instance=RequestContext(request))
 
-def ste_configuration_view(request):
-    # variable error is defined
-    error = ''
-
-    if not request.user.is_authenticated():
-        return HttpResponseRedirect("/login")
-
-    block_status = settings.objects.get(setting='BLOCK')
-
-    vendors = [i.strip() for i in open('aRAT/configuration/vendors.cfg').readlines() if i.strip()]
-    stes = [i.strip().split()[0] for i in open('aRAT/configuration/stes.cfg').readlines() if i.strip()]
-    
-    antennas = {v:[] for v in vendors}
-    for antenna in open('aRAT/configuration/antennas.cfg').readlines():
-        antenna.strip()
-        if antenna:
-            antenna, vendor = antenna.split()
-            antennas[vendor].append(antenna)
-
-    # variables are passed to the view
-    ctx = {'error': error,
-           'read_only':block_status.value,
-           'vendors': vendors,
-           'stes':stes,
-           'antennas': antennas
-           }
-    return render_to_response('home/ste.djhtml', ctx, context_instance=RequestContext(request))
-
 def corr_configuration_view(request):
     """
     View to configure the correlators
@@ -122,11 +137,11 @@ def corr_configuration_view(request):
 
     block_status = settings.objects.get(setting='BLOCK')
 
-    correlators = [i.strip() for i in open('aRAT/configuration/correlators.cfg').readlines() if i.strip()]
-    antennas = [i.strip().split()[0] for i in open('aRAT/configuration/antennas.cfg').readlines() if i.strip()]
+    correlators = [i.strip() for i in open(settings.CONFIGURATION_DIR+'correlators.cfg').readlines() if i.strip()]
+    antennas = [i.strip().split()[0] for i in open(settings.CONFIGURATION_DIR+'antennas.cfg').readlines() if i.strip()]
     corrs = {c:[] for c in correlators}
 
-    for corr in open('aRAT/configuration/corr.cfg').readlines():
+    for corr in open(settings.CONFIGURATION_DIR+'corr.cfg').readlines():
         corr.strip()
         if corr:
             line = corr.split()
@@ -153,11 +168,11 @@ def clo_configuration_view(request):
 
     block_status = settings.objects.get(setting='BLOCK')
 
-    centrallos = [i.strip() for i in open('aRAT/configuration/centrallos.cfg').readlines() if i.strip()]
-    antennas = [i.strip().split()[0] for i in open('aRAT/configuration/antennas.cfg').readlines() if i.strip()]
+    centrallos = [i.strip() for i in open(settings.CONFIGURATION_DIR+'centrallos.cfg').readlines() if i.strip()]
+    antennas = [i.strip().split()[0] for i in open(settings.CONFIGURATION_DIR+'antennas.cfg').readlines() if i.strip()]
     clos = {c:[] for c in centrallos}
 
-    for clo in open('aRAT/configuration/clo.cfg').readlines():
+    for clo in open(settings.CONFIGURATION_DIR+'clo.cfg').readlines():
         clo.strip()
         if clo:
             line = clo.split()
