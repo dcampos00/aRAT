@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Feb 04, 2013 at 10:17 AM
+-- Generation Time: Feb 05, 2013 at 01:02 PM
 -- Server version: 5.5.29
 -- PHP Version: 5.4.6-1ubuntu1.1
 
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `auth_permission` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `content_type_id` (`content_type_id`,`codename`),
   KEY `auth_permission_e4470c6e` (`content_type_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=28 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=31 ;
 
 -- --------------------------------------------------------
 
@@ -159,7 +159,7 @@ CREATE TABLE IF NOT EXISTS `django_admin_log` (
   PRIMARY KEY (`id`),
   KEY `django_admin_log_fbfc09f1` (`user_id`),
   KEY `django_admin_log_e4470c6e` (`content_type_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=10 ;
 
 -- --------------------------------------------------------
 
@@ -175,7 +175,7 @@ CREATE TABLE IF NOT EXISTS `django_content_type` (
   `model` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `app_label` (`app_label`,`model`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=10 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=11 ;
 
 -- --------------------------------------------------------
 
@@ -218,8 +218,32 @@ CREATE TABLE IF NOT EXISTS `home_antenna` (
   `name` varchar(5) NOT NULL,
   `current_ste` int(11) DEFAULT NULL,
   `requested_ste` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  `requester_id` int(11) DEFAULT NULL,
+  `request_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `home_antenna_b8ca8b9f` (`requester_id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=66 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `home_pad`
+--
+
+DROP TABLE IF EXISTS `home_pad`;
+CREATE TABLE IF NOT EXISTS `home_pad` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(5) NOT NULL,
+  `current_antenna_id` int(11) DEFAULT NULL,
+  `requested_antenna_id` int(11) DEFAULT NULL,
+  `requester_id` int(11) DEFAULT NULL,
+  `request_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`),
+  UNIQUE KEY `current_antenna_id` (`current_antenna_id`),
+  KEY `home_pad_62753b47` (`requested_antenna_id`),
+  KEY `home_pad_b8ca8b9f` (`requester_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=203 ;
 
 --
 -- Constraints for dumped tables
@@ -258,6 +282,20 @@ ALTER TABLE `auth_user_user_permissions`
 ALTER TABLE `django_admin_log`
   ADD CONSTRAINT `content_type_id_refs_id_288599e6` FOREIGN KEY (`content_type_id`) REFERENCES `django_content_type` (`id`),
   ADD CONSTRAINT `user_id_refs_id_c8665aa` FOREIGN KEY (`user_id`) REFERENCES `auth_user` (`id`);
+
+--
+-- Constraints for table `home_antenna`
+--
+ALTER TABLE `home_antenna`
+  ADD CONSTRAINT `requester_id_refs_id_aa61ccb1` FOREIGN KEY (`requester_id`) REFERENCES `auth_user` (`id`);
+
+--
+-- Constraints for table `home_pad`
+--
+ALTER TABLE `home_pad`
+  ADD CONSTRAINT `requested_antenna_id_refs_id_f8b00e53` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`id`),
+  ADD CONSTRAINT `current_antenna_id_refs_id_f8b00e53` FOREIGN KEY (`current_antenna_id`) REFERENCES `home_antenna` (`id`),
+  ADD CONSTRAINT `requester_id_refs_id_24362f31` FOREIGN KEY (`requester_id`) REFERENCES `auth_user` (`id`);
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
