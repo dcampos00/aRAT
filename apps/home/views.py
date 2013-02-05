@@ -3,7 +3,7 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 
 # models
-from aRAT.apps.home.models import Antenna
+from aRAT.apps.home.models import Antenna, PAD
 from aRAT.apps.common.models import settings as app_settings
 from django.conf import settings
 
@@ -105,16 +105,23 @@ def pad_configuration_view(request):
     block_status = app_settings.objects.get(setting='BLOCK')
 
     locations = [i.strip() for i in open(settings.CONFIGURATION_DIR+'locations.cfg').readlines() if i.strip()]
-    antennas = [i.strip().split()[0] for i in open(settings.CONFIGURATION_DIR+'antennas.cfg').readlines() if i.strip()]
+    # the antennas are loaded from the db
+    antennas = Antenna.objects.all()
 
     pads = [(l, []) for l in locations]
     pads = dict(l for l in pads)
 
     for pad in open(settings.CONFIGURATION_DIR+'pads.cfg').readlines():
-        pad.strip()
+        pad = pad.strip()
         if pad:
-            pad, location = pad.split()
-            pads[location].append(pad)
+            pad_name, location = pad.split()
+            if PAD.objects.filter(name=pad_name):
+                pad = PAD.objects.get(name=pad_name)
+                pads[location].append(pad)
+            else:
+                new_pad = PAD(name=pad_name)
+                new_pad.save()
+                pads[location].append(new_pad)
 
     ctx = {'error': error,
            'read_only': block_status.value,
