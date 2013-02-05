@@ -2,7 +2,7 @@ import random
 from dajax.core import Dajax
 from dajaxice.decorators import dajaxice_register
 
-from aRAT.apps.home.models import Antenna
+from aRAT.apps.home.models import Antenna, PAD
 from django.db.models import F, Q
 
 from aRAT.apps.common.models import settings as app_settings
@@ -36,7 +36,9 @@ def ste_update_alerts(request, ste_id='', antenna_id=''):
     # is loaded all current status of the ste configuration
     antennas = Antenna.objects.all()
     for antenna in antennas:
-        dajax.add_data({'antenna': {'id': antenna.id, 'name': antenna.name}, 'ste': {'id': antenna.requested_ste, 'name': antenna.get_requested_ste_display()}}, 'update_status')
+        dajax.add_data({'antenna': {'id': antenna.id, 'name': antenna.name},
+                        'ste': {'id': antenna.requested_ste, 'name': antenna.get_requested_ste_display()}},
+                       'update_status')
 
     return dajax.json()
 
@@ -56,6 +58,46 @@ def pad_update_alerts(request, pad_id='', antenna_id=''):
     if app_settings.objects.get(setting='BLOCK').value:
         return dajax.json()
     
+    # first the pad information is updated
+    if pad_id != '':
+        pad = PAD.objects.get(id=pad_id)
+        if antenna_id != '' and pad.current_antenna != Antenna.objects.get(id=antenna_id):
+            pad.requested_antenna = Antenna.objects.get(id=antenna_id)
+        else:
+            pad.requested_antenna = None
+        pad.save()
+
+    # is loaded all current status of the ste configuration
+    pads = PAD.objects.all()
+    for pad in pads:
+
+        pad_errors = []
+        if pad.requested_antenna != None:
+            for pad2 in PAD.objects.all():
+                if pad != pad2:
+                    if pad.requested_antenna == pad2.requested_antenna:
+                        pad_errors.append(pad2.name)
+                    elif pad.requested_antenna == pad2.current_antenna:
+                        pad_errors.append(pad2.name)
+                    
+
+        current_antenna_name = current_antenna_id = None
+        requested_antenna_name = requested_antenna_id = None
+
+        if pad.current_antenna:
+            current_antenna_name = pad.current_antenna.name
+            current_antenna_id = pad.current_antenna_id
+        if pad.requested_antenna:
+            requested_antenna_name = pad.requested_antenna.name
+            requested_antenna_id = pad.requested_antenna.id
+
+        dajax.add_data({'pad': {'id': pad.id, 'name': pad.name},
+                        'current_antenna': {'id': current_antenna_name, 'name': current_antenna_name},
+                        'requested_antenna': {'id': requested_antenna_id, 'name': requested_antenna_name},
+                        'error': [e for e in pad_errors]
+                        },
+                       'update_status')
+
     return dajax.json()
 
 @dajaxice_register
@@ -67,28 +109,3 @@ def corr_update_alerts(request, div_alert, div_modal, caimap='', drxbbpr0_id='',
         return dajax.json()
 
     return dajax.json()
-
-def alert(body='', title='', alert_type='alert-success', problem='', id_=''):
-    """
-    Function that return an alert in HTML bootstrap format
-
-    Arguments:
-    - `body`: body text of the alert
-    - `title`: title in the alert
-    - `alert_type`: Type of alert that will be generate (alert-error, alert-success, alert-info)
-    - `problem`: possible text about a problem
-    """
-
-    # if the title is not empty this is highlighted
-    if title != '':
-        title = '<strong>%s</strong>'%title
-
-    # if exist some problem the alert_type is changed to alert-error
-    if problem != '':
-        alert_type = 'alert-error'
-        problem = '.<br><strong>ERROR!</strong> '+problem
-
-    return '<div class="row-fluid"><div class="alert %s span12"><a onclick="update(false);$(\'#confirm%s\').modal(\'show\');" role="button" class="close">&times;</a>%s %s%s</div></div>'%(alert_type, id_, title, body, problem);
-
-def modal(modal_id='', title='', body='', button_confirm_text='Confirm', button_confirm_action='', button_confirm_type='btn-danger'):
-    return '<div id="%s" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="confirmHeader" aria-hidden="true"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="update(true);">&times;</button><h3 id="confirmHeader">%s</h3></div><div class="modal-body"><p>%s</p></div><div class="modal-footer"><button class="btn" data-dismiss="modal" aria-hidden="true" onclick="update(true);">Close</button><button class="btn %s" onclick="%s">%s</button></div></div>'%(modal_id, title, body, button_confirm_type, button_confirm_action, button_confirm_text)
