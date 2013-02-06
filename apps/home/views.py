@@ -3,7 +3,7 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 
 # models
-from aRAT.apps.home.models import Antenna, PAD
+from aRAT.apps.home.models import Antenna, PAD, Correlator, CentralLO
 from aRAT.apps.common.models import settings as app_settings
 from django.conf import settings
 
@@ -58,18 +58,18 @@ def ste_configuration_view(request):
 
     block_status = app_settings.objects.get(setting='BLOCK')
 
-    vendors = [i.strip() for i in open(settings.CONFIGURATION_DIR+'vendors.cfg').readlines() if i.strip()]
+    vendors = [i.strip().replace('-',' ') for i in open(settings.CONFIGURATION_DIR+'vendors.cfg').readlines() if i.strip()]
     stes = Antenna().STEs
 #    stes = [i.strip().split()[0] for i in open('aRAT/configuration/stes.cfg').readlines() if i.strip()]
     
-    
-    antennas = [(v, []) for v in vendors]
+    antennas = [(v.replace('-', ' '), []) for v in vendors]
     antennas = dict(v for v in antennas)
 
     for name_antenna in open(settings.CONFIGURATION_DIR+'antennas.cfg').readlines():
         name_antenna.strip()
         if name_antenna:
             name_antenna, vendor = name_antenna.split()
+            vendor = vendor.replace('-', ' ')
 
             if Antenna.objects.filter(name=name_antenna):
                 antenna = Antenna.objects.get(name=name_antenna)
@@ -149,11 +149,18 @@ def corr_configuration_view(request):
     corrs = [(c, []) for c in correlators]
     corrs = dict(c for c in corrs)
 
-    for corr in open(settings.CONFIGURATION_DIR+'corr.cfg').readlines():
+    for line_number, corr in enumerate(open(settings.CONFIGURATION_DIR+'corr.cfg')):
         corr.strip()
         if corr:
             line = corr.split()
-            corrs[line[-1]].append(line[0:-1])
+            line[0:-1] = [x.replace('-', ' ') for x in line[0:-1]]
+            if Correlator.objects.filter(line=line_number):
+                corr = Correlator.objects.get(line=line_number)
+                corrs[line[-1]].append(corr)
+            else:
+                new_corr = Correlator(line=line_number)
+                new_corr.save()
+                corrs[line[-1]].append(new_corr)
 
     ctx = {'error': error,
            'read_only': block_status.value,
@@ -182,11 +189,18 @@ def clo_configuration_view(request):
     clos = [(c, []) for c in centrallos]
     clos = dict(c for c in clos)
 
-    for clo in open(settings.CONFIGURATION_DIR+'clo.cfg').readlines():
+    for line_number, clo in enumerate(open(settings.CONFIGURATION_DIR+'clo.cfg')):
         clo.strip()
         if clo:
             line = clo.split()
-            clos[line[-1]].append(line[0:-1])
+            line[0:-1] = [x.replace('-', ' ') for x in line[0:-1]]
+            if CentralLO.objects.filter(line=line_number):
+                clo = CentralLO.objects.get(line=line_number)
+                clos[line[-1]].append(clo)
+            else:
+                new_clo = CentralLO(line=line_number)
+                new_clo.save()
+                clos[line[-1]].append(new_clo)
 
     ctx = {'error': error,
            'read_only': block_status,
