@@ -28,6 +28,8 @@ class PAD(models.Model):
     current_antenna = models.OneToOneField(Antenna, related_name="Current Antenna", null=True)
     requested_antenna = models.ForeignKey(Antenna, related_name="Requested Antenna", null=True, blank=True)
 
+    assigned = models.BooleanField(default=True, blank=True)
+
     requester = models.ForeignKey(User, null=True, blank=True)
     request_date = models.DateTimeField(null=True, blank=True)
 
