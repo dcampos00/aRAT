@@ -1,5 +1,5 @@
 {% extends 'base.djhtml' %}
-{% load partition %}
+{% load replace %}
 
 {% block PageTitle %}
 - CORR
@@ -20,26 +20,29 @@
   {% for correlator, corrs in corrs.items %}
   <div class="tab-pane" id="{{ correlator|lower }}">  
     <div class="row-fluid">
-      <div id="alerts-{{ location|lower }}"></div>
+      <div id="alerts-{{ location|lower }}" class="row-fluid alerts-container"></div>
+      <div class="row-fluid">
+        <form class="pull-right"><input type="text" class="filter" placeholder="Filter by Configuration Columns"></form>
+      </div>
       <div class="row-fluid">
 	<div class="span12">
 	  <div class="row-fluid">
-	    <table class="table table-bordered">
+	    <table class="table table-bordered datatable">
 	      {% for corr in corrs %}
 	      {% if forloop.first %}
 	      <thead>
 		<tr>
 		  <th>Antenna</th>			
-		  {% for i in corr %}<th>{{ i }}</th>{% endfor %}
+		  {% for i in corr.get_line_display.split %}<th>{{ i|replace_by_space:"-" }}</th>{% endfor %}
 		</tr>
 	      </thead>
 	      <tbody>
 	        {% else %}
-	        <tr class="">
-		  <td class="change-antenna">
-		    <div class="text-antenna">Unassigned {{ forloop.counter }}</div>
+	        <tr class="" data-corr-line="{{ corr.line }}">
+		  <td class="change-antenna droppable">
+		    <div class="text-antenna draggable" data-antenna-id="{{ corr.current_antenna.id }}">{{ corr.current_antenna }}</div>
 		  </td>
-		  {% for i in corr %}<td>{{ i }}</td>{% endfor %}
+		  {% for i in corr.get_line_display.split %}<td>{{ i|replace_by_space:"-" }}</td>{% endfor %}
 	        </tr>
 	      {% endif %}
 	        {% if forloop.last %}</tbody>{% endif %}
@@ -55,7 +58,7 @@
 
 <div class="antenna-change-select hide original">
   <input type="hidden" data-rel="select2" data-placeholder="Antenna"/><br/>
-  <button type="button" class="btn btn-primary"><i class="icon-ok"></i></button>
+  <button type="button" class="btn btn-apply btn-primary"><i class="icon-ok"></i></button>
   <button type="button" class="btn btn-cancel-select"><i class="icon-remove"></i></button>
 </div>
 
@@ -68,6 +71,83 @@ var antennas = [
   {% for antenna in antennas %}{id: {{ forloop.counter }}, text: '{{ antenna }}'}{% if not forloop.last %}, {% endif %}{% endfor %}
                ];
 
+var refreshTimer;
+
+function refresh(start){
+  if (start == true) {
+    clearInterval(refreshTimer);
+    refreshTimer = null;  
+
+    refreshTimer = setInterval(function(){
+      Dajaxice.aRAT.apps.home.corr_update_alerts(Dajax.process);
+    }, 3000);
+  } else {
+    clearInterval(refreshTimer);
+    refreshTimer = null;  
+  }
+}  
+
+function update_status(data){
+  var tr = $("tr[data-corr-line='"+data.corr.line+"']");
+  tr.removeClass("btn-danger btn-success");
+  if (data.requested_antenna.id != null || (data.current_antenna.id != null && data.corr.assigned == false)) {
+    if(data.corr.assigned == false){
+      data.requested_antenna.name = "None";
+      data.requested_antenna.line = "None";
+    }
+    tr.find(".text-antenna").text(data.requested_antenna.name).data("antennaId", data.requested_antenna.id);
+
+    alerts = tr.parents(".tab-pane").find(".alerts-container");
+
+    if (data.error[0] != null){
+      tr.addClass("btn-danger");
+      alert_type = "alert-error";
+      alert_text = data.requested_antenna.name+" will be changed to "+data.corr.name+" configuration";
+      alert_text += ", but "+data.requested_antenna.name+" also will be have "+data.error+" configuration(s)";
+    } else {
+      tr.addClass("btn-success");
+      alert_type = "alert-success";
+      if(data.corr.assigned == true){
+        alert_text = data.requested_antenna.name+" will be changed to "+data.corr.name+" configuration";
+      } else {
+        alert_text = "The "+data.corr.name+" configuration will be unassigned";
+      }
+    }
+    alert_text += " -- Request done by "+data.user.first_name+" "+data.user.last_name;
+    alert_text += " on "+data.datetime.date+" at "+data.datetime.time;
+    updateAlert(alerts, alert_type, alert_text, data.corr.line);
+
+  } else {
+    alerts = tr.parents(".tab-pane").find(".alerts-container");
+    alert_div = alerts.find("[data-id='"+data.corr.line+"']");
+    if (alert_div.length > 0) {
+      alert_div.remove();
+    }
+    if(data.current_antenna.name == null){
+      data.current_antenna.name = "None";
+      data.current_antenna.id = "None";
+    }
+    tr.find(".text-antenna").text(data.current_antenna.name).data("antennaId", data.current_antenna.id);
+  }
+}
+
+function updateAlert(alerts_div, type, text, id) {
+  alert_div = alerts_div.find("[data-id='"+id+"']");
+  /* is proved if exist the alert */
+  if (alert_div.length > 0) {
+    /* if exist the content is updated */
+    alert_div.children(".alert-text").html(text);
+    alert_div.attr("class", "alert").addClass(type);
+  } else {
+    /* if does not exist the alert is created */
+    html_alert = "<div class=\"alert "+type+"\" data-id=\""+id+"\">";
+    html_alert += "<button type=\"button\" class=\"close close-alert\" data-dismiss=\"alert\">&times;</button>";
+    html_alert += "<div class=\"alert-text\">"+text+"</div>";
+    html_alert += "</div>";
+    alerts_div.append( html_alert );
+  }
+}
+
 $(document).ready(function () {
   
   $("#correlatorsTab a:first").tab('show');
@@ -76,32 +156,83 @@ $(document).ready(function () {
     $(this).tab('show');
   });
 
-  $("tbody").sortable({
-    items: "td.change-antenna",
-    helper: "clone",
-    distance: 5,
-    opacity: .7,
-    start: function(e, ui){
-      $("tbody").find("td:hidden").show();    
-      ui.item.data("original-parent", ui.item.parent())
-    },
-    beforeStop: function(e, ui){
-      var sibling = ui.item.siblings(".change-antenna");    
-      sibling.data("original-parent", sibling.parent());
-      ui.item.data("original-parent").prepend(sibling);
-      var sortable = ui.item.parent().parent();
-      
-      bootbox.confirm("Are you sure?", function(result) {
-        if(result){
-          ui.item.data("original-parent").prepend(ui.item.siblings(".change-antenna"));
-        } else {
-          sortable.sortable("cancel");
-          sibling.data("original-parent").prepend(sibling);
-          sibling.siblings(".ui-sortable-placeholder").remove();    
-        }
-      });
-    },
+  /* customized filter to datatable */
+  $(".filter").bind("keyup", function(e){
+    $(".filter").not(this).val($(this).val());
+    var input = $(this);
+    $(".datatable").each( function() {
+      $(this).dataTable().fnFilter(input.val())
+    });
   });
+
+  $(".datatable").dataTable({
+    "bPaginate": false,
+    "bInfo": false,
+    "bSort": false,
+    "bJQueryUI": false,
+    "sDom": 'tr',
+    "aoColumnDefs": [{"aTargets": [ 0 ], "bSearchable": false}],
+  });
+
+  /* Drag and Drop Interaction */
+
+  $(".draggable").draggable({
+    helper: "clone",
+    revert: "invalid",
+    scroll: true,
+    cursor: "move",
+    distance: 5,
+    start: function (event, ui) {
+      $(this).data("original-parent", $(this).parent("td.change-antenna"));
+    }
+  });
+
+  $(".droppable").droppable({
+    tolerance: "pointer",
+    over: function (event, ui) {
+      $(this).parent("tr").addClass("btn-info");
+    },
+    out: function (event, ui) {
+      $(this).parent("tr").removeClass("btn-info");
+    },
+    drop: function (event, ui) {
+      refresh(false);
+      $(this).parent("tr").removeClass("btn-info");
+
+      droppable = $(this);
+      current_content = droppable.find("div.draggable");
+      change_content = ui.draggable;
+
+
+      if( change_content[0] != current_content[0] ){
+        change_content.data("original-parent").append(current_content);
+        $(this).append(change_content);
+
+        
+        /* is requested the confirmation */
+        bootbox.confirm("Are you sure?", function(result) {
+          if(result){
+            corr_line_1 = change_content.data("original-parent").parent().data("corrLine");
+            antenna_id_1 = change_content.data("antennaId");
+            corr_line_2 = droppable.parent().data("corrLine");
+            antenna_id_2 = current_content.data("antennaId");
+            
+            Dajaxice.aRAT.apps.home.corr_update_alerts(Dajax.process, {'configuration_line': corr_line_1, 'antenna_id': antenna_id_2});
+            Dajaxice.aRAT.apps.home.corr_update_alerts(Dajax.process, {'configuration_line': corr_line_2, 'antenna_id': antenna_id_1});
+            refresh(true);
+          } else {
+            change_content.data("original-parent").append(change_content);
+            droppable.append(current_content);
+            refresh(true);
+          }
+        });
+      }
+    }
+  });
+
+  $("td").disableSelection(); /* The selection in td DOM is unable disabled to facilitate the Drag n Drop */
+
+  /* End Drag and Drop Interaction */
 
   $("td.change-antenna").click(function(e) {
     if($(".antenna-change-select").is(":visible")){
@@ -122,14 +253,51 @@ $(document).ready(function () {
     }
   });
 
+  /* close alert action */
+  $(document).on("click",".close-alert", function(e) {
+    var button = $(this);
+    bootbox.confirm("Are you sure?", function (result) {
+      if (result) {
+        corr_line = button.parents("div.alert").data("id");
+        Dajaxice.aRAT.apps.home.corr_update_alerts(Dajax.process,
+                                                  {'configuration_line': corr_line,
+                                                  });
+      }
+    });
+  });
+  
+  /* cancel the select form */
   $(document).on("click",".btn-cancel-select", function(e) {
     e.preventDefault();
     if($(this).parent().is(":visible")){
       $(this).parents("td").children(".text-antenna").show();
       $(this).parent(".antenna-change-select").remove();
+      $("tbody").sortable( "enable" );
     }
     e.stopPropagation();    
-  }); 
+  });
+
+  /* apply selection in select form */
+  $(document).on("click",".btn-apply", function(e) {
+    e.preventDefault();
+    if($(this).parent().is(":visible")){
+      corr_line = $(this).parents("tr").data("corrLine");
+      antenna_id = $(this).parent().children("[data-rel='select2']").val();
+
+      if(corr_line != "" && antenna_id != ""){
+        Dajaxice.aRAT.apps.home.corr_update_alerts(Dajax.process, {'antenna_id': antenna_id, 'configuration_line': corr_line});
+        
+        $(this).parents("td").children(".text-antenna").show();
+        $(this).parent(".antenna-change-select").remove();
+      }
+    }
+    e.stopPropagation();    
+  });
+
+  /* first call to the updater */
+  Dajaxice.aRAT.apps.home.corr_update_alerts(Dajax.process);
+  /* activivation of the auto refresh */
+  refresh(true);
 });
 </script>
 {% endblock %}
