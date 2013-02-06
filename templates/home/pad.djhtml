@@ -16,18 +16,19 @@
   {% for location, pads in pads.items %}
   <div class="tab-pane" id="{{ location|lower }}">  
     <div class="row-fluid">
-      <div id="alerts-{{ location|lower }}" class="alerts-container"></div>
+      <div id="alerts-{{ location|lower }}" class="row-fluid alerts-container"></div>
+      <div class="row-fluid"><form class="pull-right"><input type="text" class="filter" placeholder="Filter by PAD"></form></div>
       <div class="row-fluid">
 	{% for pads_by_cols in pads|rows_distributed:"3" %}  
 	<div class="span4">
 	  <div class="row-fluid">
-	    <table class="table table-bordered">
+	    <table class="table table-bordered datatable">
 	      <thead>
 		<tr>
 		  <th>PAD</th><th>Antenna</th>
 		</tr>
 	      </thead>
-	      <tbody class="sortable connected-sortable">
+	      <tbody>
 		{% for pad in pads_by_cols %}
 		<tr class="pad-container" data-pad-id="{{ pad.id }}">
 		  <td>
@@ -61,8 +62,8 @@
 
 {% block Javascript %}
 <script type="text/javascript">
-var antennas = [
-  {% for antenna in antennas %}{id: {{ antenna.id }}, text: '{{ antenna }}'}{% if not forloop.last %}, {% endif %}{% endfor %}
+var antennas = [{id: 'None', text: 'None'},
+    {% for antenna in antennas %}{id: {{ antenna.id }}, text: '{{ antenna }}'}{% if not forloop.last %}, {% endif %}{% endfor %}
                ];
 
 var refreshTimer;
@@ -83,32 +84,40 @@ function refresh(start){
 
 function update_status(data){
   var tr = $("tr[data-pad-id='"+data.pad.id+"']");
-  if (data.requested_antenna.id != null) {
-    tr.removeClass();
+  tr.removeClass("btn-danger btn-success");
+  if (data.requested_antenna.id != null || (data.current_antenna.id != null && data.pad.assigned == false)) {
+    if(data.pad.assigned == false){
+      data.requested_antenna.name = "None";
+      data.requested_antenna.id = "None";
+    }
     tr.find(".text-antenna").text(data.requested_antenna.name).data("antennaId", data.requested_antenna.id);
 
     alerts = tr.parents(".tab-pane").find(".alerts-container");
 
     if (data.error[0] != null){
       tr.addClass("btn-danger");
-      updateAlert(alerts,
-                  "alert-error",
-                  data.requested_antenna.name+" will be changed to "+data.pad.name+", but "+data.requested_antenna.name+" also will be changed to "+data.error,
-                  data.pad.id);
+      alert_type = "alert-error";
+      alert_text = data.requested_antenna.name+" will be changed to "+data.pad.name;
+      alert_text += ", but "+data.requested_antenna.name+" also will be on PAD(s) "+data.error;
     } else {
       tr.addClass("btn-success");
-      updateAlert(alerts,
-                  "alert-success",
-                  data.requested_antenna.name+" will be changed to "+data.pad.name,
-                  data.pad.id);
+      alert_type = "alert-success";
+      if(data.pad.assigned == true){
+        alert_text = data.requested_antenna.name+" will be changed to "+data.pad.name;
+      } else {
+        alert_text = "The PAD "+data.pad.name+" will be unassigned";
+      }
     }
+    alert_text += " -- Request done by "+data.user.first_name+" "+data.user.last_name;
+    alert_text += " on "+data.datetime.date+" at "+data.datetime.time;
+    updateAlert(alerts, alert_type, alert_text, data.pad.id);
+
   } else {
     alerts = tr.parents(".tab-pane").find(".alerts-container");
-    alert = alerts.find("[data-id='"+data.pad.id+"']");
-    if (alert.length > 0) {
-      alert.remove();
+    alert_div = alerts.find("[data-id='"+data.pad.id+"']");
+    if (alert_div.length > 0) {
+      alert_div.remove();
     }
-    tr.removeClass("btn-success");
     if(data.current_antenna.name == null){
       data.current_antenna.name = "None";
       data.current_antenna.id = "None";
@@ -118,14 +127,14 @@ function update_status(data){
 }
 
 function updateAlert(alerts_div, type, text, id) {
-  alert = alerts_div.find("[data-id='"+id+"']");
-  // is proved if exist the alert
-  if (alert.length > 0) {
-    // if exist the content is updated
-    alert.children(".alert-text").html(text);
-    alert.attr("class", "alert").addClass(type);
+  alert_div = alerts_div.find("[data-id='"+id+"']");
+  /* is proved if exist the alert */
+  if (alert_div.length > 0) {
+    /* if exist the content is updated */
+    alert_div.children(".alert-text").html(text);
+    alert_div.attr("class", "alert").addClass(type);
   } else {
-    // if does not exist the alert is created
+    /* if does not exist the alert is created */
     html_alert = "<div class=\"alert "+type+"\" data-id=\""+id+"\">";
     html_alert += "<button type=\"button\" class=\"close close-alert\" data-dismiss=\"alert\">&times;</button>";
     html_alert += "<div class=\"alert-text\">"+text+"</div>";
@@ -142,6 +151,23 @@ $(document).ready(function () {
     $(this).tab('show');
   });
   
+  $(".filter").bind("keyup", function(e){
+    $(".filter").not(this).val($(this).val());
+    var input = $(this);
+    $(".datatable").each( function() {
+      $(this).dataTable().fnFilter(input.val())
+    });
+  });
+
+  $("table").dataTable({
+    "bPaginate": false,
+    "bInfo": false,
+    "bSort": false,
+    "aoColumns": [{"bSearchable": true},{"bSearchable":false}],
+                        "bJQueryUI": false,
+                        "sDom": 'tr'
+  });
+
   $(".draggable").draggable({
     helper: "clone",
     revert: "invalid",
@@ -162,33 +188,37 @@ $(document).ready(function () {
       $(this).parent("tr").removeClass("btn-info");
     },
     drop: function (event, ui) {
+      refresh(false);
       $(this).parent("tr").removeClass("btn-info");
 
       droppable = $(this);
       current_content = droppable.find("div.draggable");
       change_content = ui.draggable;
 
-      change_content.data("original-parent").append(current_content);
-      $(this).append(change_content);
-      
-      // is requested the confirmation
-      bootbox.confirm("Are you sure?", function(result) {
-        if(result){
-          pad_id_1 = change_content.data("original-parent").parent().data("padId");
-          antenna_id_1 = change_content.data("antennaId");
-          pad_id_2 = droppable.parent().data("padId");
-          antenna_id_2 = current_content.data("antennaId");
 
-          if (antenna_id_1 == 'None'){ antenna_id_1 = '';}
-          if (antenna_id_2 == 'None'){ antenna_id_2 = '';}
+      if( change_content[0] != current_content[0] ){
+        change_content.data("original-parent").append(current_content);
+        $(this).append(change_content);
 
-          Dajaxice.aRAT.apps.home.pad_update_alerts(Dajax.process, {'pad_id': pad_id_1, 'antenna_id': antenna_id_2});
-          Dajaxice.aRAT.apps.home.pad_update_alerts(Dajax.process, {'pad_id': pad_id_2, 'antenna_id': antenna_id_1});
-        } else {
-          ui.draggable.data("original-parent").append(ui.draggable);
-          droppable.append(current_content);
-        }
-      });
+        
+        /* is requested the confirmation */
+        bootbox.confirm("Are you sure?", function(result) {
+          if(result){
+            pad_id_1 = change_content.data("original-parent").parent().data("padId");
+            antenna_id_1 = change_content.data("antennaId");
+            pad_id_2 = droppable.parent().data("padId");
+            antenna_id_2 = current_content.data("antennaId");
+            
+            Dajaxice.aRAT.apps.home.pad_update_alerts(Dajax.process, {'pad_id': pad_id_1, 'antenna_id': antenna_id_2});
+            Dajaxice.aRAT.apps.home.pad_update_alerts(Dajax.process, {'pad_id': pad_id_2, 'antenna_id': antenna_id_1});
+            refresh(true);
+          } else {
+            change_content.data("original-parent").append(change_content);
+            droppable.append(current_content);
+            refresh(true);
+          }
+        });
+      }
     }
   });
 
@@ -252,7 +282,7 @@ $(document).ready(function () {
   });
 
   Dajaxice.aRAT.apps.home.pad_update_alerts(Dajax.process);
-//  refresh(true);
+  refresh(true);
 });
 </script>
 {% endblock %}
