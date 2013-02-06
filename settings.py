@@ -31,6 +31,8 @@ AUTHENTICATION_BACKENDS = (
 # END LDAP Configuration
 
 CONFIGURATION_DIR = os.path.join( os.path.dirname( os.path.abspath(__file__) ), 'configuration/' )
+COMPRESS_HTML = True
+AUTO_LOGOUT_DELAY = 10
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -128,7 +130,9 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'aRAT.middleware.AutoLogoutMiddleware',
+    'aRAT.middleware.MinifyHTMLMiddleware'
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
