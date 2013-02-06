@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Feb 05, 2013 at 01:02 PM
+-- Generation Time: Feb 06, 2013 at 06:08 PM
 -- Server version: 5.5.29
 -- PHP Version: 5.4.6-1ubuntu1.1
 
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `auth_permission` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `content_type_id` (`content_type_id`,`codename`),
   KEY `auth_permission_e4470c6e` (`content_type_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=31 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=37 ;
 
 -- --------------------------------------------------------
 
@@ -159,7 +159,7 @@ CREATE TABLE IF NOT EXISTS `django_admin_log` (
   PRIMARY KEY (`id`),
   KEY `django_admin_log_fbfc09f1` (`user_id`),
   KEY `django_admin_log_e4470c6e` (`content_type_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=10 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=14 ;
 
 -- --------------------------------------------------------
 
@@ -175,7 +175,7 @@ CREATE TABLE IF NOT EXISTS `django_content_type` (
   `model` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `app_label` (`app_label`,`model`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=11 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=13 ;
 
 -- --------------------------------------------------------
 
@@ -222,7 +222,51 @@ CREATE TABLE IF NOT EXISTS `home_antenna` (
   `request_date` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `home_antenna_b8ca8b9f` (`requester_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=66 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=67 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `home_centrallo`
+--
+
+DROP TABLE IF EXISTS `home_centrallo`;
+CREATE TABLE IF NOT EXISTS `home_centrallo` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `line` int(11) NOT NULL,
+  `current_antenna_id` int(11) DEFAULT NULL,
+  `requested_antenna_id` int(11) DEFAULT NULL,
+  `assigned` tinyint(1) NOT NULL,
+  `requester_id` int(11) DEFAULT NULL,
+  `request_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `line` (`line`),
+  UNIQUE KEY `current_antenna_id` (`current_antenna_id`),
+  KEY `home_centrallo_62753b47` (`requested_antenna_id`),
+  KEY `home_centrallo_b8ca8b9f` (`requester_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=74 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `home_correlator`
+--
+
+DROP TABLE IF EXISTS `home_correlator`;
+CREATE TABLE IF NOT EXISTS `home_correlator` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `line` int(11) NOT NULL,
+  `current_antenna_id` int(11) DEFAULT NULL,
+  `requested_antenna_id` int(11) DEFAULT NULL,
+  `assigned` tinyint(1) NOT NULL,
+  `requester_id` int(11) DEFAULT NULL,
+  `request_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `line` (`line`),
+  KEY `home_correlator_38f06868` (`current_antenna_id`),
+  KEY `home_correlator_62753b47` (`requested_antenna_id`),
+  KEY `home_correlator_b8ca8b9f` (`requester_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=88 ;
 
 -- --------------------------------------------------------
 
@@ -236,6 +280,7 @@ CREATE TABLE IF NOT EXISTS `home_pad` (
   `name` varchar(5) NOT NULL,
   `current_antenna_id` int(11) DEFAULT NULL,
   `requested_antenna_id` int(11) DEFAULT NULL,
+  `assigned` tinyint(1) NOT NULL,
   `requester_id` int(11) DEFAULT NULL,
   `request_date` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -290,12 +335,28 @@ ALTER TABLE `home_antenna`
   ADD CONSTRAINT `requester_id_refs_id_aa61ccb1` FOREIGN KEY (`requester_id`) REFERENCES `auth_user` (`id`);
 
 --
+-- Constraints for table `home_centrallo`
+--
+ALTER TABLE `home_centrallo`
+  ADD CONSTRAINT `requested_antenna_id_refs_id_e50c0ce` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`id`),
+  ADD CONSTRAINT `current_antenna_id_refs_id_e50c0ce` FOREIGN KEY (`current_antenna_id`) REFERENCES `home_antenna` (`id`),
+  ADD CONSTRAINT `requester_id_refs_id_d5f6f202` FOREIGN KEY (`requester_id`) REFERENCES `auth_user` (`id`);
+
+--
+-- Constraints for table `home_correlator`
+--
+ALTER TABLE `home_correlator`
+  ADD CONSTRAINT `requested_antenna_id_refs_id_72f60272` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`id`),
+  ADD CONSTRAINT `current_antenna_id_refs_id_72f60272` FOREIGN KEY (`current_antenna_id`) REFERENCES `home_antenna` (`id`),
+  ADD CONSTRAINT `requester_id_refs_id_6927505e` FOREIGN KEY (`requester_id`) REFERENCES `auth_user` (`id`);
+
+--
 -- Constraints for table `home_pad`
 --
 ALTER TABLE `home_pad`
-  ADD CONSTRAINT `requested_antenna_id_refs_id_f8b00e53` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`id`),
+  ADD CONSTRAINT `requester_id_refs_id_24362f31` FOREIGN KEY (`requester_id`) REFERENCES `auth_user` (`id`),
   ADD CONSTRAINT `current_antenna_id_refs_id_f8b00e53` FOREIGN KEY (`current_antenna_id`) REFERENCES `home_antenna` (`id`),
-  ADD CONSTRAINT `requester_id_refs_id_24362f31` FOREIGN KEY (`requester_id`) REFERENCES `auth_user` (`id`);
+  ADD CONSTRAINT `requested_antenna_id_refs_id_f8b00e53` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`id`);
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
