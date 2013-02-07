@@ -10,6 +10,8 @@
 {% endblock %}
 
 {% block Content %}
+<div id="debug">DIV DEBUG</div>
+
 <ul class="nav nav-tabs" id="correlatorsTab">
   {% for correlator in correlators %}
   <li><a href="#{{ correlator|lower }}">{{ correlator }}</a></li>
@@ -61,8 +63,6 @@
   <button type="button" class="btn btn-apply btn-primary"><i class="icon-ok"></i></button>
   <button type="button" class="btn btn-cancel-select"><i class="icon-remove"></i></button>
 </div>
-
-<div id="debug">DIV DEBUG</div>
 {% endblock %}
 
 {% block Javascript %}
