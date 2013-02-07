@@ -10,6 +10,7 @@ urlpatterns = patterns('aRAT.apps.home.views',
     url(r'^steConfiguration$', 'ste_configuration_view', name='ste_configuration_view'),
     url(r'^corrConfiguration$', 'corr_configuration_view', name='corr_configuration_view'),
     url(r'^cloConfiguration$', 'clo_configuration_view', name='clo_configuration_view'),
+    url(r'^holografyConfiguration$', 'holografy_configuration_view', name='holografy_configuration_view'),
 
     # Log In user
     url(r'^login$', 'login_user_view', name="login_user_view"),
