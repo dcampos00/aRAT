@@ -3,7 +3,7 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 
 # models
-from aRAT.apps.home.models import Antenna, PAD, Correlator, CentralLO
+from aRAT.apps.home.models import Antenna, PAD, CorrelatorConfiguration, CentralLO
 from aRAT.apps.common.models import settings as app_settings
 from django.conf import settings
 
@@ -111,15 +111,15 @@ def pad_configuration_view(request):
     pads = [(l, []) for l in locations]
     pads = dict(l for l in pads)
 
-    for pad in open(settings.CONFIGURATION_DIR+'pads.cfg').readlines():
-        pad = pad.strip()
-        if pad:
-            pad_name, location = pad.split()
-            if PAD.objects.filter(name=pad_name):
-                pad = PAD.objects.get(name=pad_name)
+    for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'pads.cfg')):
+        line_string = line_string.strip()
+        if line_string:
+            pad_name, location = line_string.split()
+            if PAD.objects.filter(line=line_number):
+                pad = PAD.objects.get(line=line_number)
                 pads[location].append(pad)
             else:
-                new_pad = PAD(name=pad_name)
+                new_pad = PAD(line=line_number)
                 new_pad.save()
                 pads[location].append(new_pad)
 
@@ -150,18 +150,22 @@ def corr_configuration_view(request):
     corrs = [(c, []) for c in correlators]
     corrs = dict(c for c in corrs)
 
-    for line_number, corr in enumerate(open(settings.CONFIGURATION_DIR+'corr.cfg')):
-        corr.strip()
-        if corr:
-            line = corr.split()
-            line[0:-1] = [x.replace('-', ' ') for x in line[0:-1]]
-            if Correlator.objects.filter(line=line_number):
-                corr = Correlator.objects.get(line=line_number)
-                corrs[line[-1]].append(corr)
+    for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'corr.cfg')):
+        line_string.strip()
+        if line_string:
+            line_list = line_string.split()
+            line_list[0:-1] = [x.replace('-', ' ') for x in line_list[0:-1]]
+            if line_string[0] == "#":
+                corrs[line_list[-1]].append(line_list[0:-1])
             else:
-                new_corr = Correlator(line=line_number, c_line=line_number)
-                new_corr.save()
-                corrs[line[-1]].append(new_corr)
+                if CorrelatorConfiguration.objects.filter(line=line_number):
+                    corr_config = CorrelatorConfiguration.objects.get(line=line_number)
+                    if corr_config.active:
+                        corrs[line_list[-1]].append(corr_config)
+                else:
+                    new_corr_config = CorrelatorConfiguration(line=line_number)
+                    new_corr_config.save()
+                    corrs[line_list[-1]].append(new_corr_config)
 
     ctx = {'error': error,
            'read_only': block_status.value,
