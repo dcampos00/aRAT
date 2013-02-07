@@ -66,7 +66,7 @@
 {% block Javascript %}
 <script type="text/javascript">
 var antennas = [
-  {% for antenna in antennas %}{id: {{ forloop.counter }}, text: '{{ antenna }}'}{% if not forloop.last %}, {% endif %}{% endfor %}
+  {% for antenna in antennas %}{id: {{ antenna.id }}, text: '{{ antenna }}'}{% if not forloop.last %}, {% endif %}{% endfor %}
                ];
 
 var refreshTimer;
