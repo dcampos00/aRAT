@@ -144,7 +144,8 @@ def corr_configuration_view(request):
     block_status = app_settings.objects.get(setting='BLOCK')
 
     correlators = [i.strip() for i in open(settings.CONFIGURATION_DIR+'correlators.cfg').readlines() if i.strip()]
-    antennas = [i.strip().split()[0] for i in open(settings.CONFIGURATION_DIR+'antennas.cfg').readlines() if i.strip()]
+    # the antennas are loaded from the db
+    antennas = Antenna.objects.all()
 
     corrs = [(c, []) for c in correlators]
     corrs = dict(c for c in corrs)
@@ -184,7 +185,8 @@ def clo_configuration_view(request):
     block_status = app_settings.objects.get(setting='BLOCK')
 
     centrallos = [i.strip() for i in open(settings.CONFIGURATION_DIR+'centrallos.cfg').readlines() if i.strip()]
-    antennas = [i.strip().split()[0] for i in open(settings.CONFIGURATION_DIR+'antennas.cfg').readlines() if i.strip()]
+    # the antennas are loaded from the db
+    antennas = Antenna.objects.all()
 
     clos = [(c, []) for c in centrallos]
     clos = dict(c for c in clos)
