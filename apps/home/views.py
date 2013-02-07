@@ -159,7 +159,7 @@ def corr_configuration_view(request):
                 corr = Correlator.objects.get(line=line_number)
                 corrs[line[-1]].append(corr)
             else:
-                new_corr = Correlator(line=line_number)
+                new_corr = Correlator(line=line_number, c_line=line_number)
                 new_corr.save()
                 corrs[line[-1]].append(new_corr)
 
@@ -212,3 +212,5 @@ def clo_configuration_view(request):
            }
     return render_to_response('home/clo.djhtml', ctx, context_instance=RequestContext(request))
 
+def holografy_configuration_view(request):
+    return render_to_response('base.djhtml', context_instance=RequestContext(request))
