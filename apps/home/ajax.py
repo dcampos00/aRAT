@@ -3,7 +3,7 @@ from datetime import datetime
 from dajax.core import Dajax
 from dajaxice.decorators import dajaxice_register
 
-from aRAT.apps.home.models import Antenna, PAD, Correlator, CentralLO
+from aRAT.apps.home.models import Antenna, PAD, CorrelatorConfiguration, CentralLO
 from django.db.models import F, Q
 
 from aRAT.apps.common.models import settings as app_settings
@@ -82,7 +82,7 @@ def pad_update_alerts(request, pad_id='', antenna_id=''):
     
     # first the pad information is updated
     if pad_id != '':
-        pad = PAD.objects.get(id=pad_id)
+        pad = PAD.objects.get(line=pad_id)
         if antenna_id == 'None' and pad.current_antenna != None:
             pad.assigned = False
             pad.requested_antenna = None
@@ -99,16 +99,10 @@ def pad_update_alerts(request, pad_id='', antenna_id=''):
     # is loaded all current status of the ste configuration
     pads = PAD.objects.all()
     for pad in pads:
-
-        pad_errors = []
+        
+        pad_errors = None
         if pad.requested_antenna != None:
-            for pad2 in PAD.objects.all():
-                if pad != pad2:
-                    if pad.requested_antenna == pad2.requested_antenna:
-                        pad_errors.append(pad2.name)
-                    elif pad.requested_antenna == pad2.current_antenna and pad2.requested_antenna == None and pad2.assigned == True:
-                        pad_errors.append(pad2.name)
-                    
+            pad_errors = pad.restriction_errors()
 
         current_antenna_name = current_antenna_id = None
         requested_antenna_name = requested_antenna_id = None
@@ -133,7 +127,7 @@ def pad_update_alerts(request, pad_id='', antenna_id=''):
             request_date = pad.request_date.strftime(DATE_FORMAT)
             request_time = pad.request_date.strftime(TIME_FORMAT)
 
-        dajax.add_data({'pad': {'id': pad.id, 'name': pad.name, 'assigned': pad.assigned},
+        dajax.add_data({'pad': {'id': pad.line, 'name': pad.name(), 'assigned': pad.assigned},
                         'current_antenna': {'id': current_antenna_id, 'name': current_antenna_name},
                         'requested_antenna': {'id': requested_antenna_id, 'name': requested_antenna_name},
                         'user': {'first_name': requester_first_name, 'last_name': requester_last_name},
@@ -154,7 +148,7 @@ def corr_update_alerts(request, configuration_line='', antenna_id=''):
 
     # first the pad information is updated
     if configuration_line != '':
-        corr = Correlator.objects.get(line=configuration_line)
+        corr = CorrelatorConfiguration.objects.get(line=configuration_line)
         if antenna_id == 'None' and corr.current_antenna != None:
             corr.assigned = False
             corr.requested_antenna = None
@@ -169,24 +163,14 @@ def corr_update_alerts(request, configuration_line='', antenna_id=''):
         corr.save()
 
     # is loaded all current status of the ste configuration
-    corr_configuration_file = [line for ln, line in enumerate(open(settings.CONFIGURATION_DIR+'corr.cfg'))]
-    corrs = Correlator.objects.all()
-    for corr in corrs:
+    for corr in CorrelatorConfiguration.objects.all():
 
-        corr_errors = []
+        corr_errors = None
         if corr.requested_antenna != None:
-            corr_name = corr.get_c_line_display().split()[-1]
-            for corr2 in Correlator.objects.all():
-                if corr != corr2:
-                    corr2_name = corr2.get_c_line_display().split()[-1]
-                    if not ((corr_name == 'BL-Corr' and corr2_name == 'ACA-Corr') or (corr_name == 'ACA-Corr' and corr2_name == 'BL-Corr')):
-                        dajax.assign('#debug', 'innerHTML', '%s %s'%(corr_name, corr2_name))
-                        if corr.requested_antenna == corr2.requested_antenna:
-                            corr_errors.append(corr2.get_line_display())
-                        elif corr.requested_antenna == corr2.current_antenna and corr2.requested_antenna == None and corr2.assigned == True:
-                            corr_errors.append(corr2.get_line_display())
-                    
+            corr_errors = corr.restriction_errors()
 
+        # the antenna values are set to None to avoid errors
+        # if current_antenna and requested_antenna are not object
         current_antenna_name = current_antenna_id = None
         requested_antenna_name = requested_antenna_id = None
 
@@ -197,6 +181,8 @@ def corr_update_alerts(request, configuration_line='', antenna_id=''):
             requested_antenna_name = corr.requested_antenna.name
             requested_antenna_id = corr.requested_antenna.id
 
+        # the values of thne request are set to None to avoid errors
+        # if the requester and request_date are not objects
         requester_first_name = None
         requester_last_name = None
         request_date = None
@@ -210,7 +196,7 @@ def corr_update_alerts(request, configuration_line='', antenna_id=''):
             request_date = corr.request_date.strftime(DATE_FORMAT)
             request_time = corr.request_date.strftime(TIME_FORMAT)
 
-        dajax.add_data({'corr': {'line': corr.line, 'name': corr.get_line_display(), 'assigned': corr.assigned},
+        dajax.add_data({'corr': {'line': corr.line, 'name': corr.configuration(), 'assigned': corr.assigned},
                         'current_antenna': {'id': current_antenna_id, 'name': current_antenna_name},
                         'requested_antenna': {'id': requested_antenna_id, 'name': requested_antenna_name},
                         'user': {'first_name': requester_first_name, 'last_name': requester_last_name},
