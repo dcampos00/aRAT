@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Feb 06, 2013 at 06:08 PM
+-- Generation Time: Feb 07, 2013 at 01:19 PM
 -- Server version: 5.5.29
 -- PHP Version: 5.4.6-1ubuntu1.1
 
@@ -256,6 +256,7 @@ DROP TABLE IF EXISTS `home_correlator`;
 CREATE TABLE IF NOT EXISTS `home_correlator` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `line` int(11) NOT NULL,
+  `c_line` int(11) NOT NULL,
   `current_antenna_id` int(11) DEFAULT NULL,
   `requested_antenna_id` int(11) DEFAULT NULL,
   `assigned` tinyint(1) NOT NULL,
@@ -263,6 +264,7 @@ CREATE TABLE IF NOT EXISTS `home_correlator` (
   `request_date` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `line` (`line`),
+  UNIQUE KEY `c_line` (`c_line`),
   KEY `home_correlator_38f06868` (`current_antenna_id`),
   KEY `home_correlator_62753b47` (`requested_antenna_id`),
   KEY `home_correlator_b8ca8b9f` (`requester_id`)
@@ -338,8 +340,8 @@ ALTER TABLE `home_antenna`
 -- Constraints for table `home_centrallo`
 --
 ALTER TABLE `home_centrallo`
-  ADD CONSTRAINT `requested_antenna_id_refs_id_e50c0ce` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`id`),
   ADD CONSTRAINT `current_antenna_id_refs_id_e50c0ce` FOREIGN KEY (`current_antenna_id`) REFERENCES `home_antenna` (`id`),
+  ADD CONSTRAINT `requested_antenna_id_refs_id_e50c0ce` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`id`),
   ADD CONSTRAINT `requester_id_refs_id_d5f6f202` FOREIGN KEY (`requester_id`) REFERENCES `auth_user` (`id`);
 
 --
@@ -354,9 +356,9 @@ ALTER TABLE `home_correlator`
 -- Constraints for table `home_pad`
 --
 ALTER TABLE `home_pad`
-  ADD CONSTRAINT `requester_id_refs_id_24362f31` FOREIGN KEY (`requester_id`) REFERENCES `auth_user` (`id`),
   ADD CONSTRAINT `current_antenna_id_refs_id_f8b00e53` FOREIGN KEY (`current_antenna_id`) REFERENCES `home_antenna` (`id`),
-  ADD CONSTRAINT `requested_antenna_id_refs_id_f8b00e53` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`id`);
+  ADD CONSTRAINT `requested_antenna_id_refs_id_f8b00e53` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`id`),
+  ADD CONSTRAINT `requester_id_refs_id_24362f31` FOREIGN KEY (`requester_id`) REFERENCES `auth_user` (`id`);
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
