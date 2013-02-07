@@ -47,7 +47,6 @@ class CentralLO(models.Model):
             LINES.append((line_number, str(line)[2:-2].replace("', '"," ")))
 
     LINES = tuple(LINES)
-#    LINES = tuple([tuple([line_number, line.split()[0:-1]]) for line_number, line in enumerate(open(settings.CONFIGURATION_DIR+'clo.cfg'))])
     line = models.IntegerField(choices=LINES, unique=True)
 
     current_antenna = models.OneToOneField(Antenna, related_name="current_clo_antenna", null=True)
@@ -65,15 +64,19 @@ class Correlator(models.Model):
     # in the db is saved the line of the configuration file that match with the configuration of
     # the CentralLO
     LINES = []
+    C_LINES = [] #complete lines of the configuration file
     for line_number, line in enumerate(open(settings.CONFIGURATION_DIR+'corr.cfg')):
-        line.strip()
+        line = line.strip()
         if line:
-            line = line.strip().split()[0:-1]
+            C_LINES.append((line_number, line))
+
+            line = line.split()[0:-1]
             LINES.append((line_number, str(line)[2:-2].replace("', '"," ")))
 
     LINES = tuple(LINES)
-#    LINES = tuple([tuple([line_number, line.split()[0:-1]]) for line_number, line in enumerate(open(settings.CONFIGURATION_DIR+'clo.cfg'))])
+    C_LINES = tuple(C_LINES)
     line = models.IntegerField(choices=LINES, unique=True)
+    c_line = models.IntegerField(choices=C_LINES, unique=True)
 
     current_antenna = models.ForeignKey(Antenna, related_name="current_corr_antenna", null=True)
     requested_antenna = models.ForeignKey(Antenna, related_name="requested_corr_antenna", null=True, blank=True)
