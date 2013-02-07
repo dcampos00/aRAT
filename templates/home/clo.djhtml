@@ -271,7 +271,6 @@ $(document).ready(function () {
     if($(this).parent().is(":visible")){
       $(this).parents("td").children(".text-antenna").show();
       $(this).parent(".antenna-change-select").remove();
-      $("tbody").sortable( "enable" );
     }
     e.stopPropagation();    
   });
