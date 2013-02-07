@@ -7,6 +7,7 @@ from aRAT.apps.home.models import Antenna, PAD, Correlator, CentralLO
 from django.db.models import F, Q
 
 from aRAT.apps.common.models import settings as app_settings
+from django.conf import settings
 
 DATE_FORMAT = "%Y-%m-%d" 
 TIME_FORMAT = "%H:%M:%S"
@@ -168,17 +169,22 @@ def corr_update_alerts(request, configuration_line='', antenna_id=''):
         corr.save()
 
     # is loaded all current status of the ste configuration
+    corr_configuration_file = [line for ln, line in enumerate(open(settings.CONFIGURATION_DIR+'corr.cfg'))]
     corrs = Correlator.objects.all()
     for corr in corrs:
 
         corr_errors = []
         if corr.requested_antenna != None:
+            corr_name = corr.get_c_line_display().split()[-1]
             for corr2 in Correlator.objects.all():
                 if corr != corr2:
-                    if corr.requested_antenna == corr2.requested_antenna:
-                        corr_errors.append(corr2.get_line_display())
-                    elif corr.requested_antenna == corr2.current_antenna and corr2.requested_antenna == None and corr2.assigned == True:
-                        corr_errors.append(corr2.get_line_display())
+                    corr2_name = corr2.get_c_line_display().split()[-1]
+                    if not ((corr_name == 'BL-Corr' and corr2_name == 'ACA-Corr') or (corr_name == 'ACA-Corr' and corr2_name == 'BL-Corr')):
+                        dajax.assign('#debug', 'innerHTML', '%s %s'%(corr_name, corr2_name))
+                        if corr.requested_antenna == corr2.requested_antenna:
+                            corr_errors.append(corr2.get_line_display())
+                        elif corr.requested_antenna == corr2.current_antenna and corr2.requested_antenna == None and corr2.assigned == True:
+                            corr_errors.append(corr2.get_line_display())
                     
 
         current_antenna_name = current_antenna_id = None
