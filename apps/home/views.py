@@ -212,5 +212,5 @@ def clo_configuration_view(request):
            }
     return render_to_response('home/clo.djhtml', ctx, context_instance=RequestContext(request))
 
-def holografy_configuration_view(request):
+def holography_configuration_view(request):
     return render_to_response('base.djhtml', context_instance=RequestContext(request))
