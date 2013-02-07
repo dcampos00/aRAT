@@ -30,7 +30,7 @@
 	      </thead>
 	      <tbody>
 		{% for pad in pads_by_cols %}
-		<tr class="pad-container" data-pad-id="{{ pad.id }}">
+		<tr class="pad-container" data-pad-id="{{ pad.line }}">
 		  <td>
                     {{ pad.name }}
                   </td>
@@ -94,20 +94,27 @@ function update_status(data){
 
     alerts = tr.parents(".tab-pane").find(".alerts-container");
 
-    if (data.error[0] != null){
-      tr.addClass("btn-danger");
-      alert_type = "alert-error";
+    tr.addClass("btn-success");
+    alert_type = "alert-success";
+    if(data.pad.assigned == true){
       alert_text = data.requested_antenna.name+" will be changed to "+data.pad.name;
-      alert_text += ", but "+data.requested_antenna.name+" also will be on PAD(s) "+data.error;
     } else {
-      tr.addClass("btn-success");
-      alert_type = "alert-success";
-      if(data.pad.assigned == true){
-        alert_text = data.requested_antenna.name+" will be changed to "+data.pad.name;
-      } else {
-        alert_text = "The PAD "+data.pad.name+" will be unassigned";
+      alert_text = "The PAD "+data.pad.name+" will be unassigned";
+    }
+
+    if (data.error != null){
+      if (data.error.local != null){
+        alert_type = "alert-error";
+        tr.removeClass("btn-success").addClass("btn-danger");
+        alert_text += ", but "+data.requested_antenna.name+" also will be on PAD(s) "+data.error.local;
+      }
+      if (data.error.global){
+        alert_type = "alert-error";
+        tr.removeClass("btn-success").addClass("btn-danger");
+        alert_text += ".<br/>The antenna and the PAD are in differents STEs.";
       }
     }
+
     alert_text += " -- Request done by "+data.user.first_name+" "+data.user.last_name;
     alert_text += " on "+data.datetime.date+" at "+data.datetime.time;
     updateAlert(alerts, alert_type, alert_text, data.pad.id);
@@ -271,6 +278,8 @@ $(document).ready(function () {
       pad_id = $(this).parents("tr.pad-container").data("padId");
       antenna_id = $(this).parent().children("[data-rel='select2']").val();
 
+
+      if(pad_id == 0) pad_id = "0";
       if(pad_id != "" && antenna_id != ""){
         Dajaxice.aRAT.apps.home.pad_update_alerts(Dajax.process, {'antenna_id': antenna_id, 'pad_id': pad_id});
         
