@@ -86,6 +86,7 @@
 	      <li><a href="{% url pad_configuration_view %}"><i class="icon icon-gear"></i><span class="hidden-tablet"> PAD</span></a></li>
 	      <li><a href="{% url corr_configuration_view %}"><i class="icon icon-gear"></i><span class="hidden-tablet"> Correlator</span></a></li>
 	      <li><a href="{% url clo_configuration_view %}"><i class="icon icon-gear"></i><span class="hidden-tablet"> CentralLO</span></a></li>
+	      <li><a href="{% url holography_configuration_view %}"><i class="icon icon-gear"></i><span class="hidden-tablet"> Holography</span></a></li>
 	    </ul>
 	  </div><!--/.well -->
 	</div><!--/span-->
