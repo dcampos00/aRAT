@@ -137,7 +137,7 @@ def pad_update_alerts(request, pad_id='', antenna_id=''):
                         'requested_antenna': {'id': requested_antenna_id, 'name': requested_antenna_name},
                         'user': {'first_name': requester_first_name, 'last_name': requester_last_name},
                         'datetime': {'date': request_date, 'time': request_time},
-                        'error': [e for e in pad_errors]
+                        'error': pad_errors
                         },
                        'update_status')
 
@@ -209,7 +209,7 @@ def corr_update_alerts(request, configuration_line='', antenna_id=''):
                         'requested_antenna': {'id': requested_antenna_id, 'name': requested_antenna_name},
                         'user': {'first_name': requester_first_name, 'last_name': requester_last_name},
                         'datetime': {'date': request_date, 'time': request_time},
-                        'error': [e for e in corr_errors]
+                        'error': corr_errors
                         },
                        'update_status')
 
@@ -281,7 +281,7 @@ def clo_update_alerts(request, configuration_line='', antenna_id=''):
                         'requested_antenna': {'id': requested_antenna_id, 'name': requested_antenna_name},
                         'user': {'first_name': requester_first_name, 'last_name': requester_last_name},
                         'datetime': {'date': request_date, 'time': request_time},
-                        'error': [e for e in clo_errors]
+                        'error': clo_errors
                         },
                        'update_status')
 
