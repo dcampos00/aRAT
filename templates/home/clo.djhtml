@@ -31,7 +31,7 @@
 		      <thead>
 		        <tr>
 		          <th>Antenna</th>			
-		          {% for i in clo.get_line_display.split %}<th>{{ i|replace_by_space:"-" }}</th>{% endfor %}
+		          {% for i in clo %}<th>{{ i|replace_by_space:"-"|replace_by_space:"#" }}</th>{% endfor %}
 		        </tr>
 		      </thead>
 		      <tbody>
@@ -40,7 +40,7 @@
 		          <td class="change-antenna droppable">
 		            <div class="text-antenna draggable" data-antenna-id="{{ clo.current_antenna.id }}">{{ clo.current_antenna }}</div>
 		          </td>
-		          {% for i in clo.get_line_display.split %}<td>{{ i }}</td>{% endfor %}
+		          {% for i in clo.configuration.split %}<td>{{ i }}</td>{% endfor %}
 	                </tr>
 	              {% endif %}
 	                {% if forloop.last %}</tbody>{% endif %}
@@ -97,20 +97,27 @@ function update_status(data){
 
     alerts = tr.parents(".tab-pane").find(".alerts-container");
 
-    if (data.error[0] != null){
-      tr.addClass("btn-danger");
-      alert_type = "alert-error";
-      alert_text = data.requested_antenna.name+" will be changed to "+data.clo.name+" configuration";
-      alert_text += ", but "+data.requested_antenna.name+" also will be have "+data.error+" configuration(s)";
+    tr.addClass("btn-success");
+    alert_type = "alert-success";
+    if(data.clo.assigned == true){
+      alert_text = data.requested_antenna.name+" will be changed to "+data.clo.name;
     } else {
-      tr.addClass("btn-success");
-      alert_type = "alert-success";
-      if(data.clo.assigned == true){
-        alert_text = data.requested_antenna.name+" will be changed to "+data.clo.name+" configuration";
-      } else {
-        alert_text = "The "+data.clo.name+" configuration will be unassigned";
+      alert_text = "The CentralLO Configuration "+data.clo.name+" will be unassigned";
+    }
+
+    if (data.error != null){
+      if (data.error.local != null){
+        alert_type = "alert-error";
+        tr.removeClass("btn-success").addClass("btn-danger");
+        alert_text += ", but "+data.requested_antenna.name+" also will be have "+data.error.local+" configuration(s)";
+      }
+      if (data.error.global){
+        alert_type = "alert-error";
+        tr.removeClass("btn-success").addClass("btn-danger");
+        alert_text += ".<br/>The Antenna and the CentraLO are in different STEs.";
       }
     }
+
     alert_text += " -- Request done by "+data.user.first_name+" "+data.user.last_name;
     alert_text += " on "+data.datetime.date+" at "+data.datetime.time;
     updateAlert(alerts, alert_type, alert_text, data.clo.line);
