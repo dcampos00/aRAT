@@ -3,7 +3,7 @@ from datetime import datetime
 from dajax.core import Dajax
 from dajaxice.decorators import dajaxice_register
 
-from aRAT.apps.home.models import Antenna, PAD, CorrelatorConfiguration, CentralLO
+from aRAT.apps.home.models import Antenna, PAD, CorrelatorConfiguration, CentralloConfiguration, HolographyConfiguration
 from django.db.models import F, Q
 
 from aRAT.apps.common.models import settings as app_settings
@@ -99,6 +99,8 @@ def pad_update_alerts(request, pad_id='', antenna_id=''):
     # is loaded all current status of the ste configuration
     pads = PAD.objects.all()
     for pad in pads:
+        if not pad.active:
+            continue
         
         pad_errors = None
         if pad.requested_antenna != None:
@@ -162,8 +164,10 @@ def corr_update_alerts(request, configuration_line='', antenna_id=''):
         corr.request_date = datetime.now()
         corr.save()
 
-    # is loaded all current status of the ste configuration
+    # is loaded all current status of the correlator configurations
     for corr in CorrelatorConfiguration.objects.all():
+        if not corr.active:
+            continue
 
         corr_errors = None
         if corr.requested_antenna != None:
@@ -217,7 +221,7 @@ def clo_update_alerts(request, configuration_line='', antenna_id=''):
 
     # first the pad information is updated
     if configuration_line != '':
-        clo = CentralLO.objects.get(line=configuration_line)
+        clo = CentralloConfiguration.objects.get(line=configuration_line)
         if antenna_id == 'None' and clo.current_antenna != None:
             clo.assigned = False
             clo.requested_antenna = None
@@ -231,20 +235,17 @@ def clo_update_alerts(request, configuration_line='', antenna_id=''):
         clo.request_date = datetime.now()
         clo.save()
 
-    # is loaded all current status of the ste configuration
-    clos = CentralLO.objects.all()
-    for clo in clos:
+    # is loaded all current status of the centrallo configurations
+    for clo in CentralloConfiguration.objects.all():
+        if not clo.active:
+            continue
 
-        clo_errors = []
+        clo_errors = None
         if clo.requested_antenna != None:
-            for clo2 in CentralLO.objects.all():
-                if clo != clo2:
-                    if clo.requested_antenna == clo2.requested_antenna:
-                        clo_errors.append(clo2.get_line_display())
-                    elif clo.requested_antenna == clo2.current_antenna and clo2.requested_antenna == None and clo2.assigned == True:
-                        clo_errors.append(clo2.get_line_display())
-                    
+            clo_errors = clo.restriction_errors()
 
+        # the antenna values are set to None to avoid errors
+        # if current_antenna and requested_antenna are not object
         current_antenna_name = current_antenna_id = None
         requested_antenna_name = requested_antenna_id = None
 
@@ -255,6 +256,8 @@ def clo_update_alerts(request, configuration_line='', antenna_id=''):
             requested_antenna_name = clo.requested_antenna.name
             requested_antenna_id = clo.requested_antenna.id
 
+        # the antenna values are set to None to avoid errors
+        # if current_antenna and requested_antenna are not object
         requester_first_name = None
         requester_last_name = None
         request_date = None
@@ -268,12 +271,83 @@ def clo_update_alerts(request, configuration_line='', antenna_id=''):
             request_date = clo.request_date.strftime(DATE_FORMAT)
             request_time = clo.request_date.strftime(TIME_FORMAT)
 
-        dajax.add_data({'clo': {'line': clo.line, 'name': clo.get_line_display(), 'assigned': clo.assigned},
+        dajax.add_data({'clo': {'line': clo.line, 'name': clo.configuration(), 'assigned': clo.assigned},
                         'current_antenna': {'id': current_antenna_id, 'name': current_antenna_name},
                         'requested_antenna': {'id': requested_antenna_id, 'name': requested_antenna_name},
                         'user': {'first_name': requester_first_name, 'last_name': requester_last_name},
                         'datetime': {'date': request_date, 'time': request_time},
                         'error': clo_errors
+                        },
+                       'update_status')
+
+    return dajax.json()
+
+@dajaxice_register
+def holo_update_alerts(request, holo_line='', antenna_id=''):
+    dajax = Dajax()
+
+    # if the application is block the function does not anything
+    if app_settings.objects.get(setting='BLOCK').value:
+        return dajax.json()
+
+    # first the pad information is updated
+    if holo_line != '':
+        holo = HolographyConfiguration.objects.get(line=holo_line)
+        if antenna_id == 'None' and holo.current_antenna != None:
+            holo.assigned = False
+            holo.requested_antenna = None
+        elif antenna_id != '' and antenna_id != 'None' and holo.current_antenna != Antenna.objects.get(id=antenna_id):
+            holo.requested_antenna = Antenna.objects.get(id=antenna_id)
+            holo.assigned = True
+        else:
+            holo.requested_antenna = None
+            holo.assigned = True
+        holo.requester = request.user
+        holo.request_date = datetime.now()
+        holo.save()
+
+    # is loaded all current status of the centrallo configurations
+    for holo in HolographyConfiguration.objects.all():
+        if not holo.active:
+            continue
+
+        holo_errors = None
+        if holo.requested_antenna != None:
+            holo_errors = holo.restriction_errors()
+
+        # the antenna values are set to None to avoid errors
+        # if current_antenna and requested_antenna are not object
+        current_antenna_name = current_antenna_id = None
+        requested_antenna_name = requested_antenna_id = None
+
+        if holo.current_antenna:
+            current_antenna_name = holo.current_antenna.name
+            current_antenna_id = holo.current_antenna.id
+        if holo.requested_antenna:
+            requested_antenna_name = holo.requested_antenna.name
+            requested_antenna_id = holo.requested_antenna.id
+
+        # the antenna values are set to None to avoid errors
+        # if current_antenna and requested_antenna are not object
+        requester_first_name = None
+        requester_last_name = None
+        request_date = None
+        request_time = None
+
+        if holo.requester != None:
+            requester_first_name = holo.requester.first_name
+            requester_last_name = holo.requester.last_name
+
+        if holo.request_date != None:
+            request_date = holo.request_date.strftime(DATE_FORMAT)
+            request_time = holo.request_date.strftime(TIME_FORMAT)
+
+        dajax.add_data({'holo': {'line': holo.line, 'name': holo.name(), 'assigned': holo.assigned},
+                        'current_antenna': {'id': current_antenna_id, 'name': current_antenna_name},
+                        'requested_antenna': {'id': requested_antenna_id, 'name': requested_antenna_name},
+                        'user': {'first_name': requester_first_name, 'last_name': requester_last_name},
+                        'datetime': {'date': request_date, 'time': request_time},
+                        'error': holo_errors
                         },
                        'update_status')
 
