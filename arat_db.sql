@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Feb 07, 2013 at 06:32 PM
+-- Generation Time: Feb 08, 2013 at 12:03 PM
 -- Server version: 5.5.29
 -- PHP Version: 5.4.6-1ubuntu1.1
 
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS `auth_group` (
   `name` varchar(80) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS `auth_group_permissions` (
   UNIQUE KEY `group_id` (`group_id`,`permission_id`),
   KEY `auth_group_permissions_bda51c3c` (`group_id`),
   KEY `auth_group_permissions_1e014c8f` (`permission_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `auth_permission` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `content_type_id` (`content_type_id`,`codename`),
   KEY `auth_permission_e4470c6e` (`content_type_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=46 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS `auth_user` (
   `date_joined` datetime NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS `auth_user_groups` (
   UNIQUE KEY `user_id` (`user_id`,`group_id`),
   KEY `auth_user_groups_fbfc09f1` (`user_id`),
   KEY `auth_user_groups_bda51c3c` (`group_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS `auth_user_user_permissions` (
   UNIQUE KEY `user_id` (`user_id`,`permission_id`),
   KEY `auth_user_user_permissions_fbfc09f1` (`user_id`),
   KEY `auth_user_user_permissions_1e014c8f` (`permission_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -138,7 +138,7 @@ CREATE TABLE IF NOT EXISTS `common_settings` (
   `value` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `setting` (`setting`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=2 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -159,7 +159,7 @@ CREATE TABLE IF NOT EXISTS `django_admin_log` (
   PRIMARY KEY (`id`),
   KEY `django_admin_log_fbfc09f1` (`user_id`),
   KEY `django_admin_log_e4470c6e` (`content_type_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=18 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -175,7 +175,7 @@ CREATE TABLE IF NOT EXISTS `django_content_type` (
   `model` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `app_label` (`app_label`,`model`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=16 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -204,7 +204,7 @@ CREATE TABLE IF NOT EXISTS `django_site` (
   `domain` varchar(100) NOT NULL,
   `name` varchar(50) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=2 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -223,7 +223,7 @@ CREATE TABLE IF NOT EXISTS `home_antenna` (
   `request_date` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `home_antenna_b8ca8b9f` (`requester_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=66 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -246,7 +246,31 @@ CREATE TABLE IF NOT EXISTS `home_centrallo` (
   UNIQUE KEY `current_antenna_id` (`current_antenna_id`),
   KEY `home_centrallo_62753b47` (`requested_antenna_id`),
   KEY `home_centrallo_b8ca8b9f` (`requester_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=74 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `home_centralloconfiguration`
+--
+
+DROP TABLE IF EXISTS `home_centralloconfiguration`;
+CREATE TABLE IF NOT EXISTS `home_centralloconfiguration` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `line` int(11) NOT NULL,
+  `centrallo` varchar(10) NOT NULL,
+  `assigned` tinyint(1) NOT NULL,
+  `active` tinyint(1) NOT NULL,
+  `current_antenna_id` int(11) DEFAULT NULL,
+  `requested_antenna_id` int(11) DEFAULT NULL,
+  `requester_id` int(11) DEFAULT NULL,
+  `request_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `line` (`line`),
+  UNIQUE KEY `current_antenna_id` (`current_antenna_id`),
+  KEY `home_centralloconfiguration_62753b47` (`requested_antenna_id`),
+  KEY `home_centralloconfiguration_b8ca8b9f` (`requester_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -270,7 +294,30 @@ CREATE TABLE IF NOT EXISTS `home_correlatorconfiguration` (
   KEY `home_correlatorconfiguration_38f06868` (`current_antenna_id`),
   KEY `home_correlatorconfiguration_62753b47` (`requested_antenna_id`),
   KEY `home_correlatorconfiguration_b8ca8b9f` (`requester_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=85 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `home_holographyconfiguration`
+--
+
+DROP TABLE IF EXISTS `home_holographyconfiguration`;
+CREATE TABLE IF NOT EXISTS `home_holographyconfiguration` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `line` int(11) NOT NULL,
+  `assigned` tinyint(1) NOT NULL,
+  `active` tinyint(1) NOT NULL,
+  `current_antenna_id` int(11) DEFAULT NULL,
+  `requested_antenna_id` int(11) DEFAULT NULL,
+  `requester_id` int(11) DEFAULT NULL,
+  `request_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `line` (`line`),
+  UNIQUE KEY `current_antenna_id` (`current_antenna_id`),
+  KEY `home_holographyconfiguration_62753b47` (`requested_antenna_id`),
+  KEY `home_holographyconfiguration_b8ca8b9f` (`requester_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -294,7 +341,7 @@ CREATE TABLE IF NOT EXISTS `home_pad` (
   UNIQUE KEY `current_antenna_id` (`current_antenna_id`),
   KEY `home_pad_62753b47` (`requested_antenna_id`),
   KEY `home_pad_b8ca8b9f` (`requester_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=203 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 --
 -- Constraints for dumped tables
@@ -344,25 +391,41 @@ ALTER TABLE `home_antenna`
 -- Constraints for table `home_centrallo`
 --
 ALTER TABLE `home_centrallo`
-  ADD CONSTRAINT `requester_id_refs_id_d5f6f202` FOREIGN KEY (`requester_id`) REFERENCES `auth_user` (`id`),
   ADD CONSTRAINT `current_antenna_id_refs_id_e50c0ce` FOREIGN KEY (`current_antenna_id`) REFERENCES `home_antenna` (`id`),
-  ADD CONSTRAINT `requested_antenna_id_refs_id_e50c0ce` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`id`);
+  ADD CONSTRAINT `requested_antenna_id_refs_id_e50c0ce` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`id`),
+  ADD CONSTRAINT `requester_id_refs_id_d5f6f202` FOREIGN KEY (`requester_id`) REFERENCES `auth_user` (`id`);
+
+--
+-- Constraints for table `home_centralloconfiguration`
+--
+ALTER TABLE `home_centralloconfiguration`
+  ADD CONSTRAINT `requested_antenna_id_refs_id_41754efb` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`id`),
+  ADD CONSTRAINT `current_antenna_id_refs_id_41754efb` FOREIGN KEY (`current_antenna_id`) REFERENCES `home_antenna` (`id`),
+  ADD CONSTRAINT `requester_id_refs_id_db40ceaf` FOREIGN KEY (`requester_id`) REFERENCES `auth_user` (`id`);
 
 --
 -- Constraints for table `home_correlatorconfiguration`
 --
 ALTER TABLE `home_correlatorconfiguration`
-  ADD CONSTRAINT `requester_id_refs_id_f0c6c71d` FOREIGN KEY (`requester_id`) REFERENCES `auth_user` (`id`),
   ADD CONSTRAINT `current_antenna_id_refs_id_ae9034c7` FOREIGN KEY (`current_antenna_id`) REFERENCES `home_antenna` (`id`),
-  ADD CONSTRAINT `requested_antenna_id_refs_id_ae9034c7` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`id`);
+  ADD CONSTRAINT `requested_antenna_id_refs_id_ae9034c7` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`id`),
+  ADD CONSTRAINT `requester_id_refs_id_f0c6c71d` FOREIGN KEY (`requester_id`) REFERENCES `auth_user` (`id`);
+
+--
+-- Constraints for table `home_holographyconfiguration`
+--
+ALTER TABLE `home_holographyconfiguration`
+  ADD CONSTRAINT `requested_antenna_id_refs_id_65ef957b` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`id`),
+  ADD CONSTRAINT `current_antenna_id_refs_id_65ef957b` FOREIGN KEY (`current_antenna_id`) REFERENCES `home_antenna` (`id`),
+  ADD CONSTRAINT `requester_id_refs_id_692c87d1` FOREIGN KEY (`requester_id`) REFERENCES `auth_user` (`id`);
 
 --
 -- Constraints for table `home_pad`
 --
 ALTER TABLE `home_pad`
-  ADD CONSTRAINT `requester_id_refs_id_24362f31` FOREIGN KEY (`requester_id`) REFERENCES `auth_user` (`id`),
   ADD CONSTRAINT `current_antenna_id_refs_id_f8b00e53` FOREIGN KEY (`current_antenna_id`) REFERENCES `home_antenna` (`id`),
-  ADD CONSTRAINT `requested_antenna_id_refs_id_f8b00e53` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`id`);
+  ADD CONSTRAINT `requested_antenna_id_refs_id_f8b00e53` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`id`),
+  ADD CONSTRAINT `requester_id_refs_id_24362f31` FOREIGN KEY (`requester_id`) REFERENCES `auth_user` (`id`);
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
