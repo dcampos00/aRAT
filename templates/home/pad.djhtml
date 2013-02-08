@@ -52,7 +52,7 @@
 </div>
 
 <div class="antenna-change-select hide original">
-  <input type="hidden" data-rel="select2" data-placeholder="Select and Antenna"/>
+  <input type="hidden" data-rel="select2" data-placeholder="Select an Antenna"/>
   <button type="button" class="btn btn-apply btn-primary"><i class="icon-ok"></i></button>
   <button type="button" class="btn btn-cancel-select"><i class="icon-remove"></i></button>
 </div>
