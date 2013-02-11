@@ -5,7 +5,7 @@ COMMON_SETTINGS = (
     )
 
 # Create your models here.
-class settings(models.Model):
+class Configuration(models.Model):
     """
     Model that define the settings of the application, e.g: status of the system
     block and unblock
@@ -15,4 +15,4 @@ class settings(models.Model):
     value = models.BooleanField(default=False)
 
     def __unicode__(self):
-        return self
+        return self.setting
