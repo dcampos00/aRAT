@@ -6,7 +6,7 @@ from dajaxice.decorators import dajaxice_register
 from aRAT.apps.home.models import Antenna, PAD, CorrelatorConfiguration, CentralloConfiguration, HolographyConfiguration
 from django.db.models import F, Q
 
-from aRAT.apps.common.models import settings as app_settings
+from aRAT.apps.common.models import Configuration
 from django.conf import settings
 
 DATE_FORMAT = "%Y-%m-%d" 
@@ -15,51 +15,48 @@ TIME_FORMAT = "%H:%M:%S"
 @dajaxice_register
 def ste_update_alerts(request, ste_id='', antenna_id=''):
     """
-    Function that allow keep update the requests for pads
+    Function that allow keep update the requests for STEs
 
     Arguments:
-    - `ste_id`:
-    - `antenna_id`:
+    - `ste_id`: is the id of STE that will be assigned to the Antenna
+    - `antenna_id`: the id of the Antenna that will be updated
     """
 
     dajax = Dajax() # object that manage the AJAX connection
     
-    # if the application is block the function does not anything
-    if app_settings.objects.get(setting='BLOCK').value:
-        return dajax.json()
+    # is retrieved the current block status of the application
+    read_only = Configuration.objects.get(setting='BLOCK').value
 
     # first the antenna information is updated
-    if antenna_id != '':
+    # if is passed a antenna_id and the application is not in read_only mode
+    # the information of the Antenna is update
+    if antenna_id != '' and not read_only:
         antenna = Antenna.objects.get(id=antenna_id)
+        # if the ste_id is passed and if the ste is not the same that
+        # the current a new STE is assigned to the antenna
         if ste_id != '' and ste_id != antenna.current_ste:
             antenna.requested_ste = ste_id
         else:
             antenna.requested_ste = None
+
+        # The requester and request_date is updated
         antenna.requester = request.user
         antenna.request_date = datetime.now()
-        antenna.save()
+        antenna.save() # the Antenna is saved
 
     # is loaded all current status of the ste configuration
     antennas = Antenna.objects.all()
     for antenna in antennas:
-        requester_first_name = None
-        requester_last_name = None
-        request_date = None
-        request_time = None
 
-        if antenna.requester != None:
-            requester_first_name = antenna.requester.first_name
-            requester_last_name = antenna.requester.last_name
+        # the status of the antenna is obtained in HTML format
+        status = None
+        if antenna.requested_ste != None:
+            status = antenna.html_status()
 
-        if antenna.request_date != None:
-            request_date = antenna.request_date.strftime(DATE_FORMAT)
-            request_time = antenna.request_date.strftime(TIME_FORMAT)
-
-        dajax.add_data({'antenna': {'id': antenna.id, 'name': antenna.name},
-                        'ste': {'id': antenna.requested_ste, 'name': antenna.get_requested_ste_display()},
-                        'user': {'first_name': requester_first_name, 'last_name': requester_last_name},
-                        'datetime': {'date': request_date, 'time': request_time}
-                        },
+        # the data is passed to the template function update_status
+        dajax.add_data({'antenna': antenna.id,
+                        'ste': antenna.requested_ste,
+                        'status': status},
                        'update_status')
 
     return dajax.json()
@@ -67,45 +64,44 @@ def ste_update_alerts(request, ste_id='', antenna_id=''):
 @dajaxice_register
 def pad_update_alerts(request, pad_id='', antenna_id=''):
     """
-    Function that allow keep update the alerts for pads if tf... STEs
+    Function that allow keep update the alerts for PADs
 
     Arguments:
-    - `pad_id`: id value of a pad that will be requested
+    - `pad_id`: id value of a pad that will be updated
     - `antenna_id`: id value of an antenna that will be assigned to a pad
     """
 
     dajax = Dajax()
 
-    # if the application is block the function does not anything
-    if app_settings.objects.get(setting='BLOCK').value:
-        return dajax.json()
+    # is retrieved the current block status of the application
+    read_only = Configuration.objects.get(setting='BLOCK').value
     
     # first the pad information is updated
-    if pad_id != '':
+    if pad_id != '' and not read_only:
         pad = PAD.objects.get(line=pad_id)
+        # this happend when a PAD will be unassigned
         if antenna_id == 'None' and pad.current_antenna != None:
             pad.assigned = False
             pad.requested_antenna = None
-        elif antenna_id != '' and antenna_id != 'None' and pad.current_antenna != Antenna.objects.get(id=antenna_id):
+        # if a PAD will be changed to another antenna
+        elif (antenna_id != '' 
+              and antenna_id != 'None' 
+              and pad.current_antenna != Antenna.objects.get(id=antenna_id)):
             pad.requested_antenna = Antenna.objects.get(id=antenna_id)
             pad.assigned = True
+        # if a request is deleted
         else:
             pad.requested_antenna = None
             pad.assigned = True
         pad.requester = request.user
         pad.request_date = datetime.now()
-        pad.save()
+        pad.save() # the PAD information is saved
 
-    # is loaded all current status of the ste configuration
-    pads = PAD.objects.all()
-    for pad in pads:
+    # is loaded all current status of the PADs
+    for pad in PAD.objects.all():
         if not pad.active:
             continue
         
-        pad_errors = None
-        if pad.requested_antenna != None:
-            pad_errors = pad.restriction_errors()
-
         current_antenna_name = current_antenna_id = None
         requested_antenna_name = requested_antenna_id = None
 
@@ -116,25 +112,23 @@ def pad_update_alerts(request, pad_id='', antenna_id=''):
             requested_antenna_name = pad.requested_antenna.name
             requested_antenna_id = pad.requested_antenna.id
 
-        requester_first_name = None
-        requester_last_name = None
-        request_date = None
-        request_time = None
+        status = None # variable that stores the status of the PAD in HTML format
+        exist_errors = False # it's stored if exist errors or not
+        if (pad.requested_antenna != None 
+            or (pad.current_antenna != None and pad.assigned == False)):
+            status = pad.html_status()
+            exist_errors = pad.exist_errors()
 
-        if pad.requester != None:
-            requester_first_name = pad.requester.first_name
-            requester_last_name = pad.requester.last_name
-
-        if pad.request_date != None:
-            request_date = pad.request_date.strftime(DATE_FORMAT)
-            request_time = pad.request_date.strftime(TIME_FORMAT)
-
-        dajax.add_data({'pad': {'id': pad.line, 'name': pad.name(), 'assigned': pad.assigned},
-                        'current_antenna': {'id': current_antenna_id, 'name': current_antenna_name},
-                        'requested_antenna': {'id': requested_antenna_id, 'name': requested_antenna_name},
-                        'user': {'first_name': requester_first_name, 'last_name': requester_last_name},
-                        'datetime': {'date': request_date, 'time': request_time},
-                        'error': pad_errors
+        dajax.add_data({'resource': {'id': pad.line,
+                                     'name': pad.name(),
+                                     'type': 'pad'},
+                        'current_antenna': {'id': current_antenna_id,
+                                            'name': current_antenna_name},
+                        'requested_antenna': {'id': requested_antenna_id,
+                                              'name': requested_antenna_name},
+                        'status': status,
+                        'error': exist_errors,
+                        'read_only': read_only
                         },
                        'update_status')
 
@@ -142,19 +136,28 @@ def pad_update_alerts(request, pad_id='', antenna_id=''):
 
 @dajaxice_register
 def corr_update_alerts(request, configuration_line='', antenna_id=''):
+    """
+    Function that keeps updated the alerts of Correlator Configuration
+
+    Arguments:
+    `configuration_line`: identifier of the configuration, each configuration
+    has only one line number associated
+    `antenna_id`: identifier of the Antenna to be requested
+    """
     dajax = Dajax()
 
-    # if the application is block the function does not anything
-    if app_settings.objects.get(setting='BLOCK').value:
-        return dajax.json()
+    # is retrieved the current block status of the application
+    read_only = Configuration.objects.get(setting='BLOCK').value
 
-    # first the pad information is updated
-    if configuration_line != '':
+    # first the correlator configuration is updated
+    if configuration_line != '' and not read_only:
         corr = CorrelatorConfiguration.objects.get(line=configuration_line)
         if antenna_id == 'None' and corr.current_antenna != None:
             corr.assigned = False
             corr.requested_antenna = None
-        elif antenna_id != '' and antenna_id != 'None' and corr.current_antenna != Antenna.objects.get(id=antenna_id):
+        elif (antenna_id != ''
+              and antenna_id != 'None' 
+              and corr.current_antenna != Antenna.objects.get(id=antenna_id)):
             corr.requested_antenna = Antenna.objects.get(id=antenna_id)
             corr.assigned = True
         else:
@@ -169,10 +172,6 @@ def corr_update_alerts(request, configuration_line='', antenna_id=''):
         if not corr.active:
             continue
 
-        corr_errors = None
-        if corr.requested_antenna != None:
-            corr_errors = corr.restriction_errors()
-
         # the antenna values are set to None to avoid errors
         # if current_antenna and requested_antenna are not object
         current_antenna_name = current_antenna_id = None
@@ -185,27 +184,23 @@ def corr_update_alerts(request, configuration_line='', antenna_id=''):
             requested_antenna_name = corr.requested_antenna.name
             requested_antenna_id = corr.requested_antenna.id
 
-        # the values of thne request are set to None to avoid errors
-        # if the requester and request_date are not objects
-        requester_first_name = None
-        requester_last_name = None
-        request_date = None
-        request_time = None
+        status = None
+        exist_errors = False
+        if (corr.requested_antenna != None 
+            or (corr.current_antenna != None and corr.assigned == False)):
+            status = corr.html_status()
+            exist_errors = corr.exist_errors()
 
-        if corr.requester != None:
-            requester_first_name = corr.requester.first_name
-            requester_last_name = corr.requester.last_name
-
-        if corr.request_date != None:
-            request_date = corr.request_date.strftime(DATE_FORMAT)
-            request_time = corr.request_date.strftime(TIME_FORMAT)
-
-        dajax.add_data({'corr': {'line': corr.line, 'name': corr.configuration(), 'assigned': corr.assigned},
-                        'current_antenna': {'id': current_antenna_id, 'name': current_antenna_name},
-                        'requested_antenna': {'id': requested_antenna_id, 'name': requested_antenna_name},
-                        'user': {'first_name': requester_first_name, 'last_name': requester_last_name},
-                        'datetime': {'date': request_date, 'time': request_time},
-                        'error': corr_errors
+        dajax.add_data({'resource': {'id': corr.line,
+                                     'name': corr.configuration(),
+                                     'type': 'corr'},
+                        'current_antenna': {'id': current_antenna_id,
+                                            'name': current_antenna_name},
+                        'requested_antenna': {'id': requested_antenna_id,
+                                              'name': requested_antenna_name},
+                        'status': status,
+                        'error': exist_errors,
+                        'read_only': read_only
                         },
                        'update_status')
 
@@ -213,19 +208,28 @@ def corr_update_alerts(request, configuration_line='', antenna_id=''):
 
 @dajaxice_register
 def clo_update_alerts(request, configuration_line='', antenna_id=''):
+    """
+    Function that keeps updated the alerts of CentralLO Configuration
+
+    Arguments:
+    `configuration_line`: identifier of the configuration, each configuration
+    has only one line number associated
+    `antenna_id`: identifier of the Antenna to be requested
+    """
     dajax = Dajax()
 
-    # if the application is block the function does not anything
-    if app_settings.objects.get(setting='BLOCK').value:
-        return dajax.json()
+    # is retrieved the current block status of the application
+    read_only = Configuration.objects.get(setting='BLOCK').value
 
     # first the pad information is updated
-    if configuration_line != '':
+    if configuration_line != '' and not read_only:
         clo = CentralloConfiguration.objects.get(line=configuration_line)
         if antenna_id == 'None' and clo.current_antenna != None:
             clo.assigned = False
             clo.requested_antenna = None
-        elif antenna_id != '' and antenna_id != 'None' and clo.current_antenna != Antenna.objects.get(id=antenna_id):
+        elif (antenna_id != ''
+              and antenna_id != 'None'
+              and clo.current_antenna != Antenna.objects.get(id=antenna_id)):
             clo.requested_antenna = Antenna.objects.get(id=antenna_id)
             clo.assigned = True
         else:
@@ -240,10 +244,6 @@ def clo_update_alerts(request, configuration_line='', antenna_id=''):
         if not clo.active:
             continue
 
-        clo_errors = None
-        if clo.requested_antenna != None:
-            clo_errors = clo.restriction_errors()
-
         # the antenna values are set to None to avoid errors
         # if current_antenna and requested_antenna are not object
         current_antenna_name = current_antenna_id = None
@@ -256,27 +256,23 @@ def clo_update_alerts(request, configuration_line='', antenna_id=''):
             requested_antenna_name = clo.requested_antenna.name
             requested_antenna_id = clo.requested_antenna.id
 
-        # the antenna values are set to None to avoid errors
-        # if current_antenna and requested_antenna are not object
-        requester_first_name = None
-        requester_last_name = None
-        request_date = None
-        request_time = None
+        status = None
+        exist_errors = False
+        if (clo.requested_antenna != None 
+            or (clo.current_antenna != None and clo.assigned == False)):
+            status = clo.html_status()
+            exist_errors = clo.exist_errors()
 
-        if clo.requester != None:
-            requester_first_name = clo.requester.first_name
-            requester_last_name = clo.requester.last_name
-
-        if clo.request_date != None:
-            request_date = clo.request_date.strftime(DATE_FORMAT)
-            request_time = clo.request_date.strftime(TIME_FORMAT)
-
-        dajax.add_data({'clo': {'line': clo.line, 'name': clo.configuration(), 'assigned': clo.assigned},
-                        'current_antenna': {'id': current_antenna_id, 'name': current_antenna_name},
-                        'requested_antenna': {'id': requested_antenna_id, 'name': requested_antenna_name},
-                        'user': {'first_name': requester_first_name, 'last_name': requester_last_name},
-                        'datetime': {'date': request_date, 'time': request_time},
-                        'error': clo_errors
+        dajax.add_data({'resource': {'id': clo.line,
+                                     'name': clo.configuration(),
+                                     'type': 'clo'},
+                        'current_antenna': {'id': current_antenna_id,
+                                            'name': current_antenna_name},
+                        'requested_antenna': {'id': requested_antenna_id,
+                                              'name': requested_antenna_name},
+                        'status': status,
+                        'read_only': read_only,
+                        'error': exist_errors
                         },
                        'update_status')
 
@@ -284,14 +280,21 @@ def clo_update_alerts(request, configuration_line='', antenna_id=''):
 
 @dajaxice_register
 def holo_update_alerts(request, holo_line='', antenna_id=''):
+    """
+    Function that keeps updated the alerts of Correlator Configuration
+
+    Arguments:
+    `holo_line`: identifier of the holography configuration, each configuration
+    has only one line number associated
+    `antenna_id`: identifier of the Antenna to be requested
+    """
     dajax = Dajax()
 
-    # if the application is block the function does not anything
-    if app_settings.objects.get(setting='BLOCK').value:
-        return dajax.json()
+    # is retrieved the current block status of the application
+    read_only = Configuration.objects.get(setting='BLOCK').value
 
     # first the pad information is updated
-    if holo_line != '':
+    if holo_line != '' and not read_only:
         holo = HolographyConfiguration.objects.get(line=holo_line)
         if antenna_id == 'None' and holo.current_antenna != None:
             holo.assigned = False
@@ -311,10 +314,6 @@ def holo_update_alerts(request, holo_line='', antenna_id=''):
         if not holo.active:
             continue
 
-        holo_errors = None
-        if holo.requested_antenna != None:
-            holo_errors = holo.restriction_errors()
-
         # the antenna values are set to None to avoid errors
         # if current_antenna and requested_antenna are not object
         current_antenna_name = current_antenna_id = None
@@ -327,27 +326,23 @@ def holo_update_alerts(request, holo_line='', antenna_id=''):
             requested_antenna_name = holo.requested_antenna.name
             requested_antenna_id = holo.requested_antenna.id
 
-        # the antenna values are set to None to avoid errors
-        # if current_antenna and requested_antenna are not object
-        requester_first_name = None
-        requester_last_name = None
-        request_date = None
-        request_time = None
+        status = None
+        exist_errors = False
+        if (holo.requested_antenna != None 
+            or (holo.current_antenna != None and holo.assigned == False)):
+            status = holo.html_status()
+            exist_errors = holo.exist_errors()
 
-        if holo.requester != None:
-            requester_first_name = holo.requester.first_name
-            requester_last_name = holo.requester.last_name
-
-        if holo.request_date != None:
-            request_date = holo.request_date.strftime(DATE_FORMAT)
-            request_time = holo.request_date.strftime(TIME_FORMAT)
-
-        dajax.add_data({'holo': {'line': holo.line, 'name': holo.name(), 'assigned': holo.assigned},
-                        'current_antenna': {'id': current_antenna_id, 'name': current_antenna_name},
-                        'requested_antenna': {'id': requested_antenna_id, 'name': requested_antenna_name},
-                        'user': {'first_name': requester_first_name, 'last_name': requester_last_name},
-                        'datetime': {'date': request_date, 'time': request_time},
-                        'error': holo_errors
+        dajax.add_data({'resource': {'id': holo.line,
+                                     'name': holo.name(),
+                                     'type': 'holo'},
+                        'current_antenna': {'id': current_antenna_id,
+                                            'name': current_antenna_name},
+                        'requested_antenna': {'id': requested_antenna_id,
+                                              'name': requested_antenna_name},
+                        'status': status,
+                        'read_only': read_only,
+                        'error': exist_errors
                         },
                        'update_status')
 
