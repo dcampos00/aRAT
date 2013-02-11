@@ -1,4 +1,4 @@
 from django.contrib import admin
-from aRAT.apps.common.models import settings
+from aRAT.apps.common.models import Configuration
 
-admin.site.register(settings)
+admin.site.register(Configuration)
