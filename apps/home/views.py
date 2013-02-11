@@ -4,7 +4,7 @@ from django.shortcuts import render_to_response
 
 # models
 from aRAT.apps.home.models import Antenna, PAD, CorrelatorConfiguration, CentralloConfiguration, HolographyConfiguration
-from aRAT.apps.common.models import settings as app_settings
+from aRAT.apps.common.models import Configuration
 from django.conf import settings
 
 # necessary imports to authenticate system
@@ -45,7 +45,8 @@ def home_view(request):
     if not request.user.is_authenticated():
         return HttpResponseRedirect("/login")
 
-    block_status = app_settings.objects.get(setting='BLOCK')
+    block_status = Configuration.objects.get(setting='BLOCK')
+
     ctx = {'read_only': block_status.value}
     return render_to_response('home/index.djhtml', ctx, context_instance=RequestContext(request))
 
@@ -56,11 +57,11 @@ def ste_configuration_view(request):
     if not request.user.is_authenticated():
         return HttpResponseRedirect("/login")
 
-    block_status = app_settings.objects.get(setting='BLOCK')
+    # if retrieved the block status of the current configuration
+    block_status = Configuration.objects.get(setting='BLOCK')
 
     vendors = [i.strip().replace('-',' ') for i in open(settings.CONFIGURATION_DIR+'vendors.cfg').readlines() if i.strip()]
     stes = Antenna().STEs
-#    stes = [i.strip().split()[0] for i in open('aRAT/configuration/stes.cfg').readlines() if i.strip()]
     
     antennas = [(v.replace('-', ' '), []) for v in vendors]
     antennas = dict(v for v in antennas)
@@ -80,7 +81,7 @@ def ste_configuration_view(request):
                         default_ste = ste[0]
                         break
                     else:
-                        error = 'The Vendor STE does not exist.'
+                        error = 'The STE VENDOR does not exist!'
 
                 new_antenna = Antenna(name=name_antenna, current_ste=default_ste)
                 new_antenna.save()
@@ -102,7 +103,7 @@ def pad_configuration_view(request):
     if not request.user.is_authenticated():
         return HttpResponseRedirect("/login")
 
-    block_status = app_settings.objects.get(setting='BLOCK')
+    block_status = Configuration.objects.get(setting='BLOCK')
 
     locations = [i.strip() for i in open(settings.CONFIGURATION_DIR+'locations.cfg').readlines() if i.strip()]
     # the antennas are loaded from the db
@@ -141,7 +142,7 @@ def corr_configuration_view(request):
     if not request.user.is_authenticated():
         return HttpResponseRedirect("/login")
 
-    block_status = app_settings.objects.get(setting='BLOCK')
+    block_status = Configuration.objects.get(setting='BLOCK')
 
     correlators = [i.strip() for i in open(settings.CONFIGURATION_DIR+'correlators.cfg').readlines() if i.strip()]
     # the antennas are loaded from the db
@@ -186,7 +187,7 @@ def clo_configuration_view(request):
     if not request.user.is_authenticated():
         return HttpResponseRedirect("/login")
 
-    block_status = app_settings.objects.get(setting='BLOCK')
+    block_status = Configuration.objects.get(setting='BLOCK')
 
     centrallos = [i.strip() for i in open(settings.CONFIGURATION_DIR+'centrallos.cfg').readlines() if i.strip()]
     # the antennas are loaded from the db
@@ -212,7 +213,7 @@ def clo_configuration_view(request):
                     clos[line_list[-1]].append(new_clo_config)
 
     ctx = {'error': error,
-           'read_only': block_status,
+           'read_only': block_status.value,
            'centrallos': centrallos,
            'clos': clos,
            'antennas':antennas
@@ -226,7 +227,7 @@ def holography_configuration_view(request):
     if not request.user.is_authenticated():
         return HttpResponseRedirect("/login")
 
-    block_status = app_settings.objects.get(setting='BLOCK')
+    block_status = Configuration.objects.get(setting='BLOCK')
 
     # the antennas are loaded from the db
     antennas = Antenna.objects.all()
@@ -246,7 +247,7 @@ def holography_configuration_view(request):
 
     ctx = {'error': error,
            'read_only': block_status.value,
-           'holos':holos,
-           'antennas':antennas
+           'holos': holos,
+           'antennas': antennas
            }
     return render_to_response('home/holography.djhtml', ctx, context_instance=RequestContext(request))
