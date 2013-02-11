@@ -26,6 +26,9 @@ class MinifyHTMLMiddleware(object):
                       in the response is text/html
         """
         
+        if settings.DEBUG:
+            return response
+
         if 'text/html' in response['Content-Type'] and settings.COMPRESS_HTML:
             response.content = response.content
             response.content = strip_spaces_between_tags(response.content.strip())
