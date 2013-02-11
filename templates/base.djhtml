@@ -30,8 +30,7 @@
       <link href="{{ STATIC_URL }}css/select2.css" rel="stylesheet">
       <link href="{{ STATIC_URL }}css/charisma-app.css" rel="stylesheet">
       <link href="{{ STATIC_URL }}css/smoothness/jquery-ui-1.10.0.custom.css" rel="stylesheet">
-      <!-- <link href="{{ STATIC_URL }}css/fullcalendar.css" rel='stylesheet'> -->
-      <!-- <link href="{{ STATIC_URL }}css/fullcalendar.print.css" rel='stylesheet' media='print'> -->
+      
       <!-- <link href="{{ STATIC_URL }}css/jquery.noty.css" rel="stylesheet">
 	   <link href='{{ STATIC_URL }}css/noty_theme_default.css' rel='stylesheet'> -->
       <!--
@@ -118,20 +117,20 @@
 	  
 	  <!-- external javascript
 	       ================================================== -->
-	       <!-- Placed at the end of the document so the pages load faster -->
+	  <!-- Placed at the end of the document so the pages load faster -->
 	       
-	       <!-- jQuery -->
-	       <script src="{{ STATIC_URL }}js/jquery-1.9.0.min.js"></script>
-	       <!-- jQuery UI -->
-	       <script src="{{ STATIC_URL }}js/jquery-ui-1.10.0.custom.min.js"></script>
-	       <!-- Bootstrap -->
-	       <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
-	       <!-- transition / effect library 
-		    <script src="{{ STATIC_URL }}js/bootstrap-transition.js"></script> -->
-	       <!-- custom dropdown library 
-		    <script src="{{ STATIC_URL }}js/bootstrap-dropdown.js"></script> -->
-	       <!-- scrolspy library 
-		    <script src="{{ STATIC_URL }}js/bootstrap-scrollspy.js"></script> -->
+	  <!-- jQuery -->
+	  <script src="{{ STATIC_URL }}js/jquery-1.9.0.min.js"></script>
+	  <!-- jQuery UI -->
+	  <script src="{{ STATIC_URL }}js/jquery-ui-1.10.0.custom.min.js"></script>
+	  <!-- Bootstrap -->
+	  <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
+	  <!-- transition / effect library -->
+	  <!-- <script src="{{ STATIC_URL }}js/bootstrap-transition.js"></script> -->
+	    <!-- custom dropdown library 
+	    <script src="{{ STATIC_URL }}js/bootstrap-dropdown.js"></script> -->
+	    <!-- scrolspy library 
+	    <script src="{{ STATIC_URL }}js/bootstrap-scrollspy.js"></script> -->
 	       <!-- library for creating tabs 
 		    <script src="{{ STATIC_URL }}js/bootstrap-tab.js"></script> -->
 	       <!-- library for advanced tooltip 
@@ -144,8 +143,8 @@
 		    <script src="{{ STATIC_URL }}js/jquery.cookie.js"></script> -->
 	       <!-- calander plugin 
 		    <script src="{{ STATIC_URL }}js/fullcalendar.min.js"></script>-->
-	       <!-- data table plugin -->
-		    <script src="{{ STATIC_URL }}js/jquery.dataTables.min.js"></script>
+	    <!-- data table plugin -->
+	    <script src="{{ STATIC_URL }}js/jquery.dataTables.min.js"></script>
 
 	       
 	       <!-- checkbox, radio, and file input styler 
@@ -156,16 +155,17 @@
 		    <script src="{{ STATIC_URL }}js/jquery.iphone.toggle.js"></script> -->
 	       <!-- history.js for cross-browser state change on ajax
 		    <script src="{{ STATIC_URL }}js/jquery.history.js"></script> -->
-	       <!-- bootbox.min.js -->
-	       <script src="{{ STATIC_URL }}js/bootbox.min.js"></script>
-	       <!-- selec2.min.js for better selects fields -->
-	       <script src="{{ STATIC_URL }}js/select2.min.js"></script>
-	       <!-- dajaxice.js -->
-	       {% dajaxice_js_import %}
-	       <!-- jquery.dajax.core.js ajax django library -->
+	    <!-- bootbox.min.js -->
+	    <script src="{{ STATIC_URL }}js/bootbox.min.js"></script>
+	    <!-- selec2.min.js for better selects fields -->
+	    <script src="{{ STATIC_URL }}js/select2.min.js"></script>
+	    <!-- dajaxice.js -->
+	    {% dajaxice_js_import %}
+	    <!-- jquery.dajax.core.js ajax django library -->
 	       <script src="{{ STATIC_URL }}js/jquery.dajax.core.js"></script>
 	       <!-- application aRAT script -->
-	       {% block Javascript %}{% endblock %}	
+            <script src="{{ STATIC_URL }}js/aRAT.js"></script>
+	    {% block Javascript %}{% endblock %}	
       {% endblock %}		
 </body>
 </html>
