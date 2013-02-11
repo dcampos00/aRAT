@@ -1,6 +1,6 @@
 #+TODO: TODO(t) IN-PROGRESS(p) | DONE(d!)
 
-* Pending in aRAT Project [25%]
+* Things pending in aRAT Project [25%]
 ** TODO web services [33%]
    - [X] block/unblock web service
    - [ ] checkConsistency web service
@@ -15,24 +15,23 @@
      + [X] CentralLO Configuration :: The CentralLO and the Antenna must be in the same *Place*
      + [X] Holography Recetor :: Only Antennas in TFOHG can have an Holograpfy Receptor
    - [X] local restrictions [5/5]
-     + [X] STE
-     + [X] PAD
-     + [X] Correlator Configuration
-     + [X] CentralLO Configuration
-     + [X] Holography Recetor
+     + [X] STE :: An antenna can only have one STE
+     + [X] PAD :: A PAD can only have an Antenna associated
+     + [X] Correlator Configuration :: A Corr Config can only have an Antenna associated
+     + [X] CentralLO Configuration :: A CLO Config can only have an Antenna associated
+     + [X] Holography Recetor :: A Holography Receptor can only have an Antenna associated
 ** TODO documents [%]
    - [ ] Administration manual
    - [ ] Wiki project
-** TODO documentation [0%]
+** IN-PROGRESS documentation [0%]
    - [-] Code documentation [25%]
      + [-] web services documentation [1/4]
        - [X] block/Unblock
        - [ ] checkConsistency
        - [ ] apply changes
        - [ ] changes pages
-     + [X] ajax documentation
-     + [ ] views documentation
-     + [ ] models documentation
+     + [X] Ajax.py documentation
+     + [ ] Views documentation
+     + [ ] Models doacumentation
    - [ ] Installation documentation [0/1]
-     + [ ] Create requirements.txt
-       To install all requires libraries with pip
+     + [ ] Create requirements.txt :: To install all requires libraries with pip
