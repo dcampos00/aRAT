@@ -1,0 +1,17 @@
+#+TODO: TODO IN-PROGRESS | DONE(!)
+
+* Pending in aRAT Project [0%]
+** TODO web services [0%]
+   - [ ] block/unblock web service
+   - [ ] apply changes web service
+   - [ ] changes pages web service
+** TODO restrictions [%]
+   - [ ] global restrictions
+** TODO documents [%]
+   - [ ] Administration manual
+   - [ ] Wiki project
+** TODO documentation [0%]
+   - [ ] Code documentation
+   - [ ] Installation documentation [0/1]
+     + [ ] Create requirements.txt
+       To install all requires libraries with pip
