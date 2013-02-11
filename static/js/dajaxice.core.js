@@ -19,6 +19,10 @@ var Dajaxice = {
     
         home: {
     
+    holo_update_alerts: function(callback_function, argv, custom_settings){
+        Dajaxice.call('aRAT.apps.home.holo_update_alerts', 'POST', callback_function, argv, custom_settings);
+    },
+
     ste_update_alerts: function(callback_function, argv, custom_settings){
         Dajaxice.call('aRAT.apps.home.ste_update_alerts', 'POST', callback_function, argv, custom_settings);
     },
