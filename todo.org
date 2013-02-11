@@ -9,16 +9,27 @@
 ** DONE restrictions [100%]
    - State "DONE"       from "TODO"       [2013-02-11 Mon 10:04]
    - [X] global restrictions
+     + [X] STE :: Have not global restrictions
+     + [X] PAD :: The PAD must be in the same *Place* that the Antenna
+     + [X] Correlator Configuration :: The Correlator and the Antenna must be in the same *Place*
+     + [X] CentralLO Configuration :: The CentralLO and the Antenna must be in the same *Place*
+     + [X] Holography Recetor :: Only Antennas in TFOHG can have an Holograpfy Receptor
+   - [X] local restrictions [5/5]
+     + [X] STE
+     + [X] PAD
+     + [X] Correlator Configuration
+     + [X] CentralLO Configuration
+     + [X] Holography Recetor
 ** TODO documents [%]
    - [ ] Administration manual
    - [ ] Wiki project
 ** TODO documentation [0%]
    - [-] Code documentation [25%]
      + [-] web services documentation [1/4]
-       * [X] block/Unblock
-       * [ ] checkConsistency
-       * [ ] apply changes
-       * [ ] changes pages
+       - [X] block/Unblock
+       - [ ] checkConsistency
+       - [ ] apply changes
+       - [ ] changes pages
      + [X] ajax documentation
      + [ ] views documentation
      + [ ] models documentation
