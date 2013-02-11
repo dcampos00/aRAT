@@ -1,17 +1,27 @@
-#+TODO: TODO IN-PROGRESS | DONE(!)
+#+TODO: TODO(t) IN-PROGRESS(p) | DONE(d!)
 
-* Pending in aRAT Project [0%]
-** TODO web services [0%]
-   - [ ] block/unblock web service
+* Pending in aRAT Project [25%]
+** TODO web services [33%]
+   - [X] block/unblock web service
+   - [ ] checkConsistency web service
    - [ ] apply changes web service
    - [ ] changes pages web service
-** TODO restrictions [%]
-   - [ ] global restrictions
+** DONE restrictions [100%]
+   - State "DONE"       from "TODO"       [2013-02-11 Mon 10:04]
+   - [X] global restrictions
 ** TODO documents [%]
    - [ ] Administration manual
    - [ ] Wiki project
 ** TODO documentation [0%]
-   - [ ] Code documentation
+   - [-] Code documentation [25%]
+     + [-] web services documentation [1/4]
+       * [X] block/Unblock
+       * [ ] checkConsistency
+       * [ ] apply changes
+       * [ ] changes pages
+     + [X] ajax documentation
+     + [ ] views documentation
+     + [ ] models documentation
    - [ ] Installation documentation [0/1]
      + [ ] Create requirements.txt
        To install all requires libraries with pip
