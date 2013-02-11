@@ -6,6 +6,7 @@
 {% block ContentTitle %} PAD Configuration {% endblock %}
 
 {% block Content %}
+<div id="debug">DEBUG DIV</div>
 <ul class="nav nav-tabs" id="antennasTab">
   {% for location in locations %}
   <li><a href="#{{ location|lower }}">{{ location }}</a></li>
@@ -30,7 +31,7 @@
 	      </thead>
 	      <tbody>
 		{% for pad in pads_by_cols %}
-		<tr class="pad-container" data-pad-id="{{ pad.line }}">
+		<tr class="pad-container" data-resource-id="{{ pad.line }}">
 		  <td>
                     {{ pad.name }}
                   </td>
@@ -51,104 +52,22 @@
   {% endfor %}
 </div>
 
+{% if not read_only %}
 <div class="antenna-change-select hide original">
   <input type="hidden" data-rel="select2" data-placeholder="Select an Antenna"/>
   <button type="button" class="btn btn-apply btn-primary"><i class="icon-ok"></i></button>
   <button type="button" class="btn btn-cancel-select"><i class="icon-remove"></i></button>
 </div>
-
-<div id="debug">DEBUG DIV</div>
+{% endif %}
 {% endblock %}
 
 {% block Javascript %}
 <script type="text/javascript">
+{% if not read_only %}
 var antennas = [{id: 'None', text: 'None'},
     {% for antenna in antennas %}{id: {{ antenna.id }}, text: '{{ antenna }}'}{% if not forloop.last %}, {% endif %}{% endfor %}
                ];
-
-var refreshTimer;
-
-function refresh(start){
-  if (start == true) {
-    clearInterval(refreshTimer);
-    refreshTimer = null;  
-
-    refreshTimer = setInterval(function(){
-      Dajaxice.aRAT.apps.home.pad_update_alerts(Dajax.process);
-    }, 3000);
-  } else {
-    clearInterval(refreshTimer);
-    refreshTimer = null;  
-  }
-}  
-
-function update_status(data){
-  var tr = $("tr[data-pad-id='"+data.pad.id+"']");
-  tr.removeClass("btn-danger btn-success");
-  if (data.requested_antenna.id != null || (data.current_antenna.id != null && data.pad.assigned == false)) {
-    if(data.pad.assigned == false){
-      data.requested_antenna.name = "None";
-      data.requested_antenna.id = "None";
-    }
-    tr.find(".text-antenna").text(data.requested_antenna.name).data("antennaId", data.requested_antenna.id);
-
-    alerts = tr.parents(".tab-pane").find(".alerts-container");
-
-    tr.addClass("btn-success");
-    alert_type = "alert-success";
-    if(data.pad.assigned == true){
-      alert_text = data.requested_antenna.name+" will be changed to "+data.pad.name;
-    } else {
-      alert_text = "The PAD "+data.pad.name+" will be unassigned";
-    }
-
-    if (data.error != null){
-      if (data.error.local != null){
-        alert_type = "alert-error";
-        tr.removeClass("btn-success").addClass("btn-danger");
-        alert_text += ", but "+data.requested_antenna.name+" also will be on PAD(s) "+data.error.local;
-      }
-      if (data.error.global){
-        alert_type = "alert-error";
-        tr.removeClass("btn-success").addClass("btn-danger");
-        alert_text += ".<br/>The antenna and the PAD are in differents STEs.";
-      }
-    }
-
-    alert_text += " -- Request done by "+data.user.first_name+" "+data.user.last_name;
-    alert_text += " on "+data.datetime.date+" at "+data.datetime.time;
-    updateAlert(alerts, alert_type, alert_text, data.pad.id);
-
-  } else {
-    alerts = tr.parents(".tab-pane").find(".alerts-container");
-    alert_div = alerts.find("[data-id='"+data.pad.id+"']");
-    if (alert_div.length > 0) {
-      alert_div.remove();
-    }
-    if(data.current_antenna.name == null){
-      data.current_antenna.name = "None";
-      data.current_antenna.id = "None";
-    }
-    tr.find(".text-antenna").text(data.current_antenna.name).data("antennaId", data.current_antenna.id);
-  }
-}
-
-function updateAlert(alerts_div, type, text, id) {
-  alert_div = alerts_div.find("[data-id='"+id+"']");
-  /* is proved if exist the alert */
-  if (alert_div.length > 0) {
-    /* if exist the content is updated */
-    alert_div.children(".alert-text").html(text);
-    alert_div.attr("class", "alert").addClass(type);
-  } else {
-    /* if does not exist the alert is created */
-    html_alert = "<div class=\"alert "+type+"\" data-id=\""+id+"\">";
-    html_alert += "<button type=\"button\" class=\"close close-alert\" data-dismiss=\"alert\">&times;</button>";
-    html_alert += "<div class=\"alert-text\">"+text+"</div>";
-    html_alert += "</div>";
-    alerts_div.append( html_alert );
-  }
-}
+{% endif %}
 
 $(document).ready(function () {
   
@@ -175,6 +94,7 @@ $(document).ready(function () {
                         "sDom": 'tr'
   });
 
+  {% if not read_only %}
   $(".draggable").draggable({
     helper: "clone",
     revert: "invalid",
@@ -211,9 +131,9 @@ $(document).ready(function () {
         /* is requested the confirmation */
         bootbox.confirm("Are you sure?", function(result) {
           if(result){
-            pad_id_1 = change_content.data("original-parent").parent().data("padId");
+            pad_id_1 = change_content.data("original-parent").parent().data("resourceId");
             antenna_id_1 = change_content.data("antennaId");
-            pad_id_2 = droppable.parent().data("padId");
+            pad_id_2 = droppable.parent().data("resourceId");
             antenna_id_2 = current_content.data("antennaId");
             
             Dajaxice.aRAT.apps.home.pad_update_alerts(Dajax.process, {'pad_id': pad_id_1, 'antenna_id': antenna_id_2});
@@ -275,7 +195,7 @@ $(document).ready(function () {
   $(document).on("click",".btn-apply", function(e) {
     e.preventDefault();
     if($(this).parent().is(":visible")){
-      pad_id = $(this).parents("tr.pad-container").data("padId");
+      pad_id = $(this).parents("tr.pad-container").data("resourceId");
       antenna_id = $(this).parent().children("[data-rel='select2']").val();
 
 
@@ -289,9 +209,12 @@ $(document).ready(function () {
     }
     e.stopPropagation();    
   });
+  {% endif %}
 
   Dajaxice.aRAT.apps.home.pad_update_alerts(Dajax.process);
-  refresh(true);
+  {% if not read_only %}
+  refresh(true, Dajaxice.aRAT.apps.home.pad_update_alerts);
+  {% endif %}
 });
 </script>
 {% endblock %}

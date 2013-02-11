@@ -8,6 +8,8 @@
 {% endblock %}
 
 {% block Content %}
+<div id="debug">DIV DEBUG {{ read_only }}</div>
+
 <ul class="nav nav-tabs" id="centrallosTab">
   {% for centrallo in centrallos %}
   <li><a href="#{{ centrallo|lower }}">{{ centrallo }}</a></li>
@@ -22,136 +24,54 @@
          <div class="row-fluid">
            <form class="pull-right"><input type="text" class="filter" placeholder="Filter by Configuration Columns"></form>
          </div>
-	      <div class="row-fluid">
-	        <div class="span12">
-	          <div class="row-fluid">
-	            <table class="table table-bordered datatable">
-		      {% for clo in clos %}
-		      {% if forloop.first %}
-		      <thead>
-		        <tr>
-		          <th>Antenna</th>			
-		          {% for i in clo %}<th>{{ i|replace_by_space:"-"|replace_by_space:"#" }}</th>{% endfor %}
-		        </tr>
-		      </thead>
-		      <tbody>
-	                {% else %}
-	                <tr data-clo-line="{{ clo.line }}">
-		          <td class="change-antenna droppable">
-		            <div class="text-antenna draggable" data-antenna-id="{{ clo.current_antenna.id }}">{{ clo.current_antenna }}</div>
-		          </td>
-		          {% for i in clo.configuration.split %}<td>{{ i }}</td>{% endfor %}
-	                </tr>
-	              {% endif %}
-	                {% if forloop.last %}</tbody>{% endif %}
-	              {% endfor %}
-	            </table>    
-	          </div>  
-	        </div>
-	      </div>
+	 <div class="row-fluid">
+	   <div class="span12">
+	     <div class="row-fluid">
+	       <table class="table table-bordered datatable">
+		 {% for clo in clos %}
+		 {% if forloop.first %}
+		 <thead>
+		   <tr>
+		     <th>Antenna</th>			
+		     {% for i in clo %}<th>{{ i|replace_by_space:"-"|replace_by_space:"#" }}</th>{% endfor %}
+		   </tr>
+		 </thead>
+		 <tbody>
+	           {% else %}
+	           <tr data-resource-id="{{ clo.line }}">
+		     <td class="change-antenna droppable">
+		       <div class="text-antenna draggable" data-antenna-id="{{ clo.current_antenna.id }}">{{ clo.current_antenna }}</div>
+		     </td>
+		     {% for i in clo.configuration.split %}<td>{{ i }}</td>{% endfor %}
+	           </tr>
+	         {% endif %}
+	           {% if forloop.last %}</tbody>{% endif %}
+	         {% endfor %}
+	       </table>    
+	     </div>  
+	   </div>
+	 </div>
        </div>
   </div>
   {% endfor %}
 </div>
 
+{% if not read_only %}
 <div class="antenna-change-select hide original">
   <input type="hidden" data-rel="select2" data-placeholder="Select an Antenna"/>
   <button type="button" class="btn btn-apply btn-primary"><i class="icon-ok"></i></button>
   <button type="button" class="btn btn-cancel-select"><i class="icon-remove"></i></button>
 </div>
-
-<div id="debug">DIV DEBUG</div>
+{% endif %}
 {% endblock %}
 
 {% block Javascript %}
 <script type="text/javascript">
+{% if not read_only %}
 var antennas = [{id: 'None', text: 'None'},
-  {% for antenna in antennas %}{id: {{ antenna.id }}, text: '{{ antenna }}'}{% if not forloop.last %}, {% endif %}{% endfor %}
+    {% for antenna in antennas %}{id: {{ antenna.id }}, text: '{{ antenna }}'}{% if not forloop.last %}, {% endif %}{% endfor %}
                ];
-
-var refreshTimer;
-
-function refresh(start){
-  if (start == true) {
-    clearInterval(refreshTimer);
-    refreshTimer = null;  
-
-    refreshTimer = setInterval(function(){
-      Dajaxice.aRAT.apps.home.clo_update_alerts(Dajax.process);
-    }, 3000);
-  } else {
-    clearInterval(refreshTimer);
-    refreshTimer = null;  
-  }
-}  
-
-function update_status(data){
-  var tr = $("tr[data-clo-line='"+data.clo.line+"']");
-  tr.removeClass("btn-danger btn-success");
-  if (data.requested_antenna.id != null || (data.current_antenna.id != null && data.clo.assigned == false)) {
-    if(data.clo.assigned == false){
-      data.requested_antenna.name = "None";
-      data.requested_antenna.line = "None";
-    }
-    tr.find(".text-antenna").text(data.requested_antenna.name).data("antennaId", data.requested_antenna.id);
-
-    alerts = tr.parents(".tab-pane").find(".alerts-container");
-
-    tr.addClass("btn-success");
-    alert_type = "alert-success";
-    if(data.clo.assigned == true){
-      alert_text = data.requested_antenna.name+" will be changed to "+data.clo.name;
-    } else {
-      alert_text = "The CentralLO Configuration "+data.clo.name+" will be unassigned";
-    }
-
-    if (data.error != null){
-      if (data.error.local != null){
-        alert_type = "alert-error";
-        tr.removeClass("btn-success").addClass("btn-danger");
-        alert_text += ", but "+data.requested_antenna.name+" also will be have "+data.error.local+" configuration(s)";
-      }
-      if (data.error.global){
-        alert_type = "alert-error";
-        tr.removeClass("btn-success").addClass("btn-danger");
-        alert_text += ".<br/>The Antenna and the CentraLO are in different STEs.";
-      }
-    }
-
-    alert_text += " -- Request done by "+data.user.first_name+" "+data.user.last_name;
-    alert_text += " on "+data.datetime.date+" at "+data.datetime.time;
-    updateAlert(alerts, alert_type, alert_text, data.clo.line);
-
-  } else {
-    alerts = tr.parents(".tab-pane").find(".alerts-container");
-    alert_div = alerts.find("[data-id='"+data.clo.line+"']");
-    if (alert_div.length > 0) {
-      alert_div.remove();
-    }
-    if(data.current_antenna.name == null){
-      data.current_antenna.name = "None";
-      data.current_antenna.id = "None";
-    }
-    tr.find(".text-antenna").text(data.current_antenna.name).data("antennaId", data.current_antenna.id);
-  }
-}
-
-function updateAlert(alerts_div, type, text, id) {
-  alert_div = alerts_div.find("[data-id='"+id+"']");
-  /* is proved if exist the alert */
-  if (alert_div.length > 0) {
-    /* if exist the content is updated */
-    alert_div.children(".alert-text").html(text);
-    alert_div.attr("class", "alert").addClass(type);
-  } else {
-    /* if does not exist the alert is created */
-    html_alert = "<div class=\"alert "+type+"\" data-id=\""+id+"\">";
-    html_alert += "<button type=\"button\" class=\"close close-alert\" data-dismiss=\"alert\">&times;</button>";
-    html_alert += "<div class=\"alert-text\">"+text+"</div>";
-    html_alert += "</div>";
-    alerts_div.append( html_alert );
-  }
-}
+{% endif %}
 
 $(document).ready(function () {
   
@@ -179,6 +99,7 @@ $(document).ready(function () {
     "aoColumnDefs": [{"aTargets": [ 0 ], "bSearchable": false}],
   });
 
+  {% if not read_only %}
   /* Drag and Drop Interaction */
 
   $(".draggable").draggable({
@@ -217,9 +138,9 @@ $(document).ready(function () {
         /* is requested the confirmation */
         bootbox.confirm("Are you sure?", function(result) {
           if(result){
-            clo_line_1 = change_content.data("original-parent").parent().data("cloLine");
+            clo_line_1 = change_content.data("original-parent").parent().data("resourceId");
             antenna_id_1 = change_content.data("antennaId");
-            clo_line_2 = droppable.parent().data("cloLine");
+            clo_line_2 = droppable.parent().data("resourceId");
             antenna_id_2 = current_content.data("antennaId");
             
             Dajaxice.aRAT.apps.home.clo_update_alerts(Dajax.process, {'configuration_line': clo_line_1, 'antenna_id': antenna_id_2});
@@ -285,7 +206,7 @@ $(document).ready(function () {
   $(document).on("click",".btn-apply", function(e) {
     e.preventDefault();
     if($(this).parent().is(":visible")){
-      clo_line = $(this).parents("tr").data("cloLine");
+      clo_line = $(this).parents("tr").data("resourceId");
       antenna_id = $(this).parent().children("[data-rel='select2']").val();
 
       if(clo_line != "" && antenna_id != ""){
@@ -297,11 +218,14 @@ $(document).ready(function () {
     }
     e.stopPropagation();    
   });
+  {% endif %}
 
   /* first call to the updater */
   Dajaxice.aRAT.apps.home.clo_update_alerts(Dajax.process);
+  {% if not read_only %}
   /* activivation of the auto refresh */
-  refresh(true);
+  refresh(true, Dajaxice.aRAT.apps.home.clo_update_alerts);
+  {% endif %}
 });
 </script>
 {% endblock %}

@@ -32,232 +32,56 @@
 
 {% block Javascript %}
 <script type="text/javascript">
-var refreshTimer;
-
-function ajax(){
-  Dajaxice.aRAT.apps.home.ste_update_alerts(Dajax.process);
-  Dajaxice.aRAT.apps.home.pad_update_alerts(Dajax.process);
-  Dajaxice.aRAT.apps.home.corr_update_alerts(Dajax.process);
-  Dajaxice.aRAT.apps.home.clo_update_alerts(Dajax.process);
-  Dajaxice.aRAT.apps.home.holo_update_alerts(Dajax.process);
-}
-
-function refresh(start){
-  if (start == true) {
-    ajax();
-    clearInterval(refreshTimer);
-    refreshTimer = null;  
-
-    refreshTimer = setInterval(function(){
-      ajax();
-    }, 3000);
-  } else {
-    clearInterval(refreshTimer);
-    refreshTimer = null;  
-  }
-}  
 
 function update_status(data){
   alerts = $(".alerts-container");
 
   /*** STE Requests ***/
-  if (data.ste != null){
-    if (data.ste.id != null) {    
-      alert_text = data.antenna.name+" will be changed to "+data.ste.name;
-      alert_text += " -- Request done by "+data.user.first_name+" "+data.user.last_name;
-      alert_text += " on "+data.datetime.date+" at "+data.datetime.time;
-
-
+  if (data.antenna != null) {
+    if (data.ste != null) {
       updateAlert(alerts.find("#steRequests"),
                   "alert-success",
-                  alert_text,
-                  "antenna-"+data.antenna.id);
-
+                  data.status,
+                  data.antenna,
+                  true);
     } else {
-      alert_div = alerts.find("[data-id='antenna-"+data.antenna.id+"']");
-      if (alert_div.length > 0) {
-        alert_div.remove();
-      }
-    }
-    if ($("#steRequests center").siblings().length > 0){
-      $("#steRequests center").hide();
-    } else {
-      $("#steRequests center").show();
+      removeAlert(alerts.find("#steRequests"), data.antenna);
     }
   }
 
   /*** PAD Requests ***/
-  if(data.pad != null){
-    if (data.requested_antenna.id != null || (data.current_antenna.id != null && data.pad.assigned == false)) {
-      alert_type = "alert-success";
-      if(data.pad.assigned == true){
-        alert_text = data.requested_antenna.name+" will be changed to "+data.pad.name;
-      } else {
-        alert_text = "The PAD "+data.pad.name+" will be unassigned";
-      }
-
-      if (data.error != null){
-        if (data.error.local != null){
-          alert_type = "alert-error";
-          alert_text += ", but "+data.requested_antenna.name+" also will be on PAD(s) "+data.error.local;
-        }
-        if (data.error.global){
-          alert_type = "alert-error";
-          alert_text += ".<br/>The antenna and the PAD are in differents STEs.";
-        }
-      }
-
-      alert_text += " -- Request done by "+data.user.first_name+" "+data.user.last_name;
-      alert_text += " on "+data.datetime.date+" at "+data.datetime.time;
-      updateAlert(alerts.find("#padRequests"), alert_type, alert_text, "pad-"+data.pad.id);
-
-    } else {
-      alert_div = alerts.find("[data-id='pad-"+data.pad.id+"']");
-      if (alert_div.length > 0) {
-        alert_div.remove();
-      }
+  else {
+    switch (data.resource.type) {
+      case 'pad': alerts = alerts.find("#padRequests"); break;
+      case 'corr': alerts = alerts.find("#corrRequests"); break;
+      case 'clo': alerts = alerts.find("#cloRequests"); break;
+      case 'holo': alerts = alerts.find("#holoRequests"); break;
     }
-    if ($("#padRequests center").siblings().length > 0){
-      $("#padRequests center").hide();
+    if (data.requested_antenna.id != null || ( data.current_antenna.id != null && data.resource.assigned == false)) {
+      
+      if (!data.error) {
+        alert_type = "alert-success";
+      } else {
+        alert_type = "alert-error"
+      }
+
+      updateAlert(alerts, alert_type, data.status, data.resource.id, true);
     } else {
-      $("#padRequests center").show();
+      removeAlert(alerts, data.resource.id);
     }
   }
 
-  /*** Correlator Configuration Requets ***/
-  if ( data.corr != null ){
-    if (data.requested_antenna.id != null || (data.current_antenna.id != null && data.corr.assigned == false)) {
-      alert_type = "alert-success";
-      if(data.corr.assigned == true){
-        alert_text = data.requested_antenna.name+" will be changed to "+data.corr.name;
-      } else {
-        alert_text = "The Correlator Configuration "+data.corr.name+" will be unassigned";
-      }
-
-      if (data.error != null){
-        if (data.error.local != null){
-          alert_type = "alert-error";
-          alert_text += ", but "+data.requested_antenna.name+" also will be have "+data.error.local+" configuration(s)";
-        }
-        if (data.error.global){
-          alert_type = "alert-error";
-          alert_text += ".<br/>The Antenna and the Correlator are in different STEs.";
-        }
-      }
-
-      alert_text += " -- Request done by "+data.user.first_name+" "+data.user.last_name;
-      alert_text += " on "+data.datetime.date+" at "+data.datetime.time;
-      updateAlert(alerts.find("#corrRequests"), alert_type, alert_text, "corr-"+data.corr.line);
-
-    } else {
-      alert_div = alerts.find("[data-id='corr-"+data.corr.line+"']");
-      if (alert_div.length > 0) {
-        alert_div.remove();
-      }
-    }
-    if ($("#corrRequests center").siblings().length > 0){
-      $("#corrRequests center").hide();
-    } else {
-      $("#corrRequests center").show();
-    }
-  }
-
-  /*** CentralLO Configuration Requests ***/
-  if (data.clo != null) {
-    if (data.requested_antenna.id != null || (data.current_antenna.id != null && data.clo.assigned == false)) {
-      alert_type = "alert-success";
-      if(data.clo.assigned == true){
-        alert_text = data.requested_antenna.name+" will be changed to "+data.clo.name;
-      } else {
-        alert_text = "The CentralLO Configuration "+data.clo.name+" will be unassigned";
-      }
-
-      if (data.error != null){
-        if (data.error.local != null){
-          alert_type = "alert-error";
-          alert_text += ", but "+data.requested_antenna.name+" also will be have "+data.error.local+" configuration(s)";
-        }
-        if (data.error.global){
-          alert_type = "alert-error";
-          alert_text += ".<br/>The Antenna and the CentraLO are in different STEs.";
-        }
-      }
-
-      alert_text += " -- Request done by "+data.user.first_name+" "+data.user.last_name;
-      alert_text += " on "+data.datetime.date+" at "+data.datetime.time;
-      updateAlert(alerts.find("#cloRequests"), alert_type, alert_text, "clo-"+data.clo.line);
-
-    } else {
-      alert_div = alerts.find("[data-id='clo-"+data.clo.line+"']");
-      if (alert_div.length > 0) {
-        alert_div.remove();
-      }
-    }
-    if ($("#cloRequests center").siblings().length > 0){
-      $("#cloRequests center").hide();
-    } else {
-      $("#cloRequests center").show();
-    }
-  }
-
-  /*** Holografphy Receptor Requests ***/
-  if (data.holo != null) {
-    if (data.requested_antenna.id != null || (data.current_antenna.id != null && data.holo.assigned == false)) {
-      alert_type = "alert-success";
-      if(data.holo.assigned == true){
-        alert_text = data.requested_antenna.name+" will be changed to "+data.holo.name;
-      } else {
-        alert_text = "The Holography Receptor "+data.holo.name+" will be unassigned";
-      }
-
-      if (data.error != null){
-        if (data.error.local != null){
-          alert_type = "alert-error";
-          alert_text += ", but "+data.requested_antenna.name+" also will be on Holography Receptor(s) "+data.error.local;
-        }
-        if (data.error.global){
-          alert_type = "alert-error";
-          alert_text += ".<br/>The antenna is not in TFOHG STE.";
-        }
-      }
-
-      alert_text += " -- Request done by "+data.user.first_name+" "+data.user.last_name;
-      alert_text += " on "+data.datetime.date+" at "+data.datetime.time;
-      updateAlert(alerts.find("#holoRequests"), alert_type, alert_text, "holo-"+data.holo.line);
-
-    } else {
-      alert_div = alerts.find("[data-id='holo-"+data.holo.line+"']");
-      if (alert_div.length > 0) {
-        alert_div.remove();
-      }
-    }
-    if ($("#holoRequests center").siblings().length > 0){
-      $("#holoRequests center").hide();
-    } else {
-      $("#holoRequests center").show();
-    }
-  }
-}
-
-function updateAlert(alerts_div, type, text, id) {
-  alert_div = alerts_div.find("[data-id='"+id+"']");
-  /* is proved if exist the alert */
-  if (alert_div.length > 0) {
-    /* if exist the content is updated */
-    alert_div.children(".alert-text").html(text);
-    alert_div.attr("class", "alert").addClass(type);
+  no_request = alerts.find("center");
+  if ( no_request.siblings().length > 0 ){
+    no_request.hide();
   } else {
-    /* if does not exist the alert is created */
-    html_alert = "<div class=\"alert "+type+"\" data-id=\""+id+"\">";
-    /*html_alert += "<button type=\"button\" class=\"close close-alert\" data-dismiss=\"alert\">&times;</button>";*/
-    html_alert += "<div class=\"alert-text\">"+text+"</div>";
-    html_alert += "</div>";
-    alerts_div.append( html_alert );
+    no_request.show();
   }
 }
 
 $(document).ready(function () {
-  refresh(true);
+  ajax(Dajax.process);
+  refresh(true, ajax);
 });
 </script>
 {% endblock %}

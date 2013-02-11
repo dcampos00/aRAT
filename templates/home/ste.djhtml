@@ -6,157 +6,149 @@
 {% block ContentTitle %} STE Configuration {% endblock %}
 
 {% block Content %}
-<ul class="nav nav-tabs" id="antennasTab">
-  {% for vendor in vendors %}
-  <li><a href="#{{ vendor|cut:" "|lower }}">{{ vendor }}</a></li>
-  {% endfor %}
-</ul>  
+<div id="debug">DEBUG DIV {{ read_only }}</div>
 
-<div class="tab-content" id="antennasContent">
-  {% for vendor, antennas in antennas.items %}
-  <div class="tab-pane" id="{{ vendor|cut:" "|lower }}">
-    <div class="row-fluid">
-      <div id="alerts-{{ vendor|lower }}" class="row-fluid alerts-container"></div>
+  <ul class="nav nav-tabs" id="antennasTab">
+    {% for vendor in vendors %}
+    <li><a href="#{{ vendor|cut:" "|lower }}">{{ vendor }}</a></li>
+    {% endfor %}
+  </ul>  
+
+  <div class="tab-content" id="antennasContent">
+    {% for vendor, antennas in antennas.items %}
+    <div class="tab-pane" id="{{ vendor|cut:" "|lower }}">
       <div class="row-fluid">
-	{% for antennas_by_vendor in antennas|rows_distributed:"2" %}  
-	<div class="span6">
-	  <div class="row-fluid">
-	    <table class="table table-bordered">
-	      <thead>
-		<tr>
-		  <th>Antenna</th><th>STE</th>
-		</tr>
-	      </thead>
-	      <tbody>
-		{% for antenna in antennas_by_vendor %}
-		<tr class="antenna" data-antenna-id="{{ antenna.id }}">
-		  <td>{{ antenna }}</td>
-		    <td>
-		      <div class="btn-group" data-toggle="buttons-radio">
-			{% for ste in stes %}
-                        <button type="button" class="btn-ste btn{% if antenna.current_ste == ste.0 %} btn-info{% endif %}" data-ste-id="{{ ste.0 }}">{{ ste.1 }}</button>
-			{% endfor %}
-		      </div>
-		    </td>
-		</tr>
-		{% endfor %}
-	      </tbody>
-	    </table>    
-	  </div>  
-	</div>
-	{% endfor %}	  
+        <div id="alerts-{{ vendor|lower }}" class="row-fluid alerts-container"></div>
+        <div class="row-fluid">
+	  {% for antennas_by_vendor in antennas|rows_distributed:"2" %}  
+	  <div class="span6">
+	    <div class="row-fluid">
+	      <table class="table table-bordered">
+	        <thead>
+		  <tr>
+		    <th>Antenna</th><th>STE</th>
+		  </tr>
+	        </thead>
+	        <tbody>
+		  {% for antenna in antennas_by_vendor %}
+		  <tr class="antenna" data-antenna-id="{{ antenna.id }}">
+		    <td>{{ antenna }}</td>
+		      <td>
+		        <div class="btn-group" data-toggle="buttons-radio">
+			  {% for ste in stes %}
+                          <button type="button" class="btn-ste btn{% if antenna.current_ste == ste.0 %} btn-info{% endif %}" data-ste-id="{{ ste.0 }}">{{ ste.1 }}</button>
+			  {% endfor %}
+		        </div>
+		      </td>
+		  </tr>
+		  {% endfor %}
+	        </tbody>
+	      </table>    
+	    </div>  
+	  </div>
+	  {% endfor %}	  
+        </div>
       </div>
     </div>
+    {% endfor %}
   </div>
-  {% endfor %}
-</div>
-
-<div id="debug">DEBUG DIV</div>
 {% endblock %}
 
-{% block Javascript %}
-<script type="text/javascript">
-var refreshTimer;
+  {% block Javascript %}
+  <script type="text/javascript">
 
-function refresh(start){
-  if (start == true) {
-    clearInterval(refreshTimer);
-    refreshTimer = null;  
+  function update_status(data){
+    var tr = $("tr[data-antenna-id='"+data.antenna+"']");
 
-    refreshTimer = setInterval(function(){
-      Dajaxice.aRAT.apps.home.ste_update_alerts(Dajax.process);
-    }, 3000);
-  } else {
-    clearInterval(refreshTimer);
-    refreshTimer = null;  
-  }
-}  
+    if (data.ste != null) {
+      tr.addClass("btn-info");
+      tr.find("button").removeClass("btn-success active");
+      tr.find("[data-ste-id='"+data.ste+"']").addClass("btn-success active");
 
-function update_status(data){
-  var tr = $("tr[data-antenna-id='"+data.antenna.id+"']");
+      alerts = tr.parents(".tab-pane").find(".alerts-container");
+      
+      updateAlert(alerts,
+                  "alert-success",
+                  data.status,
+                  data.antenna);    
 
-  if (data.ste.id != null) {
-    tr.addClass("btn-info");
-    tr.find("button").removeClass("btn-success");
-    tr.find("[data-ste-id='"+data.ste.id+"']").addClass("btn-success active");
-
-    alerts = tr.parents(".tab-pane").find(".alerts-container");
-    
-    alert_text = data.antenna.name+" will be changed to "+data.ste.name;
-    alert_text += " -- Request done by "+data.user.first_name+" "+data.user.last_name;
-    alert_text += " on "+data.datetime.date+" at "+data.datetime.time;
-
-    updateAlert(alerts,
-                "alert-success",
-                alert_text,
-                data.antenna.id);    
-
-  } else {
-    alerts = tr.parents(".tab-pane").find(".alerts-container");
-    alert_div = alerts.find("[data-antenna-id='"+data.antenna.id+"']");
-    if (alert_div.length > 0) {
-      alert_div.remove();
+    } else {
+      alerts = tr.parents(".tab-pane").find(".alerts-container");
+      alert_div = alerts.find("[data-antenna-id='"+data.antenna+"']");
+      if (alert_div.length > 0) {
+        alert_div.remove();
+      }
+      tr.removeClass("btn-info");
+      tr.find("button").removeClass("btn-success active");
     }
-    tr.removeClass("btn-info");
-    tr.find("button").removeClass("btn-success active");
   }
-}
 
-function updateAlert(alerts_div, type, text, antenna_id) {
-  alert_div = alerts_div.find("[data-antenna-id='"+antenna_id+"']");
-  /* is proved if exist the alert */
-  if (alert_div.length > 0) {
-    /* if exist the content is updated */
-    alert_div.children(".alert-text").html(text);
-  } else {
-    /* if does not exist the alert is created */
-    html_alert = "<div class=\"alert "+type+"\" data-antenna-id=\""+antenna_id+"\">";
-    html_alert += "<button type=\"button\" class=\"close close-alert\" data-dismiss=\"alert\">&times;</button>";
-    html_alert += "<div class=\"alert-text\">"+text+"</div>";
-    html_alert += "</div>";
-    alerts_div.append( html_alert );
+  function updateAlert(alerts_div, type, text, antenna_id) {
+    alert_div = alerts_div.find("[data-antenna-id='"+antenna_id+"']");
+    /* is proved if exist the alert */
+    if (alert_div.length > 0) {
+      /* if exist the content is updated */
+      alert_div.children(".alert-text").html(text);
+    } else {
+      /* if does not exist the alert is created */
+      html_alert = "<div class=\"alert "+type+"\" data-antenna-id=\""+antenna_id+"\">";
+      {% if not read_only %}
+      html_alert += "<button type=\"button\" class=\"close close-alert\" data-dismiss=\"alert\">&times;</button>";
+      {% endif %}
+      html_alert += "<div class=\"alert-text\">"+text+"</div>";
+      html_alert += "</div>";
+      alerts_div.append( html_alert );
+    }
   }
-}
 
-$(document).ready(function () {
-  $("#antennasTab a:first").tab('show');
-  $("#antennasTab a").click(function (e){
-    e.preventDefault();
-    $(this).tab('show');
-  });
-
-  $(".btn-ste").click(function (e) {
-    e.preventDefault();
-    var button = $(this);
-    bootbox.confirm("Are you sure?", function (result) {
-      if (result) {
-        antenna_id = button.parents("tr.antenna").data("antennaId");
-        ste_id = button.data("steId");
-        Dajaxice.aRAT.apps.home.ste_update_alerts(Dajax.process,
-                                                  {'antenna_id': antenna_id,
-                                                   'ste_id': ste_id});
-      } else {
-        button.removeClass("active");
-      }
+  $(document).ready(function () {
+    $("#antennasTab a:first").tab('show');
+    $("#antennasTab a").click(function (e){
+      e.preventDefault();
+      $(this).tab('show');
     });
-  });
-  
-  $(document).on("click",".close-alert", function(e) {
-    var button = $(this);
-    bootbox.confirm("Are you sure?", function (result) {
-      if (result) {
-        antenna_id = button.parents("div.alert").data("antennaId");
-        Dajaxice.aRAT.apps.home.ste_update_alerts(Dajax.process,
-                                                  {'antenna_id': antenna_id,
-                                                  });
-      }
+
+    {% if not read_only %}
+    $(".btn-ste").click(function (e) {
+      e.preventDefault();
+      var button = $(this);
+      bootbox.confirm("Are you sure?", function (result) {
+        if (result) {
+          antenna_id = button.parents("tr.antenna").data("antennaId");
+          ste_id = button.data("steId");
+          Dajaxice.aRAT.apps.home.ste_update_alerts(Dajax.process,
+                                                    {'antenna_id': antenna_id,
+                                                     'ste_id': ste_id});
+        } else {
+          button.removeClass("active");
+        }
+      });
     });
+    
+    $(document).on("click",".close-alert", function(e) {
+      var button = $(this);
+      bootbox.confirm("Are you sure?", function (result) {
+        if (result) {
+          antenna_id = button.parents("div.alert").data("antennaId");
+          Dajaxice.aRAT.apps.home.ste_update_alerts(Dajax.process,
+                                                    {'antenna_id': antenna_id,
+                                                    });
+        }
+      });
+    });
+
+    $(document).on("close", ".alert", function(e) {return false;});
+    {% else %}
+    $(".btn-ste").click(function (e) {
+      e.preventDefault();
+      return false;
+    });
+    {% endif %}
+
+    Dajaxice.aRAT.apps.home.ste_update_alerts(Dajax.process);
+    {% if not read_only %}
+    refresh(true, Dajaxice.aRAT.apps.home.ste_update_alerts);
+    {% endif %}
   });
-
-  $(document).on("close", ".alert", function(e) {return false;});
-
-  Dajaxice.aRAT.apps.home.ste_update_alerts(Dajax.process);
-  refresh(true);
-});
-</script>
-{% endblock %}
+  </script>
+  {% endblock %}
