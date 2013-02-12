@@ -1,7 +1,7 @@
 from django.views.decorators.csrf import csrf_exempt
 
 from spyne.server.django import DjangoApplication
-from spyne.model.primitive import Integer, String, Boolean
+from spyne.model.primitive import String
 from spyne.service import ServiceBase
 from spyne.interface.wsdl import Wsdl11
 from spyne.protocol.soap import Soap11
@@ -9,21 +9,78 @@ from spyne.protocol.http import HttpRpc
 from spyne.application import Application
 from spyne.decorator import rpc
 
-class checkConsistencyService(ServiceBase):
-    @rpc(String, _returns=String)
-    def check(ctx, debug):
-        if debug:
-            result = '<errors>'
-            for i in xrange(5):
-                result += '<error>CONSISTENCY ERROR # %s</error>'%(i)
-            result += '</errors>'
-            return result
-        else:
-            return 'SUCCESS'
+from aRAT.apps.home.models import PAD, CorrelatorConfiguration, CentralloConfiguration, HolographyConfiguration
 
-check_consistency_service = csrf_exempt(DjangoApplication(Application([checkConsistencyService],
-                                                                   'cl.alma.arat.webservice.checkConsistency',
-                                                                   in_protocol=Soap11(),
-                                                                   out_protocol=Soap11(),
-                                                                   interface=Wsdl11(),
-                                                                   )))
+class checkConsistencyService(ServiceBase):
+    """
+    Class that provide a web service, this web service
+    expose a method check that check the consistency of all
+    resources
+    """
+    @rpc(_returns=String)
+    def check(ctx):
+        """
+        Method that provide the functionality of check the
+        consistency in all resources.
+        If exist some incosistency the method returns the errors
+        in the next XML format:
+           <errors><error>ERROR 1 TEXT...</error>...</errors>
+        and if not exist incosistencies the methos returns
+        'SUCCESS'
+        """
+
+        _errors = []
+
+        # is checked the consistency for the PADs
+        for pad in PAD.objects.all():
+            if pad.requested_antenna is not None: # if exist a request
+                if pad.exist_errors(): # if exist some error in the pad
+                    _e_text = "\n"
+                    # the list of string is passed as single string
+                    for e in pad.text_status():
+                        _e_text += "%s\n"%e
+                    _errors.append(_e_text)
+
+        # is checked the consistency for the Correlator Configurations
+        for corr_conf in CorrelatorConfiguration.objects.all():
+            if corr_conf.requested_antenna is not None:
+                if corr_conf.exist_errors():
+                    _e_text = "\n"
+                    for e in corr_conf.text_status():
+                        _e_text += "%s\n"%e
+                    _errors.append(_e_text)
+
+        # is checked the consistency for the CentralLO Configurations
+        for clo_conf in CentralloConfiguration.objects.all():
+            if clo_conf.requested_antenna is not None:
+                if clo_conf.exist_errors():
+                    _e_text = "\n"
+                    for e in clo_conf.text_status():
+                        _e_text += "%s\n"%e
+                    _errors.append(_e_text)
+
+        # is checked the consistency for the Holography Receptors
+        for holo in HolographyConfiguration.objects.all():
+            if holo.requested_antenna is not None:
+                if holo.exist_errors():
+                    _e_text = "\n"
+                    for e in holo.text_status():
+                        _e_text += "%s\n"%e
+                    _errors.append(_e_text)
+
+        if not _errors:
+            return 'SUCCESS'
+        else:
+            _result = '<errors>\n'
+            for e in _errors:
+                _result += '<error>%s<error>\n'%e
+            _result += '<errros>'
+            return _result
+
+check_consistency_service = csrf_exempt(
+    DjangoApplication(Application([checkConsistencyService],
+                                  'cl.alma.arat.webservice.checkConsistency',
+                                  in_protocol=Soap11(),
+                                  out_protocol=Soap11(),
+                                  interface=Wsdl11(),
+                                  )))
