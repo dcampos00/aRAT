@@ -2,6 +2,13 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
 
+class History(models.Model):
+    date_time = models.DateTimeField()
+    request = models.TextField()
+
+    def __unicode__(self):
+        return "Request: %s"%date_time.strftime("%Y-%m-%d")
+
 class Resource(models.Model):
     active = models.BooleanField(default=True, blank=True)    
 
