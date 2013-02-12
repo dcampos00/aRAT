@@ -16,7 +16,8 @@ class Resource(models.Model):
         return text
 
     def exist_errors(self):
-        if self.local_restriction_errors() != [] or self.global_restriction_errors():
+        if (self.local_restriction_errors() != [] 
+            or self.global_restriction_errors()):
             return True
         else:
             return False
@@ -61,7 +62,10 @@ class Antenna(Resource):
     name = models.CharField(max_length=5)
 
     # ste configuration fields
-    STEs = tuple([tuple([ln, i.strip()]) for ln, i in enumerate(open(settings.CONFIGURATION_DIR+'stes.cfg')) if i.strip()])
+    STEs = tuple([tuple([ln, i.strip()]) 
+                  for ln, i 
+                  in enumerate(open(settings.CONFIGURATION_DIR+'stes.cfg')) 
+                  if i.strip()])
 
     current_ste = models.IntegerField(null=True, choices=STEs)
     requested_ste = models.IntegerField(null=True, blank=True, choices=STEs)
@@ -69,7 +73,8 @@ class Antenna(Resource):
     def text_status(self):
         text_status = []
         if self.requested_ste != None:
-            text = "%s will be changed to %s"%(self, self.get_requested_ste_display())
+            text = "%s will be changed to %s"%(self, 
+                                               self.get_requested_ste_display())
             text_request = "-- Request done by %s"%self.request_text_info()
 
             text_status.append(text)
@@ -95,8 +100,12 @@ class PAD(Resource):
     location = models.CharField(max_length=10, blank=True)
     assigned = models.BooleanField(default=True, blank=True)
 
-    current_antenna = models.OneToOneField(Antenna, related_name="current_pad_antenna", null=True)
-    requested_antenna = models.ForeignKey(Antenna, related_name="requested_pad_antenna", null=True, blank=True)
+    current_antenna = models.OneToOneField(Antenna,
+                                           related_name="current_pad_antenna",
+                                           null=True)
+    requested_antenna = models.ForeignKey(Antenna,
+                                          related_name="requested_pad_antenna",
+                                          null=True, blank=True)
 
     def local_restriction_errors(self):
         pad_errors = []
