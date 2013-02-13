@@ -96,6 +96,10 @@ class Antenna(Resource):
             text_status.append(text)
         return text_status
 
+    def is_requested(self):
+        return (self.requested_ste != self.current_ste
+                and self.requested_ste is not None)
+
     def __unicode__(self):
         return '%s'%self.name
 
