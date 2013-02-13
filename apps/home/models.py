@@ -18,20 +18,31 @@ class Resource(models.Model):
     errors = models.TextField(default="[]", blank=True)
 
     def request_text_info(self):
-        text = "%s %s on %s at %s"%(self.requester.first_name,
-                                    self.requester.last_name,
-                                    self.request_date.strftime("%Y-%m-%d"),
-                                    self.request_date.strftime("%H:%M:%S"))
-        return text
+        """Return a formated string with the information of the requester
+        and request date/time information
+        """
+        if self.is_requested():
+            text = "%s %s on %s at %s"%(self.requester.first_name,
+                                        self.requester.last_name,
+                                        self.request_date.strftime("%Y-%m-%d"),
+                                        self.request_date.strftime("%H:%M:%S"))
+            return text
+        else:
+            return None
 
     def is_requested(self):
+        """Return if a resource is in requested status or not"""
         return False
 
     def is_unassigned(self):
+        """Return if a resource will be unassigned or not"""
         return False
 
     def exist_errors(self):
         return eval(self.errors) != [] or self.global_restriction_errors()
+
+    def update_restriction_errors(self):
+        return
 
     def restriction_errors(self):
         errors = {}
@@ -41,6 +52,9 @@ class Resource(models.Model):
         return errors
 
     def local_restriction_errors(self):
+        """Return a list of the resources that have local restriction 
+        errors
+        """
         return []
 
     def global_restriction_errors(self):
@@ -478,31 +492,60 @@ class CentralloConfiguration(Resource):
     current_antenna = models.OneToOneField(Antenna, related_name="current_clo_antenna", null=True)
     requested_antenna = models.ForeignKey(Antenna, related_name="requested_clo_antenna", null=True, blank=True)
 
-    def restriction_errors(self):
-        errors = {}
-        errors['local'] = self.local_restriction_errors()
-        errors['global'] = self.global_restriction_errors()
-        return errors
+    def update_restriction_errors(self, caller=[]):
+        """
+        This method updates the restriction errors that could have
+        a resource
+        
+        Arguments:
+        - `caller`: Is a list of resources that call this method, with this
+        information the method will do not call recurvely until the infinite
+        """
+
+        clo_conf_to_check = []
+        for clo_conf_line in eval(self.errors):
+            clo_conf_to_check.append(CentralloConfiguration.objects.get(line=clo_conf_line))
+
+        tmp_errors = []
+
+        local_errors = self.local_restriction_errors()
+        new_clo_conf_to_check = [clo_conf for clo_conf in local_errors if clo_conf not in clo_conf_to_check]
+        clo_conf_to_check = clo_conf_to_check + new_clo_conf_to_check
+
+        caller.append(self) # the caller list is updated
+        for clo_conf in clo_conf_to_check:
+            if clo_conf not in caller:
+                clo_conf.errors = clo_conf.update_restriction_errors(caller=caller)
+
+        caller.remove(self)
+
+        for clo_conf in local_errors:
+            tmp_errors.append(clo_conf.line)
+
+        self.errors = str(tmp_errors)
+
+        self.save()
 
     def local_restriction_errors(self):
         configuration_errors = []
         
         for clo_config in CentralloConfiguration.objects.all():
             if self != clo_config and clo_config.active:
-                if self.requested_antenna == None:
+                if self.requested_antenna is None:
                     if (self.current_antenna == clo_config.requested_antenna
-                        and self.current_antenna != None):
+                        and self.current_antenna is not None):
                         configuration_errors.append(clo_config)
-                    elif (self.current_antenna == clo_config.current_antenna
-                          and clo_config.requested_antenna == None
-                          and clo_config.assigned == True):
+                    elif (self.current_antenna is not None
+                          and self.current_antenna == clo_config.current_antenna
+                          and clo_config.requested_antenna is None
+                          and clo_config.assigned):
                         configuration_errors.append(clo_config)
                 else:
                     if self.requested_antenna == clo_config.requested_antenna:
                         configuration_errors.append(clo_config)
                     elif (self.requested_antenna == clo_config.current_antenna
-                          and clo_config.requested_antenna == None
-                          and clo_config.assigned == True):
+                          and clo_config.requested_antenna is None
+                          and clo_config.assigned):
                         configuration_errors.append(clo_config)
 
         return configuration_errors
@@ -547,33 +590,38 @@ class CentralloConfiguration(Resource):
         """
         result = []
         text = None
-        if (self.requested_antenna != None 
-            or (self.current_antenna != None and self.assigned == False)):
+        if (self.is_requested()):
             if self.assigned == True:
                 text = "%s will be changed to %s CentralLO Configuration."%(self.requested_antenna, self.configuration())
             else:
                 text = "The %s Configuration will be unassigned."%(self.configuration())
             result.append(text)
+        else:
+            text = "The %s Configuration is assigned to %s"%(self.configuration(), self.current_antenna)
+            result.append(text)
 
+        if self.exist_errors():
             for text in self.text_error():
                 result.append("Error: %s"%text)
 
+        if self.is_requested():
             text_request = "-- Request done by %s"%self.request_text_info()
             result.append(text_request)
-        else:
-            text = "The %s Configuration is assigned to %s"%(self, self.current_antenna)
-            result.append(text)
+
 
         return result
 
     def text_error(self):
         """
-        Method that returns the pad errors in a list when each element of the list
-        correspond to one error
+        Method that returns the CentralLO Configuration restriction
+        errors in a list when each element of the list corresponds
+        to one error
         """
         error = []
-        for e in self.local_restriction_errors():
-            text = "The Antenna %s also will be assigned the %s CentralLO Configuration."%(self.requested_antenna, e.configuration())
+        for e in eval(self.errors):
+            text = "The Antenna %s also will be assigned the %s CentralLO Configuration."%(
+                self.requested_antenna,
+                CentralloConfiguration.objects.get(line=e).configuration())
             error.append(text)
 
 
@@ -584,13 +632,15 @@ class CentralloConfiguration(Resource):
         return error
 
     def is_requested(self):
-        return (self.requested_antenna != None
-                or (self.current_antenna != None and self.assigned == False))
+        return (self.requested_antenna is not None
+                or (self.current_antenna is not None and self.assigned == False))
 
     def __unicode__(self):
         return "Line %s - %s [%s]"%(self.line, self.configuration(), self.centrallo)
 
 class HolographyConfiguration(Resource):
+    """Class that represents the Model of Holography Receptor Configuration"""
+
     _LINES = []
     for line_number, line_string in enumerate(
         open(settings.CONFIGURATION_DIR+'holography.cfg')):
@@ -612,46 +662,76 @@ class HolographyConfiguration(Resource):
                                           null=True,
                                           blank=True)
 
-    def restriction_errors(self):
-        errors = {}
-        errors['local'] = self.local_restriction_errors()
-        errors['global'] = self.global_restriction_errors()
-        return errors
+    def update_restriction_errors(self, caller=[]):
+        """
+        This method updates the restriction errors that could have
+        a resource
+        
+        Arguments:
+        - `caller`: Is a list of resources that call this method, with this
+        information the method will do not call recurvely until the infinite
+        """
+
+        holo_to_check = []
+        for holo_line in eval(self.errors):
+            holo_to_check.append(HolographyConfiguration.objects.get(line=holo_line))
+
+        tmp_errors = []
+
+        local_errors = self.local_restriction_errors()
+        new_holo_to_check = [holo for holo in local_errors if holo not in holo_to_check]
+        holo_to_check = holo_to_check + new_holo_to_check
+
+        # the caller list is updated
+        caller.append(self)
+        for holo in holo_to_check:
+            if holo not in caller:
+                holo.errors = holo.update_restriction_errors(caller=caller)
+
+        caller.remove(self)
+
+        for holo in local_errors:
+            tmp_errors.append(holo.line)
+
+        self.errors = str(tmp_errors)
+
+        self.save()
 
     def local_restriction_errors(self):
         configuration_errors = []
         
         for holo_config in HolographyConfiguration.objects.all():
             if self != holo_config and holo_config.active:
-                if self.requested_antenna == None:
+                if self.requested_antenna is None:
                     if (self.current_antenna == holo_config.requested_antenna
-                        and self.current_antenna != None):
+                        and self.current_antenna is not None):
                         configuration_errors.append(holo_config)
-                    elif (self.current_antenna == holo_config.current_antenna
-                          and holo_config.requested_antenna == None
-                          and holo_config.assigned == True):
+                    elif (self.current_antenna is not None
+                          and self.current_antenna == holo_config.current_antenna
+                          and holo_config.requested_antenna is None
+                          and holo_config.assigned):
                         configuration_errors.append(holo_config)
                 else:
                     if self.requested_antenna == holo_config.requested_antenna:
                         configuration_errors.append(holo_config)
                     elif (self.requested_antenna == holo_config.current_antenna
-                          and holo_config.requested_antenna == None
-                          and holo_config.assigned == True):
+                          and holo_config.requested_antenna is None
+                          and holo_config.assigned):
                         configuration_errors.append(holo_config)
 
         return configuration_errors
 
     def global_restriction_errors(self):
-        if self.requested_antenna != None:
+        if self.requested_antenna is not None:
             antenna = self.requested_antenna
-        elif self.current_antenna != None:
+        elif self.current_antenna is not None:
             antenna = self.current_antenna
         else:
             return False
 
-        if antenna.requested_ste != None:
+        if antenna.requested_ste is not None:
             ste = antenna.get_requested_ste_display()
-        elif antenna.current_ste != None:
+        elif antenna.current_ste is not None:
             ste = antenna.get_current_ste_display()
         else:
             return True
@@ -675,22 +755,23 @@ class HolographyConfiguration(Resource):
         """
         result = []
         text = None
-        if (self.requested_antenna != None 
-            or (self.current_antenna != None and self.assigned == False)):
+        if self.is_requested():
             if self.assigned == True:
                 text = "%s will be assigned to %s."%(self, self.requested_antenna)
             else:
                 text = "The %s will be unassigned."%(self)
             result.append(text)
-
-            for text in self.text_error():
-                result.append("Error: %s"%text)
-
-            text_request = "-- Request done by %s"%self.request_text_info()
-            result.append(text_request)
         else:
             text = "The %s is assigned to %s"%(self, self.current_antenna)
             result.append(text)
+
+        if self.exist_errors():
+            for text in self.text_error():
+                result.append("Error: %s"%text)
+
+        if self.is_requested():
+            text_request = "-- Request done by %s"%self.request_text_info()
+            result.append(text_request)
 
         return result
 
@@ -712,8 +793,8 @@ class HolographyConfiguration(Resource):
         return error
 
     def is_requested(self):
-        return (self.requested_antenna != None
-                or (self.current_antenna != None and self.assigned == False))
+        return (self.requested_antenna is not None
+                or (self.current_antenna is not None and self.assigned == False))
 
     def __unicode__(self):
         return "Holography Receptor %s"%self.get_line_display()
