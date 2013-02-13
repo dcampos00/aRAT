@@ -60,10 +60,10 @@
   function update_status(data){
     var tr = $("tr[data-antenna-id='"+data.antenna+"']");
 
-    if (data.ste != null) {
+    if (data.is_requested) {
       tr.addClass("btn-info");
       tr.find("button").removeClass("btn-success active");
-      tr.find("[data-ste-id='"+data.ste+"']").addClass("btn-success active");
+      tr.find("[data-ste-id='"+data.requested_ste+"']").addClass("btn-success active");
 
       alerts = tr.parents(".tab-pane").find(".alerts-container");
       
@@ -79,7 +79,14 @@
         alert_div.remove();
       }
       tr.removeClass("btn-info");
-      tr.find("button").removeClass("btn-success active");
+      $.Deferred().done(
+      function() {
+        tr.find("button").removeClass("btn-success btn-info active");
+      },
+      function() {
+        tr.find("[data-ste-id='"+data.current_ste+"']").addClass("btn-info");
+      }
+      );
     }
   }
 
