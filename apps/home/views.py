@@ -12,9 +12,7 @@ import logging
 from django.contrib.auth import authenticate, login, logout
 
 def login_user_view(request):
-    """
-    View to login in authenticate system
-    """
+    """View to login in authenticate system"""
 
     state = 'Please login with your Username and Password.'
     username = password = ''
@@ -38,10 +36,14 @@ def login_user_view(request):
     return render_to_response('home/login.djhtml', ctx, context_instance=RequestContext(request))
 
 def logout_user_view(request):
+    """Logout View"""
+
     logout(request)
     return HttpResponseRedirect("/")
 
 def home_view(request):
+    """Home view"""
+
     if not request.user.is_authenticated():
         return HttpResponseRedirect("/login")
 
@@ -51,7 +53,8 @@ def home_view(request):
     return render_to_response('home/index.djhtml', ctx, context_instance=RequestContext(request))
 
 def ste_configuration_view(request):
-    # variable error is defined
+    """View for STE configurations"""
+
     error = ''
 
     if not request.user.is_authenticated():
@@ -66,6 +69,9 @@ def ste_configuration_view(request):
     antennas = [(v.replace('-', ' '), []) for v in vendors]
     antennas = dict(v for v in antennas)
 
+    # are readed the lines on the configuration file, if not exist some antenna
+    # this is inserted to the DB. To look if a antenna is or is not in the DB
+    # is used the name in the configuration file.
     for name_antenna in open(settings.CONFIGURATION_DIR+'antennas.cfg').readlines():
         name_antenna.strip()
         if name_antenna:
@@ -97,7 +103,8 @@ def ste_configuration_view(request):
     return render_to_response('home/ste.djhtml', ctx, context_instance=RequestContext(request))
 
 def pad_configuration_view(request):
-    # variable error is defined
+    """View for PAD configurations"""
+
     error = ''
 
     if not request.user.is_authenticated():
@@ -106,9 +113,13 @@ def pad_configuration_view(request):
     block_status = Configuration.objects.get(setting='BLOCK')
 
     locations = [i.strip() for i in open(settings.CONFIGURATION_DIR+'locations.cfg').readlines() if i.strip()]
+
     # the antennas are loaded from the db
     antennas = Antenna.objects.all()
 
+
+    # are loaded the pad in a dictionary, this dictionary separates the pads by
+    # location
     pads = [(l, []) for l in locations]
     pads = dict(l for l in pads)
 
@@ -133,10 +144,8 @@ def pad_configuration_view(request):
     return render_to_response('home/pad.djhtml', ctx, context_instance=RequestContext(request))
 
 def corr_configuration_view(request):
-    """
-    View to configure the correlators
-    """
-    # variable error is defined
+    """View for Correlator configuration"""
+
     error = ''
 
     if not request.user.is_authenticated():
@@ -145,9 +154,12 @@ def corr_configuration_view(request):
     block_status = Configuration.objects.get(setting='BLOCK')
 
     correlators = [i.strip() for i in open(settings.CONFIGURATION_DIR+'correlators.cfg').readlines() if i.strip()]
+
     # the antennas are loaded from the db
     antennas = Antenna.objects.all()
 
+    # the correlator configurations are loaded, this are separated by location
+    # for this the correlator configurations are loaded in a dictionary
     corrs = [(c, []) for c in correlators]
     corrs = dict(c for c in corrs)
 
@@ -178,10 +190,8 @@ def corr_configuration_view(request):
 
 
 def clo_configuration_view(request):
-    """
-    View for CentralLO Configurations
-    """
-    # variable error is defined
+    """View for CentralLO configuration"""
+
     error = ''
 
     if not request.user.is_authenticated():
@@ -221,7 +231,8 @@ def clo_configuration_view(request):
     return render_to_response('home/clo.djhtml', ctx, context_instance=RequestContext(request))
 
 def holography_configuration_view(request):
-    # variable error is defined
+    """View for Holography Receptor Configurations"""
+
     error = ''
 
     if not request.user.is_authenticated():
