@@ -237,6 +237,7 @@ def clo_update_alerts(request, configuration_line='', antenna_id=''):
         clo.requester = request.user
         clo.request_date = datetime.now()
         clo.save()
+        clo.update_restriction_errors()
 
     # is loaded all current status of the centrallo configurations
     for clo in CentralloConfiguration.objects.all():
@@ -255,21 +256,19 @@ def clo_update_alerts(request, configuration_line='', antenna_id=''):
             requested_antenna_name = clo.requested_antenna.name
             requested_antenna_id = clo.requested_antenna.id
 
-        status = None
-        exist_errors = False
-        if (clo.requested_antenna != None 
-            or (clo.current_antenna != None and clo.assigned == False)):
-            status = clo.html_status()
-            exist_errors = clo.exist_errors()
+        status = clo.html_status()
+        exist_errors = clo.exist_errors()
 
         dajax.add_data({'resource': {'id': clo.line,
                                      'name': clo.configuration(),
+                                     'assigned': clo.assigned,
                                      'type': 'clo'},
                         'current_antenna': {'id': current_antenna_id,
                                             'name': current_antenna_name},
                         'requested_antenna': {'id': requested_antenna_id,
                                               'name': requested_antenna_name},
                         'status': status,
+                        'is_requested': clo.is_requested(),
                         'read_only': read_only,
                         'error': exist_errors
                         },
@@ -325,21 +324,19 @@ def holo_update_alerts(request, holo_line='', antenna_id=''):
             requested_antenna_name = holo.requested_antenna.name
             requested_antenna_id = holo.requested_antenna.id
 
-        status = None
-        exist_errors = False
-        if (holo.requested_antenna != None 
-            or (holo.current_antenna != None and holo.assigned == False)):
-            status = holo.html_status()
-            exist_errors = holo.exist_errors()
+        status = holo.html_status()
+        exist_errors = holo.exist_errors()
 
         dajax.add_data({'resource': {'id': holo.line,
                                      'name': holo.name(),
+                                     'assigned': holo.assigned,
                                      'type': 'holo'},
                         'current_antenna': {'id': current_antenna_id,
                                             'name': current_antenna_name},
                         'requested_antenna': {'id': requested_antenna_id,
                                               'name': requested_antenna_name},
                         'status': status,
+                        'is_requested': holo.is_requested(),
                         'read_only': read_only,
                         'error': exist_errors
                         },
