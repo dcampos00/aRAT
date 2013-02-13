@@ -55,10 +55,9 @@ function update_status(data){
     var tr = $("tr[data-resource-id='"+data.resource.id+"']");
     tr.removeClass("btn-danger btn-success");
 
-    if (data.requested_antenna.id != null || 
-	(data.current_antenna.id != null && data.resource.assigned == false)) {
+    if (data.is_requested) {
 
-	if(data.resource.assigned == false){
+	if(!data.resource.assigned){
 	    data.requested_antenna.name = "None";
 	    data.requested_antenna.id = "None";
 	}
@@ -67,31 +66,27 @@ function update_status(data){
 	
 	alerts = tr.parents(".tab-pane").find(".alerts-container");
 
-	if (data.error == false ){
+	if (data.error){
+	    alert_type = "alert-error";
+            tr.addClass("btn-danger");	    
+	} else {
 	    alert_type = "alert-success";
 	    tr.addClass("btn-success");
-	} else {
-	    alert_type = "alert-error";
-            tr.addClass("btn-danger");
 	}
-/*	if(data.resource.assigned == true){
-	    alert_text = data.requested_antenna.name+" will be changed to "+data.resource.name;
-	} else {
-	    alert_text = "The PAD "+data.resource.name+" will be unassigned";
-	}
-	
-	if (data.error != null){
-            alert_type = "alert-error";
-            tr.removeClass("btn-success").addClass("btn-danger");
-            alert_text += data.error;
-	}
-	
-	alert_text += " -- Request done by "+data.user.first_name+" "+data.user.last_name;
-	alert_text += " on "+data.datetime.date+" at "+data.datetime.time;*/
 
-	
 	updateAlert(alerts, alert_type, data.status, data.resource.id, data.read_only);
-	
+
+    } else if (data.error) {
+	alerts = tr.parents(".tab-pane").find(".alerts-container");
+
+	alert_type = "alert-error";
+        tr.addClass("btn-danger");	    
+
+	/** this part of the code is very infrecuent that have real use **/
+	tr.find(".text-antenna").text(data.current_antenna.name).data("antennaId", data.current_antenna.id);
+	/** **/
+
+	updateAlert(alerts, alert_type, data.status, data.resource.id, true);
     } else {
 	alerts = tr.parents(".tab-pane").find(".alerts-container");
 	alert_div = alerts.find("[data-id='"+data.resource.id+"']");
