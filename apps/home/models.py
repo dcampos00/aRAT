@@ -64,9 +64,7 @@ class Resource(models.Model):
         return []
 
     def html_status(self):
-        """
-        This method returns html formated status
-        """
+        """Return status in HTML format"""
 
         html = ""
         first = True
@@ -81,9 +79,7 @@ class Resource(models.Model):
         return html
 
 class Antenna(Resource):
-    """
-    Model to the antennas
-    """
+    """Model to the antennas"""
 
     name = models.CharField(max_length=5)
 
@@ -118,9 +114,7 @@ class Antenna(Resource):
         return '%s'%self.name
 
 class PAD(Resource):
-    """
-    Class that represents the PAD Model
-    """
+    """Model for the PAD resource"""
     _LINES = []
     for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'pads.cfg')):
         line_string = line_string.strip()
@@ -294,8 +288,8 @@ class PAD(Resource):
         return 'PAD %s'%self.name()
 
 class CorrelatorConfiguration(Resource):
-    # in the db is saved the line of the configuration file that match with the configuration of
-    # the CorrelatorConfiguration
+    # in the db is saved the line of the configuration file that match with
+    # the configuration of the CorrelatorConfiguration
     _LINES = []
     for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'corr.cfg')):
         if line_string[0] != "#":
@@ -311,8 +305,15 @@ class CorrelatorConfiguration(Resource):
     correlator = models.CharField(max_length=10, blank=True)
     assigned = models.BooleanField(default=True, blank=True)
 
-    current_antenna = models.ForeignKey(Antenna, related_name="current_corr_antenna", null=True, blank=True)
-    requested_antenna = models.ForeignKey(Antenna, related_name="requested_corr_antenna", null=True, blank=True)
+    current_antenna = models.ForeignKey(Antenna,
+                                        related_name="current_corr_antenna",
+                                        null=True,
+                                        blank=True)
+
+    requested_antenna = models.ForeignKey(Antenna,
+                                          related_name="requested_corr_antenna",
+                                          null=True,
+                                          blank=True)
 
     def update_restriction_errors(self, caller=[]):
         """
@@ -326,7 +327,8 @@ class CorrelatorConfiguration(Resource):
 
         corr_conf_to_check = []
         for corr_conf_line in eval(self.errors):
-            corr_conf_to_check.append(CorrelatorConfiguration.objects.get(line=corr_conf_line))
+            corr_conf_to_check.append(
+                CorrelatorConfiguration.objects.get(line=corr_conf_line))
 
         tmp_errors = []
 
@@ -406,7 +408,8 @@ class CorrelatorConfiguration(Resource):
         return "%d"%self.line
 
     def configuration(self):
-        configuration = str(self.get_line_display().split()[0:-1]).replace("', u'", ' ')[3:-2]
+        configuration = str(self.get_line_display().split()[0:-1])
+        configuration = configuration.replace("', u'", ' ')[3:-2]
         return "%s"%configuration
 
     def caimap(self):
@@ -451,10 +454,11 @@ class CorrelatorConfiguration(Resource):
         """
         error = []
         for e in eval(self.errors):
-            text = "The Antenna %s also will be assigned the %s Correlator Configuration."%(
+            text = "The Antenna %s also will be assigned the %s"%(
                 self.requested_antenna,
                 CorrelatorConfiguration.objects.get(line=e).configuration()
                 )
+            text += " Correlator Configuration."
             error.append(text)
 
 
@@ -469,7 +473,9 @@ class CorrelatorConfiguration(Resource):
                 or (self.current_antenna is not None and self.assigned == False))
 
     def __unicode__(self):
-        return "Line %s - %s [%s]"%(self.line, self.configuration(), self.correlator)
+        return "Line %s - %s [%s]"%(self.line,
+                                    self.configuration(),
+                                    self.correlator)
 
 class CentralloConfiguration(Resource):
     # in the db is saved the line of the configuration file that match with the configuration of
