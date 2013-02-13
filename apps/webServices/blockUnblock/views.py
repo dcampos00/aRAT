@@ -27,11 +27,13 @@ class blockUnblockService(ServiceBase):
         Method that block the application changing the BLOCK setting in the DB
         """
         # is proved if exists the configuration in the DB
-        if Configuration.objects.filter(setting='BLOCK') == None:
+        if Configuration.objects.filter(setting='BLOCK') is None:
             return 'FAILURE'
         else:
             # the block configuration is update to true
-            Configuration.objects.get(setting='BLOCK').update(value=True)
+            block = Configuration.objects.get(setting='BLOCK')
+            block.value = True
+            block.save()
             return 'SUCCESS'
 
     @rpc(_returns=String)
@@ -40,11 +42,13 @@ class blockUnblockService(ServiceBase):
         Method that unblock the application changing the BLOCK setting in the DB
         """
         # is proved if exists the configuration in the DB
-        if Configuration.objects.filter(setting='BLOCK') == None:
+        if Configuration.objects.filter(setting='BLOCK') is None:
             return 'FAILURE'
         else:
             # the block configuratios is updated to false
-            Configuration.objects.get(setting='BLOCK').update(value=False)
+            block = Configuration.objects.get(setting='BLOCK')
+            block.value = False
+            block.save()
             return 'SUCCESS'
 
 block_unblock_service = csrf_exempt(
