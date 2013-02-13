@@ -49,13 +49,13 @@ def ste_update_alerts(request, ste_id='', antenna_id=''):
     for antenna in antennas:
 
         # the status of the antenna is obtained in HTML format
-        status = None
-        if antenna.requested_ste != None:
-            status = antenna.html_status()
+        status = antenna.html_status()
 
         # the data is passed to the template function update_status
         dajax.add_data({'antenna': antenna.id,
-                        'ste': antenna.requested_ste,
+                        'requested_ste': antenna.requested_ste,
+                        'current_ste': antenna.current_ste,
+                        'is_requested': antenna.is_requested(),
                         'status': status},
                        'update_status')
 
