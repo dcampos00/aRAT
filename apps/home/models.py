@@ -15,6 +15,8 @@ class Resource(models.Model):
     requester = models.ForeignKey(User, null=True, blank=True)
     request_date = models.DateTimeField(null=True, blank=True)
 
+    errors = models.TextField(default="[]", blank=True)
+
     def request_text_info(self):
         text = "%s %s on %s at %s"%(self.requester.first_name,
                                     self.requester.last_name,
@@ -22,24 +24,27 @@ class Resource(models.Model):
                                     self.request_date.strftime("%H:%M:%S"))
         return text
 
+    def is_requested(self):
+        return False
+
+    def is_unassigned(self):
+        return False
+
     def exist_errors(self):
-        if (self.local_restriction_errors() != [] 
-            or self.global_restriction_errors()):
-            return True
-        else:
-            return False
+        return eval(self.errors) != [] or self.global_restriction_errors()
 
     def restriction_errors(self):
         errors = {}
-        errors['local'] = self.local_restriction_errors()
         errors['global'] = self.global_restriction_errors()
+        errors['local'] = self.local_restriction_errors()
+
         return errors
 
     def local_restriction_errors(self):
         return []
 
     def global_restriction_errors(self):
-        return False
+        return True
 
     def text_status(self):
         return []
@@ -95,6 +100,9 @@ class Antenna(Resource):
         return '%s'%self.name
 
 class PAD(Resource):
+    """
+    Class that represents the PAD Model
+    """
     _LINES = []
     for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'pads.cfg')):
         line_string = line_string.strip()
@@ -114,34 +122,75 @@ class PAD(Resource):
                                           related_name="requested_pad_antenna",
                                           null=True, blank=True)
 
+    def update_restriction_errors(self, caller=[]):
+        """
+        This method updates the restriction errors that could have
+        a resource
+        
+        Arguments:
+        - `caller`: Is a list of resources that call this method, with this
+        information the method will do not call recurvely until the infinite
+        """
+
+        pad_to_check = []
+        for pad_line in eval(self.errors):
+            pad_to_check.append(PAD.objects.get(line=pad_line))
+
+        tmp_errors = []
+
+        local_errors = self.local_restriction_errors()
+        new_pad_to_check = [pad for pad in local_errors if pad not in pad_to_check]
+        pad_to_check = pad_to_check + new_pad_to_check
+
+        caller.append(self) # the caller list is updated
+        for pad in pad_to_check:
+            if pad not in caller:
+                pad.errors = pad.update_restriction_errors(caller=caller)
+
+        caller.remove(self)
+
+        for pad in local_errors:
+            tmp_errors.append(pad.line)
+
+        self.errors = str(tmp_errors)
+
+        self.save()
+
     def local_restriction_errors(self):
         pad_errors = []
+        
         for pad in PAD.objects.all():
             if self != pad:
-                if self.requested_antenna == None:
-                    if self.current_antenna == pad.requested_antenna and self.current_antenna != None:
+                if self.requested_antenna is None:
+                    if (self.current_antenna == pad.requested_antenna
+                        and self.current_antenna is not None):
                         pad_errors.append(pad)
-                    elif self.current_antenna == pad.current_antenna and pad.requested_antenna == None and pad.assigned == True:
+                    elif (self.current_antenna is not None
+                          and self.current_antenna == pad.current_antenna
+                          and pad.requested_antenna is None
+                          and pad.assigned):
                         pad_errors.append(pad)
                 else:
                     if self.requested_antenna == pad.requested_antenna:
                         pad_errors.append(pad)
-                    elif self.requested_antenna == pad.current_antenna and pad.requested_antenna == None and pad.assigned == True:
+                    elif (self.requested_antenna == pad.current_antenna
+                          and pad.requested_antenna is None
+                          and pad.assigned):
                         pad_errors.append(pad)
 
         return pad_errors
 
     def global_restriction_errors(self):
-        if self.requested_antenna != None:
+        if self.requested_antenna is not None:
             antenna = self.requested_antenna
-        elif self.current_antenna != None:
+        elif self.current_antenna is not None:
             antenna = self.current_antenna
         else:
             return False
 
-        if antenna.requested_ste != None:
+        if antenna.requested_ste is not None:
             ste = antenna.get_requested_ste_display()
-        elif antenna.current_ste != None:
+        elif antenna.current_ste is not None:
             ste = antenna.get_current_ste_display()
         else:
             return True
@@ -170,22 +219,23 @@ class PAD(Resource):
         """
         result = []
         text = None
-        if (self.requested_antenna != None 
-            or (self.current_antenna != None and self.assigned == False)):
+        if (self.is_requested()):
             if self.assigned == True:
                 text = "%s will be changed to %s."%(self.requested_antenna, self)
             else:
                 text = "The %s will be unassigned."%(self)
             result.append(text)
-
-            for text in self.text_error():
-                result.append("Error: %s"%text)
-
-            text_request = "-- Request done by %s"%self.request_text_info()
-            result.append(text_request)
         else:
             text = "The %s is assigned to %s"%(self, self.current_antenna)
             result.append(text)
+
+        if self.exist_errors():
+            for text in self.text_error():
+                result.append("Error: %s"%text)
+
+        if self.is_requested():
+            text_request = "-- Request done by %s"%self.request_text_info()
+            result.append(text_request)
 
         return result
 
@@ -195,11 +245,18 @@ class PAD(Resource):
         correspond to one error
         """
         error = []
-        for e in self.local_restriction_errors():
+
+        # the antenna is selected
+        if self.requested_antenna is not None:
+            antenna = self.requested_antenna
+        else:
+            antenna = self.current_antenna
+
+        for e in eval(self.errors):
             text = "The Antenna "
-            text += self.requested_antenna.__unicode__()
+            text += "%s"%antenna
             text += " also will be assigned to "
-            text += e.__unicode__()+"."
+            text += "%s."%PAD.objects.get(line=e)
             error.append(text)
 
 
@@ -208,6 +265,12 @@ class PAD(Resource):
             error.append(text)
 
         return error
+
+    def is_requested(self):
+        return (self.requested_antenna is not None) or self.is_unassigned()
+
+    def is_unassigned(self):
+        return (self.current_antenna is not None and self.assigned == False)
 
     def __unicode__(self):
         return 'PAD %s'%self.name()
@@ -233,27 +296,64 @@ class CorrelatorConfiguration(Resource):
     current_antenna = models.ForeignKey(Antenna, related_name="current_corr_antenna", null=True, blank=True)
     requested_antenna = models.ForeignKey(Antenna, related_name="requested_corr_antenna", null=True, blank=True)
 
+    def update_restriction_errors(self, caller=[]):
+        """
+        This method updates the restriction errors that could have
+        a resource
+        
+        Arguments:
+        - `caller`: Is a list of resources that call this method, with this
+        information the method will do not call recurvely until the infinite
+        """
+
+        corr_conf_to_check = []
+        for corr_conf_line in eval(self.errors):
+            corr_conf_to_check.append(CorrelatorConfiguration.objects.get(line=corr_conf_line))
+
+        tmp_errors = []
+
+        local_errors = self.local_restriction_errors()
+        new_corr_conf_to_check = [corr_conf for corr_conf in local_errors if corr_conf not in corr_conf_to_check]
+        corr_conf_to_check = corr_conf_to_check + new_corr_conf_to_check
+
+        caller.append(self) # the caller list is updated
+        for corr_conf in corr_conf_to_check:
+            if corr_conf not in caller:
+                corr_conf.errors = corr_conf.update_restriction_errors(caller=caller)
+
+        caller.remove(self)
+
+        for corr_conf in local_errors:
+            tmp_errors.append(corr_conf.line)
+
+        self.errors = str(tmp_errors)
+
+        self.save()
+
     def local_restriction_errors(self):
         configuration_errors = []
         
         for corr_config in CorrelatorConfiguration.objects.all():
             if self != corr_config and corr_config.active:
-                if not ((self.correlator == 'BL-Corr' and corr_config.correlator == 'ACA-Corr')
-                        or (self.correlator == 'ACA-Corr' and corr_config.correlator == 'BL-Corr')):
-                    if self.requested_antenna == None:
+                if not ((self.correlator == 'BL-Corr'
+                         and corr_config.correlator == 'ACA-Corr')
+                        or (self.correlator == 'ACA-Corr'
+                            and corr_config.correlator == 'BL-Corr')):
+                    if self.requested_antenna is None:
                         if (self.current_antenna == corr_config.requested_antenna
-                            and self.current_antenna != None):
+                            and self.current_antenna is not None):
                             configuration_errors.append(corr_config)
-                        elif (self.current_antenna == corr_config.current_antenna
-                              and corr_config.requested_antenna == None
-                              and corr_config.assigned == True):
+                        elif (self.current_antenna is not None
+                              and self.current_antenna == corr_config.current_antenna
+                              and corr_config.requested_antenna is None
+                              and corr_config.assigned):
                             configuration_errors.append(corr_config)
                     else:
                         if self.requested_antenna == corr_config.requested_antenna:
                             configuration_errors.append(corr_config)
                         elif (self.requested_antenna == corr_config.current_antenna
                               and corr_config.requested_antenna == None
-                              and corr_config.assigned == True):
+                              and corr_config.assigned):
                             configuration_errors.append(corr_config)
 
         return configuration_errors
@@ -306,33 +406,37 @@ class CorrelatorConfiguration(Resource):
         """
         result = []
         text = None
-        if (self.requested_antenna != None 
-            or (self.current_antenna != None and self.assigned == False)):
-            if self.assigned == True:
+        if (self.is_requested()):
+            if self.assigned:
                 text = "%s will be changed to %s Correlator Configuration."%(self.requested_antenna, self.configuration())
             else:
                 text = "The %s Configuration will be unassigned."%(self.configuration())
             result.append(text)
-
-            for text in self.text_error():
-                result.append("Error: %s"%text)
-
-            text_request = "-- Request done by %s"%self.request_text_info()
-            result.append(text_request)
         else:
             text = "The %s Configuration is assigned to %s"%(self, self.current_antenna)
             result.append(text)
+        
+        if self.exist_errors():
+            for text in self.text_error():
+                result.append("Error: %s"%text)
+
+        if self.is_requested():
+            text_request = "-- Request done by %s"%self.request_text_info()
+            result.append(text_request)
 
         return result
 
     def text_error(self):
         """
-        Method that returns the pad errors in a list when each element of the list
-        correspond to one error
+        Method that returns the Correlator Configuration errors
+        in a list when each element of the list corresponds to one error
         """
         error = []
-        for e in self.local_restriction_errors():
-            text = "The Antenna %s also will be assigned the %s Correlator Configuration."%(self.requested_antenna, e.configuration())
+        for e in eval(self.errors):
+            text = "The Antenna %s also will be assigned the %s Correlator Configuration."%(
+                self.requested_antenna,
+                CorrelatorConfiguration.objects.get(line=e).configuration()
+                )
             error.append(text)
 
 
@@ -341,6 +445,10 @@ class CorrelatorConfiguration(Resource):
             error.append(text)
 
         return error
+
+    def is_requested(self):
+        return (self.requested_antenna is not None
+                or (self.current_antenna is not None and self.assigned == False))
 
     def __unicode__(self):
         return "Line %s - %s [%s]"%(self.line, self.configuration(), self.correlator)
@@ -471,6 +579,10 @@ class CentralloConfiguration(Resource):
 
         return error
 
+    def is_requested(self):
+        return (self.requested_antenna != None
+                or (self.current_antenna != None and self.assigned == False))
+
     def __unicode__(self):
         return "Line %s - %s [%s]"%(self.line, self.configuration(), self.centrallo)
 
@@ -594,6 +706,10 @@ class HolographyConfiguration(Resource):
             error.append(text)
 
         return error
+
+    def is_requested(self):
+        return (self.requested_antenna != None
+                or (self.current_antenna != None and self.assigned == False))
 
     def __unicode__(self):
         return "Holography Receptor %s"%self.get_line_display()
