@@ -80,7 +80,7 @@ def pad_update_alerts(request, pad_id='', antenna_id=''):
     if pad_id != '' and not read_only:
         pad = PAD.objects.get(line=pad_id)
         # this happend when a PAD will be unassigned
-        if antenna_id == 'None' and pad.current_antenna != None:
+        if antenna_id == 'None' and pad.current_antenna is not None:
             pad.assigned = False
             pad.requested_antenna = None
         # if a PAD will be changed to another antenna
@@ -96,6 +96,7 @@ def pad_update_alerts(request, pad_id='', antenna_id=''):
         pad.requester = request.user
         pad.request_date = datetime.now()
         pad.save() # the PAD information is saved
+        pad.update_restriction_errors()
 
     # is loaded all current status of the PADs
     for pad in PAD.objects.all():
@@ -105,22 +106,20 @@ def pad_update_alerts(request, pad_id='', antenna_id=''):
         current_antenna_name = current_antenna_id = None
         requested_antenna_name = requested_antenna_id = None
 
-        if pad.current_antenna:
+        if pad.current_antenna is not None:
             current_antenna_name = pad.current_antenna.name
             current_antenna_id = pad.current_antenna.id
-        if pad.requested_antenna:
+        if pad.requested_antenna is not None:
             requested_antenna_name = pad.requested_antenna.name
             requested_antenna_id = pad.requested_antenna.id
 
-        status = None # variable that stores the status of the PAD in HTML format
-        exist_errors = False # it's stored if exist errors or not
-        if (pad.requested_antenna != None 
-            or (pad.current_antenna != None and pad.assigned == False)):
-            status = pad.html_status()
-            exist_errors = pad.exist_errors()
+        status = pad.html_status()
+        exist_errors = pad.exist_errors()
+
 
         dajax.add_data({'resource': {'id': pad.line,
                                      'name': pad.name(),
+                                     'assigned': pad.assigned,
                                      'type': 'pad'},
                         'current_antenna': {'id': current_antenna_id,
                                             'name': current_antenna_name},
@@ -128,6 +127,7 @@ def pad_update_alerts(request, pad_id='', antenna_id=''):
                                               'name': requested_antenna_name},
                         'status': status,
                         'error': exist_errors,
+                        'is_requested': pad.is_requested(),
                         'read_only': read_only
                         },
                        'update_status')
@@ -166,6 +166,7 @@ def corr_update_alerts(request, configuration_line='', antenna_id=''):
         corr.requester = request.user
         corr.request_date = datetime.now()
         corr.save()
+        corr.update_restriction_errors()
 
     # is loaded all current status of the correlator configurations
     for corr in CorrelatorConfiguration.objects.all():
@@ -177,28 +178,26 @@ def corr_update_alerts(request, configuration_line='', antenna_id=''):
         current_antenna_name = current_antenna_id = None
         requested_antenna_name = requested_antenna_id = None
 
-        if corr.current_antenna:
+        if corr.current_antenna is not None:
             current_antenna_name = corr.current_antenna.name
             current_antenna_id = corr.current_antenna.id
-        if corr.requested_antenna:
+        if corr.requested_antenna is not None:
             requested_antenna_name = corr.requested_antenna.name
             requested_antenna_id = corr.requested_antenna.id
 
-        status = None
-        exist_errors = False
-        if (corr.requested_antenna != None 
-            or (corr.current_antenna != None and corr.assigned == False)):
-            status = corr.html_status()
-            exist_errors = corr.exist_errors()
+        status = corr.html_status()
+        exist_errors = corr.exist_errors()
 
         dajax.add_data({'resource': {'id': corr.line,
                                      'name': corr.configuration(),
+                                     'assigned': corr.assigned,
                                      'type': 'corr'},
                         'current_antenna': {'id': current_antenna_id,
                                             'name': current_antenna_name},
                         'requested_antenna': {'id': requested_antenna_id,
                                               'name': requested_antenna_name},
                         'status': status,
+                        'is_requested': corr.is_requested(),
                         'error': exist_errors,
                         'read_only': read_only
                         },
