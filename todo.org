@@ -1,10 +1,11 @@
 #+TODO: TODO(t) IN-PROGRESS(p) | DONE(d!)
 
-* Things pending in aRAT Project [25%]
-** TODO web services [50%]
+* Things pending in aRAT Project [20%]
+** TODO web services [75%]
    - [X] block/unblock web service
    - [X] checkConsistency web service
-   - [ ] apply changes web service
+   - [X] apply changes web service
+     - [X] save history
    - [ ] changes pages web service
 ** DONE restrictions [100%]
    - State "DONE"       from "TODO"       [2013-02-11 Mon 10:04]
@@ -20,15 +21,22 @@
      + [X] Correlator Configuration :: A Corr Config can only have an Antenna associated
      + [X] CentralLO Configuration :: A CLO Config can only have an Antenna associated
      + [X] Holography Recetor :: A Holography Receptor can only have an Antenna associated
+** IN-PROGRESS review the restrictions [0%]
+*** IN-PROGRESS change the restriction errors [2/4]
+    - [X] PAD
+    - [X] Correlator Configuration
+    - [ ] CentralLO Configuration
+    - [ ] Holography Receptor
+
 ** IN-PROGRESS documents [%]
    - [ ] Administration manual
    - [ ] Wiki project :: Something was did it
 ** IN-PROGRESS documentation [0%]
    - [-] Code documentation [25%]
-     + [-] web services documentation [2/4]
+     + [-] web services documentation [3/4]
        - [X] block/Unblock
        - [X] checkConsistency
-       - [ ] apply changes
+       - [X] apply changes
        - [ ] changes pages
      + [X] Ajax.py documentation
      + [ ] Views documentation
