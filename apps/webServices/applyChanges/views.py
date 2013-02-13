@@ -33,10 +33,11 @@ class applyChangesService(ServiceBase):
 
         _request_text = ""
 
-        # is applied the chanes for the Antennas
+        # is applied the changes for the Antennas
         for antenna in Antenna.objects.all():
             # if exist a request and the 
-            if antenna.active and antenna.requested_ste != antenna.current_ste:
+            if (antenna.active
+                and antenna.is_requested()):
                 for status in antenna.text_status():
                     _request_text += "%s\n"%status
                 
@@ -51,10 +52,10 @@ class applyChangesService(ServiceBase):
                 # is saved the information
                 antenna.save()
 
-        # is applied the chanes for the PADs
+        # is applied the changes for the PADs
         for pad in PAD.objects.all():
             # if exist a request
-            if pad.active and pad.requested_antenna is not None:
+            if pad.active and pad.is_requested():
                 for status in pad.text_status():
                     _request_text += "%s\n"%status
 
@@ -65,9 +66,9 @@ class applyChangesService(ServiceBase):
                 pad.request_date = None
                 pad.save()
 
-        # is applied the chanes for the Correlator Configurations
+        # is applied the changes for the Correlator Configurations
         for corr_conf in CorrelatorConfiguration.objects.all():
-            if corr_conf.active and corr_conf.requested_antenna is not None:
+            if corr_conf.active and corr_conf.is_requested():
                 for status in corr_conf.text_status():
                     _request_text += "%s\n"%status
 
@@ -78,9 +79,9 @@ class applyChangesService(ServiceBase):
                 corr_conf.request_date = None
                 corr_conf.save()
 
-        # is applied the chanes for the CentralLO Configurations
+        # is applied the changes for the CentralLO Configurations
         for clo_conf in CentralloConfiguration.objects.all():
-            if clo_conf.active and clo_conf.requested_antenna is not None:
+            if clo_conf.active and clo_conf.is_requested():
                 for status in clo_conf.text_status():
                     _request_text += "%s\n"%status
 
@@ -91,9 +92,9 @@ class applyChangesService(ServiceBase):
                 clo_conf.request_date = None
                 clo_conf.save()
 
-        # is applied the chanes for the Holography Receptors
+        # is applied the changes for the Holography Receptors
         for holo in HolographyConfiguration.objects.all():
-            if holo.active and holo.requested_antenna is not None:
+            if holo.active and holo.is_requested():
                 for status in holo.text_status():
                     _request_text += "%s\n"%status
 
