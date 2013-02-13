@@ -38,14 +38,22 @@ function update_status(data){
 
   /*** STE Requests ***/
   if (data.antenna != null) {
-    if (data.ste != null) {
-      updateAlert(alerts.find("#steRequests"),
+    alerts = alerts.find("#steRequests");
+    if (data.is_requested) {
+      updateAlert(alerts,
                   "alert-success",
                   data.status,
                   data.antenna,
                   true);
     } else {
-      removeAlert(alerts.find("#steRequests"), data.antenna);
+      removeAlert(alerts, data.antenna);
+    }
+
+    no_request = alerts.find("center");
+    if ( no_request.siblings().length > 0 ) {
+      no_request.hide();
+    } else {
+      no_request.show();
     }
   }
 
@@ -69,13 +77,13 @@ function update_status(data){
     } else {
       removeAlert(alerts, data.resource.id);
     }
-  }
 
-  no_request = alerts.find("center");
-  if ( no_request.siblings().length > 0 ){
-    no_request.hide();
-  } else {
-    no_request.show();
+    no_request = alerts.find("center");
+    if ( no_request.siblings().length > 0 ) {
+      no_request.hide();
+    } else {
+      no_request.show();
+    }
   }
 }
 
