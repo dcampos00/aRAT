@@ -1,7 +1,10 @@
+from aRAT.apps.webServices.blockUnblock.views import blockUnblockService
+
 from django.contrib import admin
 from aRAT.apps.home.models import Antenna, PAD, CorrelatorConfiguration, CentralloConfiguration, HolographyConfiguration
+from aRAT.apps.common.models import Configuration
 
-#admin.site.disable_action('delete_selected')
+from django.contrib.admin.sites import AdminSite
 
 class AntennaAdmin(admin.ModelAdmin):
     actions = None
@@ -114,8 +117,31 @@ class HolographyConfigurationAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-admin.site.register(Antenna, AntennaAdmin)
-admin.site.register(PAD, PADAdmin)
-admin.site.register(CorrelatorConfiguration, CorrelatorConfigurationAdmin)
-admin.site.register(CentralloConfiguration, CentralloConfigurationAdmin)
-admin.site.register(HolographyConfiguration, HolographyConfigurationAdmin)
+
+from aRAT.apps.webServices.checkConsistency.views import checkConsistencyService
+
+class CustomAdminSite(AdminSite):
+
+    def index(self, request, extra_context=None):
+        block_status = Configuration.objects.get(setting='BLOCK')
+
+        consistent = checkConsistencyService.check("") == "SUCCESS"
+
+        extra_context = {'read_only': block_status.value,
+                         'consistent': consistent}
+        return super(CustomAdminSite, self).index(request, extra_context=extra_context)
+
+custom_admin_site = CustomAdminSite()
+
+custom_admin_site.register(Antenna, AntennaAdmin)
+custom_admin_site.register(PAD, PADAdmin)
+custom_admin_site.register(CorrelatorConfiguration, CorrelatorConfigurationAdmin)
+custom_admin_site.register(CentralloConfiguration, CentralloConfigurationAdmin)
+custom_admin_site.register(HolographyConfiguration, HolographyConfigurationAdmin)
+
+from django.contrib.auth.models import User, Group
+custom_admin_site.register(User)
+custom_admin_site.register(Group)
+
+#admin_urls = get_admin_urls()
+#admin.site.get_urls = admin_urls
