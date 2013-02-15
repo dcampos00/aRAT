@@ -39,7 +39,7 @@ class Resource(models.Model):
         return False
 
     def exist_errors(self):
-        return eval(self.errors) != [] or self.global_restriction_errors()
+        return eval(self.errors) != [] or self.global_restriction_errors() != []
 
     def update_restriction_errors(self):
         return
@@ -58,7 +58,12 @@ class Resource(models.Model):
         return []
 
     def global_restriction_errors(self):
-        return True
+        """
+        Return a list with numbers that indicate the global restriction
+        error that ocurrs, if the list is empty so not exist global
+        restriction errors
+        """
+        return []
 
     def text_status(self):
         return []
@@ -94,17 +99,51 @@ class Antenna(Resource):
 
     def text_status(self):
         text_status = []
-        if self.requested_ste != None:
+        if self.is_requested():
             text = "%s will be changed to %s"%(self, 
                                                self.get_requested_ste_display())
-            text_request = "-- Request done by %s"%self.request_text_info()
-
             text_status.append(text)
-            text_status.append(text_request)
         else:
             text = "%s is in %s"%(self, self.get_current_ste_display())
             text_status.append(text)
+
+        if self.exist_errors():
+            for text in self.text_error():
+                text_status.append("Error: %s"%text)
+
+        if self.is_requested():
+            text_request = "-- Request done by %s"%self.request_text_info()
+            text_status.append(text_request)
+
         return text_status
+
+    def global_restriction_errors(self):
+        if (self.requested_ste is None and self.current_ste is None):
+            return []
+        
+        if self.requested_ste is not None:
+            ste = self.get_requested_ste_display()
+        else:
+            ste = self.get_current_ste_display()
+
+        if ste == 'VENDOR':
+            return []
+        else:
+            pads = PAD.objects.filter(models.Q(current_antenna=self) | models.Q(requested_antenna=self))
+            if pads is not None:
+                return [1]
+            else:
+                return []
+
+    def text_error(self):
+        result = []
+
+        for e in self.global_restriction_errors():
+            if e == 1:
+                text_error = "The Antenna must have associated a PAD."
+                result.append(text_error)
+
+        return result
 
     def is_requested(self):
         return (self.requested_ste != self.current_ste
@@ -195,24 +234,26 @@ class PAD(Resource):
     def global_restriction_errors(self):
         if self.requested_antenna is not None:
             antenna = self.requested_antenna
+        elif self.is_requested():
+            return []
         elif self.current_antenna is not None:
             antenna = self.current_antenna
         else:
-            return False
+            return []
 
         if antenna.requested_ste is not None:
             ste = antenna.get_requested_ste_display()
         elif antenna.current_ste is not None:
             ste = antenna.get_current_ste_display()
         else:
-            return True
+            return [1]
 
         if self.location == 'AOS' and (ste == 'AOS' or ste == 'AOS2'):
-            return False
+            return []
         elif self.location == 'OSF' and (ste == 'TFINT' or ste == 'TFSD' or ste == 'TFOHG'):
-            return False
+            return []
         else:
-            return True
+            return [1]
 
     def name(self):
         return self.get_line_display().split()[0]
@@ -272,8 +313,9 @@ class PAD(Resource):
             error.append(text)
 
 
-        if self.global_restriction_errors():
-            text = "PAD and Antenna are in different STEs."
+        for e in self.global_restriction_errors():
+            if e == 1:
+                text = "PAD and Antenna are in different STEs."
             error.append(text)
 
         return error
@@ -379,30 +421,44 @@ class CorrelatorConfiguration(Resource):
         return configuration_errors
 
     def global_restriction_errors(self):
-        if self.requested_antenna != None:
+        errors = []
+        if self.requested_antenna is not None:
             antenna = self.requested_antenna
-        elif self.current_antenna != None:
+        elif self.is_requested():
+            return []
+        elif self.current_antenna is not None:
             antenna = self.current_antenna
         else:
-            return False
+            return []
 
-        if antenna.requested_ste != None:
+        if antenna.requested_ste is not None:
             ste = antenna.get_requested_ste_display()
-        elif antenna.current_ste != None:
+        elif antenna.current_ste is not None:
             ste = antenna.get_current_ste_display()
         else:
-            return True
+            errors.append(2)
+
+        pads = PAD.objects.filter(models.Q(current_antenna=antenna, requested_antenna=None) | models.Q(requested_antenna=antenna))
+
+        if pads:
+            pass
+        else:
+            errors.append(3)
 
         if self.correlator == 'BL-Corr' and (ste == 'AOS'):
-            return False
+            pass
         elif self.correlator == 'ACA-Corr' and (ste == 'AOS' or ste == 'AOS2'):
-            return False
+            pass
         elif self.correlator == 'OSF-Corr' and (ste == 'TFINT'):
-            return False
+            pass
         elif self.correlator == 'ATF-Corr' and (ste == 'TFSD'):
-            return False
+            pass
+        elif ste == 'VENDOR':
+            errors.append(2)
         else:
-            return True
+            errors.append(1)
+
+        return errors
 
     def line_number(self):
         return "%d"%self.line
@@ -434,7 +490,7 @@ class CorrelatorConfiguration(Resource):
                 text = "The %s Configuration will be unassigned."%(self.configuration())
             result.append(text)
         else:
-            text = "The %s Configuration is assigned to %s"%(self, self.current_antenna)
+            text = "The %s Configuration is assigned to %s"%(self.configuration(), self.current_antenna)
             result.append(text)
         
         if self.exist_errors():
@@ -462,8 +518,13 @@ class CorrelatorConfiguration(Resource):
             error.append(text)
 
 
-        if self.global_restriction_errors():
-            text = "The Correlator and the Antenna are in different locations."
+        for e in self.global_restriction_errors():
+            if e == 1:
+                text = "The Correlator and the Antenna are in different locations."
+            elif e == 2:
+                text = "The Antenna must be associated to a STE."
+            elif e == 3:
+                text = "The Antenna must have associated a PAD."
             error.append(text)
 
         return error
@@ -557,26 +618,41 @@ class CentralloConfiguration(Resource):
         return configuration_errors
 
     def global_restriction_errors(self):
-        if self.requested_antenna != None:
+        errors = []
+
+        if self.requested_antenna is not None:
             antenna = self.requested_antenna
-        elif self.current_antenna != None:
+        elif self.is_requested():
+            return []
+        elif self.current_antenna is not None:
             antenna = self.current_antenna
         else:
-            return False
+            return []
 
-        if antenna.requested_ste != None:
+        if antenna.requested_ste is not None:
             ste = antenna.get_requested_ste_display()
-        elif antenna.current_ste != None:
+        elif antenna.current_ste is not None:
             ste = antenna.get_current_ste_display()
         else:
-            return True
+            errors.append(2)
+
+        pads = PAD.objects.filter(models.Q(current_antenna=antenna, requested_antenna=None) | models.Q(requested_antenna=antenna))
+
+        if pads:
+            pass
+        else:
+            errors.append(3)
 
         if self.centrallo == 'AOS' and (ste == 'AOS' or ste == 'AOS2'):
-            return False
+            pass
         elif self.centrallo == 'TFINT' and (ste == 'TFINT'):
-            return False
+            pass
+        elif ste == 'VENDOR':
+            errors.append(2)
         else:
-            return True
+            errors.append(1)
+        
+        return errors
 
     def line_number(self):
         return "%d"%self.line
@@ -630,9 +706,13 @@ class CentralloConfiguration(Resource):
                 CentralloConfiguration.objects.get(line=e).configuration())
             error.append(text)
 
-
-        if self.global_restriction_errors():
-            text = "The CentralLO and the Antenna are in different locations."
+        for e in self.global_restriction_errors():
+            if e == 1:
+                text = "The CentralLO and the Antenna are in different locations."
+            elif e == 2:
+                text = "The Antenna must be associated to a STE."
+            elif e == 3:
+                text = "The Antenna must have associated a PAD."
             error.append(text)
 
         return error
@@ -728,24 +808,36 @@ class HolographyConfiguration(Resource):
         return configuration_errors
 
     def global_restriction_errors(self):
+        errors = []
         if self.requested_antenna is not None:
             antenna = self.requested_antenna
+        elif self.is_requested():
+            return []
         elif self.current_antenna is not None:
             antenna = self.current_antenna
         else:
-            return False
+            return []
 
         if antenna.requested_ste is not None:
             ste = antenna.get_requested_ste_display()
         elif antenna.current_ste is not None:
             ste = antenna.get_current_ste_display()
         else:
-            return True
+            errors.append(2)
+
+        pads = PAD.objects.filter(models.Q(current_antenna=antenna, requested_antenna=None) | models.Q(requested_antenna=antenna))
+
+        if pads:
+            pass
+        else:
+            errors.append(3)
 
         if ste == 'TFOHG':
-            return False
+            pass
         else:
-            return True
+            errors.append(1)
+
+        return errors
 
     def name(self):
         return "%s"%self.get_line_display()
@@ -786,14 +878,23 @@ class HolographyConfiguration(Resource):
         Method that returns the pad errors in a list when each element of the list
         correspond to one error
         """
+        if self.is_requested():
+            antenna = self.requested_antenna
+        else:
+            antenna = self.current_antenna
+
         error = []
         for e in self.local_restriction_errors():
-            text = "The Antenna %s also will have assigned %s."%(self.requested_antenna, e)
+            text = "The Antenna %s also will have assigned %s."%(antenna, e)
             error.append(text)
 
-
-        if self.global_restriction_errors():
-            text = "The Antenna %s is not in TFOHG."%(self.requested_antenna)
+        for e in self.global_restriction_errors():
+            if e == 1:
+                text = "The Antenna %s is not in TFOHG."%antenna
+            elif e == 2:
+                text = "The Antenna must be associated to a STE."
+            elif e == 3:
+                text = "The Antenna must have associated a PAD."
             error.append(text)
 
         return error
