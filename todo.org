@@ -29,18 +29,23 @@
     - [X] Correlator Configuration
     - [X] CentralLO Configuration
     - [X] Holography Receptor
-*** TODO changes [33%]
-**** TODO user levels control [%]
+*** TODO changes [50%]
+**** TODO user levels control [0%]
      Will exist three user level/groups
      - default :: This user only can open the application in read mode
      - modify :: users that will can modify the request in the application
      - admin :: users with access to admin panel (will be superusers in Django)
+     - [ ] add modify group permissions
 **** DONE Admin Panel Changes [100%]
      - State "DONE"       from "IN-PROGRESS" [2013-02-15 Fri 13:40]
-    - [X] Add web services control
-**** TODO changes in restrictions [%]
-    - [ ] if Antenna in STE => Antenna in PAD
-    - [ ] if Antenna with Corr, Clo or Holo => Antenna in STE and PAD
+     - [X] Add web services control
+     - [ ] Add possibility of load the cfg files from the panel
+**** DONE changes in restrictions [100%]
+     - State "DONE"       from "IN-PROGRESS" [2013-02-15 Fri 16:54]
+     - [X] if Antenna in STE => Antenna in PAD
+     - [X] if Antenna with Corr, Clo or Holo => Antenna in STE and PAD
+**** TODO use diferent ids to know if is a new configuration or not
+     Will be used the first column how *id*
 ** IN-PROGRESS documents [%]
    - [ ] Administration manual
    - [ ] Wiki project :: Something was did it
