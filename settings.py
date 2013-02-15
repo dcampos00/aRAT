@@ -11,7 +11,7 @@ AUTH_LDAP_SERVER_URI = "ldap://ldapste01.sco.alma.cl"
 AUTH_LDAP_USER_DN_TEMPLATE = "uid=%(user)s,ou=people,ou=master,dc=alma,dc=info"
 
 AUTH_LDAP_USER_ATTR_MAP = {
-        "first_name": "cn",
+    "first_name": "cn",
     "last_name": "sn",
     "email": "mail"
     }
@@ -166,6 +166,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Uncomment the next line to enable the admin:
+    'aRAT.apps.bootstrap_admin',
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
@@ -177,8 +178,8 @@ INSTALLED_APPS = (
     'aRAT.apps.webServices.changesPage',
 
     # apps Installed
-    'aRAT.apps.home',
     'aRAT.apps.common',
+    'aRAT.apps.home',
     
     #Dajaxice
     'dajaxice',
