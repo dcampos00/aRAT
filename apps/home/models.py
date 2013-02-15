@@ -130,10 +130,10 @@ class Antenna(Resource):
             return []
         else:
             pads = PAD.objects.filter(models.Q(current_antenna=self) | models.Q(requested_antenna=self))
-            if pads is not None:
-                return [1]
-            else:
+            if pads:
                 return []
+            else:
+                return [1]
 
     def text_error(self):
         result = []
