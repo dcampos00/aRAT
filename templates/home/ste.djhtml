@@ -60,20 +60,37 @@
   function update_status(data){
     var tr = $("tr[data-antenna-id='"+data.antenna+"']");
 
+    alerts = tr.parents(".tab-pane").find(".alerts-container");
+
+    tr.removeClass("btn-info btn-danger");
+    tr.find("button").removeClass("btn-success active");
     if (data.is_requested) {
-      tr.addClass("btn-info");
-      tr.find("button").removeClass("btn-success active");
       tr.find("[data-ste-id='"+data.requested_ste+"']").addClass("btn-success active");
 
-      alerts = tr.parents(".tab-pane").find(".alerts-container");
+      if (data.error){
+	alert_type = "alert-error";
+        tr.addClass("btn-danger");	    
+      } else {
+	alert_type = "alert-success";
+	tr.addClass("btn-info");
+      }
       
       updateAlert(alerts,
-                  "alert-success",
+                  alert_type,
                   data.status,
-                  data.antenna);    
+                  data.antenna,
+                  data.read_only);    
 
+    } else if (data.error) {
+      alert_type = "alert-error";
+      tr.addClass("btn-danger");
+      
+      updateAlert(alerts,
+                  alert_type,
+                  data.status,
+                  data.antenna,
+                  true);
     } else {
-      alerts = tr.parents(".tab-pane").find(".alerts-container");
       alert_div = alerts.find("[data-antenna-id='"+data.antenna+"']");
       if (alert_div.length > 0) {
         alert_div.remove();
@@ -87,24 +104,6 @@
         tr.find("[data-ste-id='"+data.current_ste+"']").addClass("btn-info");
       }
       );
-    }
-  }
-
-  function updateAlert(alerts_div, type, text, antenna_id) {
-    alert_div = alerts_div.find("[data-antenna-id='"+antenna_id+"']");
-    /* is proved if exist the alert */
-    if (alert_div.length > 0) {
-      /* if exist the content is updated */
-      alert_div.children(".alert-text").html(text);
-    } else {
-      /* if does not exist the alert is created */
-      html_alert = "<div class=\"alert "+type+"\" data-antenna-id=\""+antenna_id+"\">";
-      {% if not read_only %}
-      html_alert += "<button type=\"button\" class=\"close close-alert\" data-dismiss=\"alert\">&times;</button>";
-      {% endif %}
-      html_alert += "<div class=\"alert-text\">"+text+"</div>";
-      html_alert += "</div>";
-      alerts_div.append( html_alert );
     }
   }
 
@@ -136,7 +135,7 @@
       var button = $(this);
       bootbox.confirm("Are you sure?", function (result) {
         if (result) {
-          antenna_id = button.parents("div.alert").data("antennaId");
+          antenna_id = button.parents("div.alert").data("id");
           Dajaxice.aRAT.apps.home.ste_update_alerts(Dajax.process,
                                                     {'antenna_id': antenna_id,
                                                     });
