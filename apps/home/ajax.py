@@ -56,6 +56,8 @@ def ste_update_alerts(request, ste_id='', antenna_id=''):
                         'requested_ste': antenna.requested_ste,
                         'current_ste': antenna.current_ste,
                         'is_requested': antenna.is_requested(),
+                        'error': antenna.exist_errors(),
+                        'read_only': read_only,
                         'status': status},
                        'update_status')
 
