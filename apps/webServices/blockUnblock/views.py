@@ -58,3 +58,26 @@ block_unblock_service = csrf_exempt(
                                   out_protocol=Soap11(),
                                   interface=Wsdl11(),
                                   )))
+
+
+from django.http import HttpResponse, HttpResponseRedirect
+
+def block_app_view(request):
+    if request.method == "POST":
+        form = request.POST
+        if eval(form['block']):
+            blockUnblockService.block("")
+            
+            return HttpResponseRedirect("/admin")
+        
+    return HttpResponse('Error!')
+
+def unblock_app_view(request):
+    if request.method == "POST":
+        form = request.POST
+        if not eval(form['block']):
+            blockUnblockService.unblock("")
+
+            return HttpResponseRedirect("/admin")
+
+    return HttpResponse('Error!')
