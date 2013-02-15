@@ -39,9 +39,15 @@ function update_status(data){
   /*** STE Requests ***/
   if (data.antenna != null) {
     alerts = alerts.find("#steRequests");
-    if (data.is_requested) {
+    if (data.is_requested || data.error) {
+      if (data.error) {
+        alert_type = "alert-error";
+      } else {
+        alert_type = "alert-success";
+      }
+
       updateAlert(alerts,
-                  "alert-success",
+                  alert_type,
                   data.status,
                   data.antenna,
                   true);
@@ -65,7 +71,7 @@ function update_status(data){
       case 'clo': alerts = alerts.find("#cloRequests"); break;
       case 'holo': alerts = alerts.find("#holoRequests"); break;
     }
-    if (data.requested_antenna.id != null || ( data.current_antenna.id != null && data.resource.assigned == false)) {
+    if (data.is_requested || data.error) {
       
       if (!data.error) {
         alert_type = "alert-success";
