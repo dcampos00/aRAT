@@ -39,6 +39,14 @@ function updateAlert(alerts_div, type, text, id, read_only) {
 	/* if exist the content is updated */
 	alert_div.children(".alert-text").html(text);
 	alert_div.attr("class", "alert").addClass(type);
+	if (read_only){
+	    alert_div.find("button").remove();
+	} else {
+	    if (alert_div.find("button").length <= 0) {
+		html_button = "<button type=\"button\" class=\"close close-alert\" data-dismiss=\"alert\">&times;</button>";
+		alert_div.prepend( html_button );
+	    }
+	}
     } else {
 	/* if does not exist the alert is created */
 	html_alert = "<div class=\"alert "+type+"\" data-id=\""+id+"\">";
