@@ -121,3 +121,16 @@ apply_changes_service = csrf_exempt(
                                   out_protocol=Soap11(),
                                   interface=Wsdl11(),
                                   )))
+
+
+from django.http import HttpResponseRedirect, HttpResponse
+
+def apply_changes_view(request):
+    if request.method == "POST":
+        form = request.POST
+        if eval(form['apply']):
+            applyChangesService.apply("")
+
+            return HttpResponseRedirect("/admin")
+
+    return HttpResponse("Error")
