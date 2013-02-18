@@ -208,12 +208,12 @@ def corr_update_alerts(request, configuration_id='', antenna_id=''):
     return dajax.json()
 
 @dajaxice_register
-def clo_update_alerts(request, configuration_line='', antenna_id=''):
+def clo_update_alerts(request, configuration_id='', antenna_id=''):
     """
     Function that keeps updated the alerts of CentralLO Configuration
 
     Arguments:
-    `configuration_line`: identifier of the configuration, each configuration
+    `configuration_id`: identifier of the configuration, each configuration
     has only one line number associated
     `antenna_id`: identifier of the Antenna to be requested
     """
@@ -223,9 +223,9 @@ def clo_update_alerts(request, configuration_line='', antenna_id=''):
     read_only = Configuration.objects.get(setting='BLOCK').value
 
     # first the pad information is updated
-    if configuration_line != '' and not read_only:
-        clo = CentralloConfiguration.objects.get(line=configuration_line)
-        if antenna_id == 'None' and clo.current_antenna != None:
+    if configuration_id != '' and not read_only:
+        clo = CentralloConfiguration.objects.get(id=configuration_id)
+        if antenna_id == 'None' and clo.current_antenna is not None:
             clo.assigned = False
             clo.requested_antenna = None
         elif (antenna_id != ''
@@ -261,8 +261,8 @@ def clo_update_alerts(request, configuration_line='', antenna_id=''):
         status = clo.html_status()
         exist_errors = clo.exist_errors()
 
-        dajax.add_data({'resource': {'id': clo.line,
-                                     'name': clo.configuration(),
+        dajax.add_data({'resource': {'id': clo.id,
+                                     'name': clo.configuration,
                                      'assigned': clo.assigned,
                                      'type': 'clo'},
                         'current_antenna': {'id': current_antenna_id,
