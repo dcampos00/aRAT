@@ -200,17 +200,11 @@ def holography_configuration_view(request):
     antennas = Antenna.objects.all()
 
     holos = []
-    for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'holography.cfg')):
-        line_string = line_string.strip()
-        if line_string:
-            holo = line_string
-            if HolographyConfiguration.objects.filter(line=line_number):
-                holo_config = HolographyConfiguration.objects.get(line=line_number)
-                holos.append(holo_config)
-            else:
-                new_holo_config = HolographyConfiguration(line=line_number)
-                new_holo_config.save()
-                holos.append(new_holo_config)
+    for holo in HolographyConfiguration.objects.all():
+        if not holo.active:
+            continue
+
+        holos.append(holo)
 
     ctx = {'error': error,
            'read_only': block_status.value,
