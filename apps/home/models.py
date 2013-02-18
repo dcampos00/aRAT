@@ -516,20 +516,24 @@ class CorrelatorConfiguration(Resource):
 class CentralloConfiguration(Resource):
     # in the db is saved the line of the configuration file that match with the configuration of
     # the CentralLO
-    _LINES = []
-    for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'clo.cfg')):
-        if line_string[0] != "#":
-            line_string = line_string.strip()
-            if line_string:
-                _LINES.append((line_number, line_string))
+ #   _LINES = []
+ #   for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'clo.cfg')):
+ #       if line_string[0] != "#":
+ #           line_string = line_string.strip()
+ #           if line_string:
+ #               _LINES.append((line_number, line_string))
 
-    _LINES = tuple(_LINES)
+#    _LINES = tuple(_LINES)
 
-    line = models.IntegerField(choices=_LINES, unique=True)
+#    line = models.IntegerField(choices=_LINES, unique=True)
 
-    #calculated field
+    identifier = models.CharField(max_length=20)
+    configuration = models.TextField()
     centrallo = models.CharField(max_length=10, blank=True)
     assigned = models.BooleanField(default=True, blank=True)
+    header = models.ForeignKey(TableHeader)
+
+    unique_together = (identifier, centrallo)
 
     current_antenna = models.OneToOneField(Antenna,
                                            related_name="current_clo_antenna",
@@ -552,8 +556,8 @@ class CentralloConfiguration(Resource):
         """
 
         clo_conf_to_check = []
-        for clo_conf_line in eval(self.errors):
-            clo_conf_to_check.append(CentralloConfiguration.objects.get(line=clo_conf_line))
+        for clo_conf_id in eval(self.errors):
+            clo_conf_to_check.append(CentralloConfiguration.objects.get(id=clo_conf_id))
 
         tmp_errors = []
 
@@ -569,7 +573,7 @@ class CentralloConfiguration(Resource):
         caller.remove(self)
 
         for clo_conf in local_errors:
-            tmp_errors.append(clo_conf.line)
+            tmp_errors.append(clo_conf.id)
 
         self.errors = str(tmp_errors)
 
@@ -636,17 +640,6 @@ class CentralloConfiguration(Resource):
         
         return errors
 
-    def line_number(self):
-        return "%d"%self.line
-
-    def configuration(self):
-        configuration = str(self.get_line_display().split()[0:-1]).replace("', u'", ' ')[3:-2]
-        return "%s"%configuration
-
-    def save(self):
-        self.centrallo = self.get_line_display().split()[-1]
-        super(CentralloConfiguration, self).save()
-
     def text_status(self):
         """
         This method returns a list that describe the current status of the
@@ -656,12 +649,12 @@ class CentralloConfiguration(Resource):
         text = None
         if (self.is_requested()):
             if self.assigned == True:
-                text = "%s will be changed to %s CentralLO Configuration."%(self.requested_antenna, self.configuration)
+                text = "%s will be changed to %s CentralLO Configuration."%(self.requested_antenna, self)
             else:
-                text = "The %s Configuration will be unassigned."%(self.configuration())
+                text = "The %s Configuration will be unassigned."%(self)
             result.append(text)
         else:
-            text = "The %s Configuration is assigned to %s"%(self.configuration(), self.current_antenna)
+            text = "The %s Configuration is assigned to %s"%(self, self.current_antenna)
             result.append(text)
 
         if self.exist_errors():
@@ -685,7 +678,7 @@ class CentralloConfiguration(Resource):
         for e in eval(self.errors):
             text = "The Antenna %s also will be assigned the %s CentralLO Configuration."%(
                 self.requested_antenna,
-                CentralloConfiguration.objects.get(line=e).configuration())
+                CentralloConfiguration.objects.get(id=e))
             error.append(text)
 
         for e in self.global_restriction_errors():
@@ -704,7 +697,7 @@ class CentralloConfiguration(Resource):
                 or (self.current_antenna is not None and self.assigned == False))
 
     def __unicode__(self):
-        return "Line %s - %s [%s]"%(self.line, self.configuration(), self.centrallo)
+        return "%s - %s"%(self.identifier, self.configuration)
 
 class HolographyConfiguration(Resource):
     """Class that represents the Model of Holography Receptor Configuration"""
