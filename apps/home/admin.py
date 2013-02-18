@@ -359,10 +359,10 @@ class CentralloConfigurationAdmin(admin.ModelAdmin):
 class HolographyConfigurationAdmin(admin.ModelAdmin):
     actions = None
 
-    list_display = ('line_number', 'name')
+    list_display = ('name',)
     list_display_links = ('name',)
     list_filter = ['active']
-    search_fields = ['line', 'current_antenna__name', 'requested_antenna__name']
+    search_fields = ['name', 'current_antenna__name', 'requested_antenna__name']
 
     fieldsets = (
         (None, {
@@ -381,6 +381,48 @@ class HolographyConfigurationAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
+    def get_urls(self):
+        urls = patterns('',
+                         url(r'^update_configurations/$',
+                             self.admin_site.admin_view(self.update_configurations_view),
+                             name="update_configurations_view")
+                         )
+        urls += super(HolographyConfigurationAdmin, self).get_urls()
+
+        return urls
+
+    def update_configurations_view(self, request):
+
+        error = ''
+        holos = []
+        changes = []
+
+        for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'holography.cfg')):
+            line_string = line_string.strip()
+            is_comment = line_string[0:2] == "//"
+
+            if line_string and not is_comment:
+                holo_name = line_string
+                if HolographyConfiguration.objects.filter(name=holo_name):
+                    holo = HolographyConfiguration.objects.get(name=holo_name)
+                    holos.append(holo)
+                else:
+                    new_holo = HolographyConfiguration(name=holo_name)
+                    new_holo.save()
+                    holos.append(new_holo)
+                    changes.append("The %s was added."%new_holo)
+
+        for holo in HolographyConfiguration.objects.all():
+            if holo not in holos:
+                changes.append("The %s was deleted."%holo)
+                holo.delete()
+
+        ctx = {'title': 'Update Holography Receptors',
+               'changes': changes,
+               'error': error,
+               }
+
+        return TemplateResponse(request, "admin/update_configuration.html", ctx)
 
 from aRAT.apps.webServices.checkConsistency.views import checkConsistencyService
 
