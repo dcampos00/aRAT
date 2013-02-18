@@ -25,7 +25,7 @@ Holography Configuration
           </thead>
           <tbody>
 	    {% for holo_config in holos %}
-	    <tr class="holo-container" data-resource-id="{{ holo_config.line }}">
+	    <tr class="holo-container" data-resource-id="{{ holo_config.id }}">
 	      <td>
                 {{ holo_config.name }}
               </td>
@@ -124,13 +124,13 @@ $(document).ready(function () {
         /* is requested the confirmation */
         bootbox.confirm("Are you sure?", function(result) {
           if(result){
-            holo_line_1 = change_content.data("original-parent").parent().data("resourceId");
-            antenna_line_1 = change_content.data("antennaId");
-            holo_line_2 = droppable.parent().data("resourceId");
-            antenna_line_2 = current_content.data("antennaId");
+            holo_id_1 = change_content.data("original-parent").parent().data("resourceId");
+            antenna_id_1 = change_content.data("antennaId");
+            holo_id_2 = droppable.parent().data("resourceId");
+            antenna_id_2 = current_content.data("antennaId");
             
-            Dajaxice.aRAT.apps.home.holo_update_alerts(Dajax.process, {'holo_line': holo_line_1, 'antenna_line': antenna_line_2});
-            Dajaxice.aRAT.apps.home.holo_update_alerts(Dajax.process, {'holo_line': holo_line_2, 'antenna_line': antenna_line_1});
+            Dajaxice.aRAT.apps.home.holo_update_alerts(Dajax.process, {'holo_id': holo_id_1, 'antenna_id': antenna_id_2});
+            Dajaxice.aRAT.apps.home.holo_update_alerts(Dajax.process, {'holo_id': holo_id_2, 'antenna_id': antenna_id_1});
             refresh(true);
           } else {
             change_content.data("original-parent").append(change_content);
@@ -178,9 +178,9 @@ $(document).ready(function () {
     var button = $(this);
     bootbox.confirm("Are you sure?", function (result) {
       if (result) {
-        holo_line = button.parents("div.alert").data("id");
+        holo_id = button.parents("div.alert").data("id");
         Dajaxice.aRAT.apps.home.holo_update_alerts(Dajax.process,
-                                                   {'holo_line': holo_line,
+                                                   {'holo_id': holo_id,
                                                    });
       }
     });
@@ -189,13 +189,13 @@ $(document).ready(function () {
   $(document).on("click",".btn-apply", function(e) {
     e.preventDefault();
     if($(this).parent().is(":visible")){
-      holo_line = $(this).parents("tr.holo-container").data("resourceId");
+      holo_id = $(this).parents("tr.holo-container").data("resourceId");
       antenna_id = $(this).parent().children("[data-rel='select2']").val();
 
 
-      if(holo_line == 0) holo_line = "0";
-      if(holo_line != "" && antenna_id != ""){
-        Dajaxice.aRAT.apps.home.holo_update_alerts(Dajax.process, {'antenna_id': antenna_id, 'holo_line': holo_line});
+      if(holo_id == 0) holo_id = "0";
+      if(holo_id != "" && antenna_id != ""){
+        Dajaxice.aRAT.apps.home.holo_update_alerts(Dajax.process, {'antenna_id': antenna_id, 'holo_id': holo_id});
         
         $(this).parents("td").children(".text-antenna").show();
         $(this).parent(".antenna-change-select").remove();
