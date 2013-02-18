@@ -11,6 +11,12 @@ from django.conf import settings
 import logging
 from django.contrib.auth import authenticate, login, logout
 
+def read_only(request):
+    block_status = Configuration.objects.get(setting='BLOCK').value
+    is_requester = request.user.groups.filter(name='Requester')
+
+    return block_status or not is_requester
+
 def login_user_view(request):
     """View to login in authenticate system"""
 
@@ -47,9 +53,7 @@ def home_view(request):
     if not request.user.is_authenticated():
         return HttpResponseRedirect("/login")
 
-    block_status = Configuration.objects.get(setting='BLOCK')
-
-    ctx = {'read_only': block_status.value}
+    ctx = {'read_only': read_only(request)}
     return render_to_response('home/index.djhtml', ctx, context_instance=RequestContext(request))
 
 def ste_configuration_view(request):
@@ -59,9 +63,6 @@ def ste_configuration_view(request):
 
     if not request.user.is_authenticated():
         return HttpResponseRedirect("/login")
-
-    # if retrieved the block status of the current configuration
-    block_status = Configuration.objects.get(setting='BLOCK')
 
     vendors = []
     stes = Antenna().STEs
@@ -78,7 +79,7 @@ def ste_configuration_view(request):
 
     # variables are passed to the view
     ctx = {'error': error,
-           'read_only':block_status.value,
+           'read_only': read_only(request),
            'vendors': vendors,
            'stes':stes,
            'antennas': antennas
@@ -92,8 +93,6 @@ def pad_configuration_view(request):
 
     if not request.user.is_authenticated():
         return HttpResponseRedirect("/login")
-
-    block_status = Configuration.objects.get(setting='BLOCK')
 
     # the antennas are loaded from the db
     antennas = Antenna.objects.all()
@@ -112,7 +111,7 @@ def pad_configuration_view(request):
         pads[pad.location].append(pad)
 
     ctx = {'error': error,
-           'read_only': block_status.value,
+           'read_only': read_only(request),
            'locations': locations,
            'pads':pads,
            'antennas':antennas
@@ -128,6 +127,7 @@ def corr_configuration_view(request):
         return HttpResponseRedirect("/login")
 
     block_status = Configuration.objects.get(setting='BLOCK')
+    is_requester = request.user.groups.filter(name='Requester').count()
 
     # the antennas are loaded from the db
     antennas = Antenna.objects.all()
@@ -145,7 +145,7 @@ def corr_configuration_view(request):
         corr_confs[corr_config.correlator].append(corr_config)
 
     ctx = {'error': error,
-           'read_only': block_status.value,
+           'read_only': read_only(request),
            'correlators': correlators,
            'corr_confs': corr_confs,
            'antennas': antennas
@@ -160,8 +160,6 @@ def clo_configuration_view(request):
 
     if not request.user.is_authenticated():
         return HttpResponseRedirect("/login")
-
-    block_status = Configuration.objects.get(setting='BLOCK')
 
     # the antennas are loaded from the db
     antennas = Antenna.objects.all()
@@ -179,7 +177,7 @@ def clo_configuration_view(request):
         clo_confs[clo_config.centrallo].append(clo_config)
 
     ctx = {'error': error,
-           'read_only': block_status.value,
+           'read_only': read_only(request),
            'centrallos': centrallos,
            'clo_confs': clo_confs,
            'antennas':antennas
@@ -194,8 +192,6 @@ def holography_configuration_view(request):
     if not request.user.is_authenticated():
         return HttpResponseRedirect("/login")
 
-    block_status = Configuration.objects.get(setting='BLOCK')
-
     # the antennas are loaded from the db
     antennas = Antenna.objects.all()
 
@@ -207,7 +203,7 @@ def holography_configuration_view(request):
         holos.append(holo)
 
     ctx = {'error': error,
-           'read_only': block_status.value,
+           'read_only': read_only(request),
            'holos': holos,
            'antennas': antennas
            }
