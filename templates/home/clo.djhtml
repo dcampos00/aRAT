@@ -1,5 +1,5 @@
 {% extends 'base.djhtml' %}
-{% load replace %}
+{% load replace eval %}
 
 {% block PageTitle %}- CLO{% endblock %}
 
@@ -17,7 +17,7 @@
 </ul>  
 
 <div class="tab-content" id="centrallosContent">
-  {% for centrallo, clos in clos.items %}
+  {% for centrallo, clo_confs in clo_confs.items %}
   <div class="tab-pane" id="{{ centrallo|lower }}">  
        <div class="row-fluid">
          <div id="alerts-{{ centrallo|lower }}" class="row-fluid alerts-container"></div>
@@ -28,21 +28,22 @@
 	   <div class="span12">
 	     <div class="row-fluid">
 	       <table class="table table-bordered datatable">
-		 {% for clo in clos %}
+		 {% for clo_config in clo_confs %}
 		 {% if forloop.first %}
 		 <thead>
 		   <tr>
 		     <th>Antenna</th>			
-		     {% for i in clo %}<th>{{ i|replace_by_space:"-"|replace_by_space:"#" }}</th>{% endfor %}
+		     {% for i in clo_config.header.text|eval %}<th>{{ i }}</th>{% endfor %}
 		   </tr>
 		 </thead>
 		 <tbody>
 	           {% else %}
-	           <tr data-resource-id="{{ clo.line }}">
+	           <tr data-resource-id="{{ clo_config.id }}">
 		     <td class="change-antenna droppable">
-		       <div class="text-antenna draggable" data-antenna-id="{{ clo.current_antenna.id }}">{{ clo.current_antenna }}</div>
+		       <div class="text-antenna draggable" data-antenna-id="{{ clo_config.current_antenna.id }}">{{ clo_config.current_antenna }}</div>
 		     </td>
-		     {% for i in clo.configuration.split %}<td>{{ i }}</td>{% endfor %}
+                     <td>{{ clo_config.identifier }}</td>
+		     {% for i in clo_config.configuration|eval %}<td>{{ i }}</td>{% endfor %}
 	           </tr>
 	         {% endif %}
 	           {% if forloop.last %}</tbody>{% endif %}
@@ -143,8 +144,8 @@ $(document).ready(function () {
             clo_line_2 = droppable.parent().data("resourceId");
             antenna_id_2 = current_content.data("antennaId");
             
-            Dajaxice.aRAT.apps.home.clo_update_alerts(Dajax.process, {'configuration_line': clo_line_1, 'antenna_id': antenna_id_2});
-            Dajaxice.aRAT.apps.home.clo_update_alerts(Dajax.process, {'configuration_line': clo_line_2, 'antenna_id': antenna_id_1});
+            Dajaxice.aRAT.apps.home.clo_update_alerts(Dajax.process, {'configuration_id': clo_line_1, 'antenna_id': antenna_id_2});
+            Dajaxice.aRAT.apps.home.clo_update_alerts(Dajax.process, {'configuration_id': clo_line_2, 'antenna_id': antenna_id_1});
             refresh(true);
           } else {
             change_content.data("original-parent").append(change_content);
@@ -186,7 +187,7 @@ $(document).ready(function () {
       if (result) {
         clo_line = button.parents("div.alert").data("id");
         Dajaxice.aRAT.apps.home.clo_update_alerts(Dajax.process,
-                                                  {'configuration_line': clo_line,
+                                                  {'configuration_id': clo_line,
                                                   });
       }
     });
@@ -210,7 +211,7 @@ $(document).ready(function () {
       antenna_id = $(this).parent().children("[data-rel='select2']").val();
 
       if(clo_line != "" && antenna_id != ""){
-        Dajaxice.aRAT.apps.home.clo_update_alerts(Dajax.process, {'antenna_id': antenna_id, 'configuration_line': clo_line});
+        Dajaxice.aRAT.apps.home.clo_update_alerts(Dajax.process, {'antenna_id': antenna_id, 'configuration_id': clo_line});
         
         $(this).parents("td").children(".text-antenna").show();
         $(this).parent(".antenna-change-select").remove();
