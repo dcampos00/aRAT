@@ -23,9 +23,9 @@ function refresh(start, dajax_function){
 }
 
 function removeAlert(alerts_container, resource_id) {
-  alert = alerts_container.find("[data-id='"+resource_id+"']");
-  if (alert.length > 0) {
-    alert.remove();
+  _alert = alerts_container.find("[data-id='"+resource_id+"']");
+  if (_alert.length > 0) {
+    _alert.remove();
   }
 }
 
