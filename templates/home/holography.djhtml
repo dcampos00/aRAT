@@ -207,10 +207,7 @@ $(document).ready(function () {
 
   /* is loaded the data by first time */
   Dajaxice.aRAT.apps.home.holo_update_alerts(Dajax.process);
-  {% if not read_only %}
-  /* is activated the auto refresh of the alerts */
   refresh(true, Dajaxice.aRAT.apps.home.holo_update_alerts);
-  {% endif %}
 });
 </script>
 {% endblock %}

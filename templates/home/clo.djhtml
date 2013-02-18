@@ -223,10 +223,7 @@ $(document).ready(function () {
 
   /* first call to the updater */
   Dajaxice.aRAT.apps.home.clo_update_alerts(Dajax.process);
-  {% if not read_only %}
-  /* activivation of the auto refresh */
   refresh(true, Dajaxice.aRAT.apps.home.clo_update_alerts);
-  {% endif %}
 });
 </script>
 {% endblock %}

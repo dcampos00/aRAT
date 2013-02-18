@@ -91,10 +91,7 @@
                   data.antenna,
                   true);
     } else {
-      alert_div = alerts.find("[data-antenna-id='"+data.antenna+"']");
-      if (alert_div.length > 0) {
-        alert_div.remove();
-      }
+      removeAlert(alerts, data.antenna)
       tr.removeClass("btn-info");
       $.Deferred().done(
       function() {
@@ -152,9 +149,7 @@
     {% endif %}
 
     Dajaxice.aRAT.apps.home.ste_update_alerts(Dajax.process);
-    {% if not read_only %}
     refresh(true, Dajaxice.aRAT.apps.home.ste_update_alerts);
-    {% endif %}
   });
   </script>
   {% endblock %}

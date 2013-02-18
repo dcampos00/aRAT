@@ -23,10 +23,10 @@ function refresh(start, dajax_function){
 }
 
 function removeAlert(alerts_container, resource_id) {
-  _alert = alerts_container.find("[data-id='"+resource_id+"']");
-  if (_alert.length > 0) {
-    _alert.remove();
-  }
+    _alert = alerts_container.find("[data-id='"+resource_id+"']");
+    if (_alert.length > 0) {
+	_alert.remove();
+    }
 }
 
 function updateAlert(alerts_div, type, text, id, read_only) {
