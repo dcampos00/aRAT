@@ -142,7 +142,7 @@ def corr_update_alerts(request, configuration_id='', antenna_id=''):
     Function that keeps updated the alerts of Correlator Configuration
 
     Arguments:
-    `configuration_line`: identifier of the configuration, each configuration
+    `configuration_id`: identifier of the configuration, each configuration
     has only one line number associated
     `antenna_id`: identifier of the Antenna to be requested
     """
@@ -279,12 +279,12 @@ def clo_update_alerts(request, configuration_id='', antenna_id=''):
     return dajax.json()
 
 @dajaxice_register
-def holo_update_alerts(request, holo_line='', antenna_id=''):
+def holo_update_alerts(request, holo_id='', antenna_id=''):
     """
     Function that keeps updated the alerts of Correlator Configuration
 
     Arguments:
-    `holo_line`: identifier of the holography configuration, each configuration
+    `holo_id`: identifier of the holography configuration, each configuration
     has only one line number associated
     `antenna_id`: identifier of the Antenna to be requested
     """
@@ -294,8 +294,8 @@ def holo_update_alerts(request, holo_line='', antenna_id=''):
     read_only = Configuration.objects.get(setting='BLOCK').value
 
     # first the pad information is updated
-    if holo_line != '' and not read_only:
-        holo = HolographyConfiguration.objects.get(line=holo_line)
+    if holo_id != '' and not read_only:
+        holo = HolographyConfiguration.objects.get(id=holo_id)
         if antenna_id == 'None' and holo.current_antenna != None:
             holo.assigned = False
             holo.requested_antenna = None
@@ -329,8 +329,8 @@ def holo_update_alerts(request, holo_line='', antenna_id=''):
         status = holo.html_status()
         exist_errors = holo.exist_errors()
 
-        dajax.add_data({'resource': {'id': holo.line,
-                                     'name': holo.name(),
+        dajax.add_data({'resource': {'id': holo.id,
+                                     'name': holo.name,
                                      'assigned': holo.assigned,
                                      'type': 'holo'},
                         'current_antenna': {'id': current_antenna_id,
