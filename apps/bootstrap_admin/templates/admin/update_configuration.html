@@ -1,0 +1,40 @@
+{% extends "admin/index.html" %}
+{% load i18n %}
+{% load url from future %}
+
+{% if not is_popup %}
+    {% block breadcrumbs %}
+        <ul class="breadcrumb">
+            <li>
+                <a href="{% url 'admin:index' %}">
+                    {% trans 'Home' %}
+                </a>
+                <span class="divider"> &rsaquo; </span>
+            </li>
+            <li class="active">
+              {{ title }}
+            </li>
+        </ul>
+    {% endblock %}
+{% endif %}
+
+{% block right_content %}
+  {% if error %}
+    <div class="alert alert-error">
+      {{ error }}    
+    </div>
+  {% endif %}  
+<div class="alert alert-success">
+  {% if changes %}
+The next changes were applied:<br>    
+    {% for change in changes %}
+      - {{ change }}<br/>
+    {% endfor %}
+  {% else%}
+    There were no changes applied.    
+  {% endif %}
+</div>
+{% endblock %}
+
+
+{% block sidebar %}{% endblock %}
