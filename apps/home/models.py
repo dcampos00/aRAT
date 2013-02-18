@@ -86,7 +86,7 @@ class Resource(models.Model):
 class Antenna(Resource):
     """Model to the antennas"""
 
-    name = models.CharField(max_length=5)
+    name = models.CharField(max_length=5, unique=True)
 
     # ste configuration fields
     STEs = tuple([tuple([ln, i.strip()]) 
@@ -96,6 +96,8 @@ class Antenna(Resource):
 
     current_ste = models.IntegerField(null=True, choices=STEs)
     requested_ste = models.IntegerField(null=True, blank=True, choices=STEs)
+
+    vendor = models.CharField(null=True, max_length=10)
 
     def text_status(self):
         text_status = []
@@ -154,24 +156,28 @@ class Antenna(Resource):
 
 class PAD(Resource):
     """Model for the PAD resource"""
-    _LINES = []
-    for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'pads.cfg')):
-        line_string = line_string.strip()
-        if line_string:
-            _LINES.append((line_number, line_string))
+    #_LINES = []
+    #for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'pads.cfg')):
+    #    line_string = line_string.strip()
+    #    if line_string:
+    #        _LINES.append((line_number, line_string))
 
-    _LINES = tuple(_LINES)
+    #_LINES = tuple(_LINES)
 
-    line = models.IntegerField(choices=_LINES, unique=True)
+    # line = models.IntegerField(choices=_LINES, unique=True)
     location = models.CharField(max_length=10, blank=True)
+    name = models.CharField(max_length=10, unique=True)
     assigned = models.BooleanField(default=True, blank=True)
 
     current_antenna = models.OneToOneField(Antenna,
                                            related_name="current_pad_antenna",
-                                           null=True)
+                                           null=True,
+                                           on_delete=models.SET_NULL)
     requested_antenna = models.ForeignKey(Antenna,
                                           related_name="requested_pad_antenna",
-                                          null=True, blank=True)
+                                          null=True,
+                                          blank=True,
+                                          on_delete=models.SET_NULL)
 
     def update_restriction_errors(self, caller=[]):
         """
@@ -184,8 +190,8 @@ class PAD(Resource):
         """
 
         pad_to_check = []
-        for pad_line in eval(self.errors):
-            pad_to_check.append(PAD.objects.get(line=pad_line))
+        for pad_id in eval(self.errors):
+            pad_to_check.append(PAD.objects.get(id=pad_id))
 
         tmp_errors = []
 
@@ -201,7 +207,7 @@ class PAD(Resource):
         caller.remove(self)
 
         for pad in local_errors:
-            tmp_errors.append(pad.line)
+            tmp_errors.append(pad.id)
 
         self.errors = str(tmp_errors)
 
@@ -255,16 +261,6 @@ class PAD(Resource):
         else:
             return [1]
 
-    def name(self):
-        return self.get_line_display().split()[0]
-
-    def line_number(self):
-        return self.line
-
-    def save(self):
-        self.location = self.get_line_display().split()[1]
-        super(PAD, self).save()
-
     def text_status(self):
         """
         This method returns a list that describe the current status of the
@@ -309,7 +305,7 @@ class PAD(Resource):
             text = "The Antenna "
             text += "%s"%antenna
             text += " also will be assigned to "
-            text += "%s."%PAD.objects.get(line=e)
+            text += "%s."%PAD.objects.get(id=e)
             error.append(text)
 
 
@@ -327,7 +323,7 @@ class PAD(Resource):
         return (self.current_antenna is not None and self.assigned == False)
 
     def __unicode__(self):
-        return 'PAD %s'%self.name()
+        return 'PAD %s'%self.name
 
 class CorrelatorConfiguration(Resource):
     # in the db is saved the line of the configuration file that match with
@@ -350,12 +346,14 @@ class CorrelatorConfiguration(Resource):
     current_antenna = models.ForeignKey(Antenna,
                                         related_name="current_corr_antenna",
                                         null=True,
-                                        blank=True)
+                                        blank=True,
+                                        on_delete=models.SET_NULL)
 
     requested_antenna = models.ForeignKey(Antenna,
                                           related_name="requested_corr_antenna",
                                           null=True,
-                                          blank=True)
+                                          blank=True,
+                                          on_delete=models.SET_NULL)
 
     def update_restriction_errors(self, caller=[]):
         """
@@ -556,8 +554,15 @@ class CentralloConfiguration(Resource):
     centrallo = models.CharField(max_length=10, blank=True)
     assigned = models.BooleanField(default=True, blank=True)
 
-    current_antenna = models.OneToOneField(Antenna, related_name="current_clo_antenna", null=True)
-    requested_antenna = models.ForeignKey(Antenna, related_name="requested_clo_antenna", null=True, blank=True)
+    current_antenna = models.OneToOneField(Antenna,
+                                           related_name="current_clo_antenna",
+                                           null=True,
+                                           on_delete=models.SET_NULL)
+    requested_antenna = models.ForeignKey(Antenna,
+                                          related_name="requested_clo_antenna",
+                                          null=True,
+                                          blank=True,
+                                          on_delete=models.SET_NULL)
 
     def update_restriction_errors(self, caller=[]):
         """
@@ -742,11 +747,13 @@ class HolographyConfiguration(Resource):
     assigned = models.BooleanField(default=True, blank=True)
     current_antenna = models.OneToOneField(Antenna,
                                            related_name="current_holo_antenna",
-                                           null=True)
+                                           null=True,
+                                           on_delete=models.SET_NULL)
     requested_antenna = models.ForeignKey(Antenna,
                                           related_name="requested_holo_antenna",
                                           null=True,
-                                          blank=True)
+                                          blank=True,
+                                          on_delete=models.SET_NULL)
 
     def update_restriction_errors(self, caller=[]):
         """
