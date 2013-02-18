@@ -137,7 +137,7 @@ def pad_update_alerts(request, pad_id='', antenna_id=''):
     return dajax.json()
 
 @dajaxice_register
-def corr_update_alerts(request, configuration_line='', antenna_id=''):
+def corr_update_alerts(request, configuration_id='', antenna_id=''):
     """
     Function that keeps updated the alerts of Correlator Configuration
 
@@ -152,9 +152,9 @@ def corr_update_alerts(request, configuration_line='', antenna_id=''):
     read_only = Configuration.objects.get(setting='BLOCK').value
 
     # first the correlator configuration is updated
-    if configuration_line != '' and not read_only:
-        corr = CorrelatorConfiguration.objects.get(line=configuration_line)
-        if antenna_id == 'None' and corr.current_antenna != None:
+    if configuration_id != '' and not read_only:
+        corr = CorrelatorConfiguration.objects.get(id=configuration_id)
+        if antenna_id == 'None' and corr.current_antenna is not None:
             corr.assigned = False
             corr.requested_antenna = None
         elif (antenna_id != ''
@@ -190,8 +190,8 @@ def corr_update_alerts(request, configuration_line='', antenna_id=''):
         status = corr.html_status()
         exist_errors = corr.exist_errors()
 
-        dajax.add_data({'resource': {'id': corr.line,
-                                     'name': corr.configuration(),
+        dajax.add_data({'resource': {'id': corr.id,
+                                     'name': corr.configuration,
                                      'assigned': corr.assigned,
                                      'type': 'corr'},
                         'current_antenna': {'id': current_antenna_id,
