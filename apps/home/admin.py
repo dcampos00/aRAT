@@ -6,22 +6,90 @@ from aRAT.apps.common.models import Configuration
 
 from django.contrib.admin.sites import AdminSite
 
+from django.http import HttpResponse
+from django.conf.urls import patterns, url
+from django.conf import settings
+from django.shortcuts import render_to_response
+
+from django.template.response import TemplateResponse
+
 class AntennaAdmin(admin.ModelAdmin):
     actions = None
 
     list_display = ('__unicode__', 'current_ste', 'requested_ste')
-    list_filter = ['current_ste', 'requested_ste', 'active']
+    list_filter = ['vendor', 'current_ste', 'requested_ste', 'active']
     search_fields = ['name']
     ordering = ['current_ste', 'requested_ste']
+
+    def get_urls(self):
+        urls = patterns('',
+                         url(r'^update_antennas/$', self.admin_site.admin_view(self.update_antennas_view), name="update_antennas_view")
+                         )
+        urls += super(AntennaAdmin, self).get_urls()
+
+        return urls
+
+    def update_antennas_view(self, request):
+        error = ""
+        antennas = []
+        changes = []
+
+        STEs = tuple([tuple([ln, i.strip()]) 
+                      for ln, i 
+                      in enumerate(open(settings.CONFIGURATION_DIR+'stes.cfg')) 
+                      if i.strip()])
+
+        for ste in STEs:
+            if 'VENDOR' in ste:
+                default_ste = ste[0]
+                error = ''
+                break
+            else:
+                error = 'The STE VENDOR does not exist!'
+
+        if error == '':
+            for line_string in open(settings.CONFIGURATION_DIR+'antennas.cfg').readlines():
+                line_string.strip()
+                if line_string:
+                    name_antenna, vendor = line_string.split()
+                    vendor = vendor.replace('-', ' ')
+                    
+                    if Antenna.objects.filter(name=name_antenna):
+                        antenna = Antenna.objects.get(name=name_antenna)
+                        if antenna.vendor != vendor:
+                            antenna.vendor = vendor
+                            antenna.save()
+                            changes.append("The vendor of %s was updated."%antenna)
+                        antennas.append(antenna)
+                    else:                            
+                        new_antenna = Antenna(name=name_antenna)
+                        new_antenna.current_ste = default_ste
+                        new_antenna.vendor = vendor
+                        new_antenna.save()
+                        antennas.append(new_antenna)
+                        changes.append("The Antenna %s was added."%new_antenna)
+
+            for antenna in Antenna.objects.all():
+                if antenna not in antennas:
+                    changes.append("The Antenna %s was deleted."%antenna)
+                    antenna.delete()
+
+        ctx = {'title': 'Update Antennas',
+               'changes': changes,
+               'error': error,
+               }
+
+        return TemplateResponse(request, "admin/update_configuration.html", ctx);
 
 class PADAdmin(admin.ModelAdmin):
     actions = None
 
-    list_display = ('line_number', 'name', 'location')
+    #list_display = ('line_number', 'name', 'location')
+    list_display = ('name', 'location')
     list_display_links = ('name',)
     list_filter = ['location', 'active']
-    search_fields = ['line', 'location', 'current_antenna__name', 'requested_antenna__name']
-    ordering = ['location', 'line']
+    search_fields = ['name', 'location', 'current_antenna__name', 'requested_antenna__name']
+    ordering = ['location', 'name']
 
     fieldsets = (
         (None, {
@@ -30,7 +98,10 @@ class PADAdmin(admin.ModelAdmin):
                 }),
         ('Request Options',{
                 'classes': ('collapse',),
-                'fields': ('current_antenna', 'requested_antenna', 'requester', 'request_date'),
+                'fields': ('current_antenna',
+                           'requested_antenna',
+                           'requester',
+                           'request_date'),
                 })
         )
 
@@ -39,6 +110,52 @@ class PADAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def get_urls(self):
+        urls = patterns('',
+                         url(r'^update_pads/$',
+                             self.admin_site.admin_view(self.update_pads_view),
+                             name="update_pads_view")
+                         )
+        urls += super(PADAdmin, self).get_urls()
+
+        return urls
+
+    def update_pads_view(self, request):
+
+        error = ''
+        pads = []
+        changes = []
+
+        for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'pads.cfg')):
+            line_string = line_string.strip()
+            if line_string:
+                pad_name, location = line_string.split()
+                if PAD.objects.filter(name=pad_name):
+                    pad = PAD.objects.get(name=pad_name)
+                    if pad.location != location:
+                        changes.append("The %s location was updated."%pad)
+                        pad.location = location
+                        pad.save()
+                    pads.append(pad)
+                else:
+                    new_pad = PAD(name=pad_name)
+                    new_pad.location = location
+                    new_pad.save()
+                    pads.append(new_pad)
+                    changes.append("The %s was added."%new_pad)
+
+        for pad in PAD.objects.all():
+            if pad not in pads:
+                changes.append("The %s was deleted."%pad)
+                pad.delete()
+
+        ctx = {'title': 'Update PADs',
+               'changes': changes,
+               'error': error,
+               }
+
+        return TemplateResponse(request, "admin/update_configuration.html", ctx);
 
 class CorrelatorConfigurationAdmin(admin.ModelAdmin):
     actions = None
@@ -65,6 +182,44 @@ class CorrelatorConfigurationAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def get_urls(self):
+        urls = patterns('',
+                        url(r'^update_configurations/$',
+                            self.admin_site.admin_view(self.update_configurations_view),
+                            name="update_configurations_view")
+                        )
+        urls += super(CorrelatorConfigurationAdmin, self).get_urls()
+
+        return urls
+
+    def update_configurations_view(self, request):
+        error = ''
+        changes = []
+        corr_confs = []
+
+        for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'corr.cfg')):
+            line_string = line_string.strip()
+            if line_string:
+                line_list = line_string.split()
+                line_list[0:-1] = [x.replace('-', ' ') for x in line_list[0:-1]]
+                if line_string[0] == "#":
+                corrs[line_list[-1]].append(line_list[0:-1])
+            else:
+                if CorrelatorConfiguration.objects.filter(line=line_number):
+                    corr_config = CorrelatorConfiguration.objects.get(line=line_number)
+                    if corr_config.active:
+                        corrs[line_list[-1]].append(corr_config)
+                else:
+                    new_corr_config = CorrelatorConfiguration(line=line_number)
+                    new_corr_config.save()
+                    corrs[line_list[-1]].append(new_corr_config)
+        
+        ctx = {'title': 'Update Correlator Configurations',
+               'changes': changes,
+               'error': error,
+               }
+        return TemplateResponse(request, "admin/update_configuration.html", ctx);
 
 class CentralloConfigurationAdmin(admin.ModelAdmin):
     actions = None
@@ -123,7 +278,11 @@ from aRAT.apps.webServices.checkConsistency.views import checkConsistencyService
 class CustomAdminSite(AdminSite):
 
     def index(self, request, extra_context=None):
-        block_status = Configuration.objects.get(setting='BLOCK')
+        try:
+            block_status = Configuration.objects.get(setting='BLOCK')
+        except:
+            block_status = Configuration(setting='BLOCK', value=False)
+            block_status.save()
 
         consistent = checkConsistencyService.check("") == "SUCCESS"
 
@@ -142,6 +301,3 @@ custom_admin_site.register(HolographyConfiguration, HolographyConfigurationAdmin
 from django.contrib.auth.models import User, Group
 custom_admin_site.register(User)
 custom_admin_site.register(Group)
-
-#admin_urls = get_admin_urls()
-#admin.site.get_urls = admin_urls
