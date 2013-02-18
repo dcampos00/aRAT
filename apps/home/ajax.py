@@ -80,7 +80,7 @@ def pad_update_alerts(request, pad_id='', antenna_id=''):
     
     # first the pad information is updated
     if pad_id != '' and not read_only:
-        pad = PAD.objects.get(line=pad_id)
+        pad = PAD.objects.get(id=pad_id)
         # this happend when a PAD will be unassigned
         if antenna_id == 'None' and pad.current_antenna is not None:
             pad.assigned = False
@@ -119,8 +119,8 @@ def pad_update_alerts(request, pad_id='', antenna_id=''):
         exist_errors = pad.exist_errors()
 
 
-        dajax.add_data({'resource': {'id': pad.line,
-                                     'name': pad.name(),
+        dajax.add_data({'resource': {'id': pad.id,
+                                     'name': pad.name,
                                      'assigned': pad.assigned,
                                      'type': 'pad'},
                         'current_antenna': {'id': current_antenna_id,
