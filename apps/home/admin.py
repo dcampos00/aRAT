@@ -50,7 +50,9 @@ class AntennaAdmin(admin.ModelAdmin):
         if error == '':
             for line_string in open(settings.CONFIGURATION_DIR+'antennas.cfg').readlines():
                 line_string.strip()
-                if line_string:
+                is_comment = line_string[0:2] == "//"
+
+                if line_string and not is_comment:
                     name_antenna, vendor = line_string.split()
                     vendor = vendor.replace('-', ' ')
                     
@@ -129,7 +131,9 @@ class PADAdmin(admin.ModelAdmin):
 
         for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'pads.cfg')):
             line_string = line_string.strip()
-            if line_string:
+            is_comment = line_string[0:2] == "//"
+
+            if line_string and not is_comment:
                 pad_name, location = line_string.split()
                 if PAD.objects.filter(name=pad_name):
                     pad = PAD.objects.get(name=pad_name)
@@ -203,7 +207,9 @@ class CorrelatorConfigurationAdmin(admin.ModelAdmin):
         
         for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'corr.cfg')):
             line_string = line_string.strip()
-            if line_string:
+            is_comment = line_string[0:2] == "//"
+
+            if line_string and not is_comment:
                 line_list = line_string.split()
                 line_list[0:-1] = [x.replace('-', ' ') for x in line_list[0:-1]]
                 if line_string[0] == "#":
@@ -227,14 +233,16 @@ class CorrelatorConfigurationAdmin(admin.ModelAdmin):
                                                               correlator=correlator):
                         corr_config = CorrelatorConfiguration.objects.get(caimap=caimap,
                                                                           correlator=correlator)
-                        corr_config.configuration = str(configuration)
-                        corr_config.save()
-                        changes.append("The %s was updated."%corr_config)
+                       
+                        if corr_config.configuration != unicode(configuration):
+                            corr_config.configuration = unicode(configuration)
+                            corr_config.save()
+                            changes.append("The %s was updated."%corr_config)
                         corr_confs.append(corr_config)
                     else:
                         new_corr_config = CorrelatorConfiguration(caimap=caimap,
                                                                   correlator=correlator)
-                        new_corr_config.configuration = str(configuration)
+                        new_corr_config.configuration = unicode(configuration)
                         new_corr_config.header = header
                         new_corr_config.save()
                         changes.append("The %s was added."%new_corr_config)
