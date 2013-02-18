@@ -9,6 +9,14 @@ class History(models.Model):
     def __unicode__(self):
         return "Request: %s"%date_time.strftime("%Y-%m-%d")
 
+class TableHeader(models.Model):
+    """
+    The header for the tables are stored here, each resource
+    can have only one header
+    """
+    text = models.TextField()
+    resource = models.CharField(unique=True, max_length=10)
+
 class Resource(models.Model):
     active = models.BooleanField(default=True, blank=True)    
 
@@ -156,15 +164,7 @@ class Antenna(Resource):
 
 class PAD(Resource):
     """Model for the PAD resource"""
-    #_LINES = []
-    #for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'pads.cfg')):
-    #    line_string = line_string.strip()
-    #    if line_string:
-    #        _LINES.append((line_number, line_string))
 
-    #_LINES = tuple(_LINES)
-
-    # line = models.IntegerField(choices=_LINES, unique=True)
     location = models.CharField(max_length=10, blank=True)
     name = models.CharField(max_length=10, unique=True)
     assigned = models.BooleanField(default=True, blank=True)
@@ -328,20 +328,14 @@ class PAD(Resource):
 class CorrelatorConfiguration(Resource):
     # in the db is saved the line of the configuration file that match with
     # the configuration of the CorrelatorConfiguration
-    _LINES = []
-    for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'corr.cfg')):
-        if line_string[0] != "#":
-            line_string = line_string.strip()
-            if line_string:
-                _LINES.append((line_number, line_string))
 
-    _LINES = tuple(_LINES)
-
-    line = models.IntegerField(choices=_LINES, unique=True)
-
-    # this is a calculated field from line display value
-    correlator = models.CharField(max_length=10, blank=True)
+    caimap = models.IntegerField()
+    configuration = models.TextField()
+    correlator = models.CharField(max_length=10)
     assigned = models.BooleanField(default=True, blank=True)
+    header = models.ForeignKey(TableHeader)
+
+    unique_together = ("caimap", "correlator")
 
     current_antenna = models.ForeignKey(Antenna,
                                         related_name="current_corr_antenna",
@@ -458,22 +452,6 @@ class CorrelatorConfiguration(Resource):
 
         return errors
 
-    def line_number(self):
-        return "%d"%self.line
-
-    def configuration(self):
-        configuration = str(self.get_line_display().split()[0:-1])
-        configuration = configuration.replace("', u'", ' ')[3:-2]
-        return "%s"%configuration
-
-    def caimap(self):
-        caimap = self.get_line_display().split()[0]
-        return "%s"%caimap
-
-    def save(self):
-        self.correlator = self.get_line_display().split()[-1]
-        super(CorrelatorConfiguration, self).save()
-
     def text_status(self):
         """
         This method returns a list that describe the current status of the
@@ -483,12 +461,12 @@ class CorrelatorConfiguration(Resource):
         text = None
         if (self.is_requested()):
             if self.assigned:
-                text = "%s will be changed to %s Correlator Configuration."%(self.requested_antenna, self.configuration())
+                text = "%s will be changed to %s."%(self.requested_antenna, self)
             else:
-                text = "The %s Configuration will be unassigned."%(self.configuration())
+                text = "The %s Configuration will be unassigned."%(self)
             result.append(text)
         else:
-            text = "The %s Configuration is assigned to %s"%(self.configuration(), self.current_antenna)
+            text = "The %s Configuration is assigned to %s"%(self, self.current_antenna)
             result.append(text)
         
         if self.exist_errors():
@@ -532,9 +510,8 @@ class CorrelatorConfiguration(Resource):
                 or (self.current_antenna is not None and self.assigned == False))
 
     def __unicode__(self):
-        return "Line %s - %s [%s]"%(self.line,
-                                    self.configuration(),
-                                    self.correlator)
+        return "%s - %s"%(self.caimap,
+                               self.configuration)
 
 class CentralloConfiguration(Resource):
     # in the db is saved the line of the configuration file that match with the configuration of
@@ -679,7 +656,7 @@ class CentralloConfiguration(Resource):
         text = None
         if (self.is_requested()):
             if self.assigned == True:
-                text = "%s will be changed to %s CentralLO Configuration."%(self.requested_antenna, self.configuration())
+                text = "%s will be changed to %s CentralLO Configuration."%(self.requested_antenna, self.configuration)
             else:
                 text = "The %s Configuration will be unassigned."%(self.configuration())
             result.append(text)
