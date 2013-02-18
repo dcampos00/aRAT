@@ -63,35 +63,15 @@ def ste_configuration_view(request):
     # if retrieved the block status of the current configuration
     block_status = Configuration.objects.get(setting='BLOCK')
 
-    vendors = [i.strip().replace('-',' ') for i in open(settings.CONFIGURATION_DIR+'vendors.cfg').readlines() if i.strip()]
+    vendors = []
     stes = Antenna().STEs
     
-    antennas = [(v.replace('-', ' '), []) for v in vendors]
-    antennas = dict(v for v in antennas)
-
-    # are readed the lines on the configuration file, if not exist some antenna
-    # this is inserted to the DB. To look if a antenna is or is not in the DB
-    # is used the name in the configuration file.
-    for name_antenna in open(settings.CONFIGURATION_DIR+'antennas.cfg').readlines():
-        name_antenna.strip()
-        if name_antenna:
-            name_antenna, vendor = name_antenna.split()
-            vendor = vendor.replace('-', ' ')
-
-            if Antenna.objects.filter(name=name_antenna):
-                antenna = Antenna.objects.get(name=name_antenna)
-                antennas[vendor].append(antenna)
-            else:
-                for ste in stes:
-                    if 'VENDOR' in ste:
-                        default_ste = ste[0]
-                        break
-                    else:
-                        error = 'The STE VENDOR does not exist!'
-
-                new_antenna = Antenna(name=name_antenna, current_ste=default_ste)
-                new_antenna.save()
-                antennas[vendor].append(new_antenna)
+    antennas = {}
+    for antenna in Antenna.objects.all().order_by('name'):
+        if antenna.vendor not in antennas:
+            antennas.setdefault(antenna.vendor, [])
+            vendors.append(antenna.vendor)
+        antennas[antenna.vendor].append(antenna)
 
     # variables are passed to the view
     ctx = {'error': error,
@@ -112,28 +92,20 @@ def pad_configuration_view(request):
 
     block_status = Configuration.objects.get(setting='BLOCK')
 
-    locations = [i.strip() for i in open(settings.CONFIGURATION_DIR+'locations.cfg').readlines() if i.strip()]
+#    locations = [i.strip() for i in open(settings.CONFIGURATION_DIR+'locations.cfg').readlines() if i.strip()]
 
     # the antennas are loaded from the db
     antennas = Antenna.objects.all()
 
 
-    # are loaded the pad in a dictionary, this dictionary separates the pads by
-    # location
-    pads = [(l, []) for l in locations]
-    pads = dict(l for l in pads)
+    locations = []
+    pads = {}
 
-    for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'pads.cfg')):
-        line_string = line_string.strip()
-        if line_string:
-            pad_name, location = line_string.split()
-            if PAD.objects.filter(line=line_number):
-                pad = PAD.objects.get(line=line_number)
-                pads[location].append(pad)
-            else:
-                new_pad = PAD(line=line_number)
-                new_pad.save()
-                pads[location].append(new_pad)
+    for pad in PAD.objects.all().order_by('name'):
+        if pad.location not in pads:
+            pads.setdefault(pad.location, [])
+            locations.append(pad.location)
+        pads[pad.location].append(pad)
 
     ctx = {'error': error,
            'read_only': block_status.value,
@@ -153,37 +125,40 @@ def corr_configuration_view(request):
 
     block_status = Configuration.objects.get(setting='BLOCK')
 
-    correlators = [i.strip() for i in open(settings.CONFIGURATION_DIR+'correlators.cfg').readlines() if i.strip()]
+#    correlators = [i.strip() for i in open(settings.CONFIGURATION_DIR+'correlators.cfg').readlines() if i.strip()]
 
     # the antennas are loaded from the db
     antennas = Antenna.objects.all()
 
     # the correlator configurations are loaded, this are separated by location
     # for this the correlator configurations are loaded in a dictionary
-    corrs = [(c, []) for c in correlators]
-    corrs = dict(c for c in corrs)
+#    corrs = [(c, []) for c in correlators]
+#    corrs = dict(c for c in corrs)
 
-    for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'corr.cfg')):
-        line_string = line_string.strip()
-        if line_string:
-            line_list = line_string.split()
-            line_list[0:-1] = [x.replace('-', ' ') for x in line_list[0:-1]]
-            if line_string[0] == "#":
-                corrs[line_list[-1]].append(line_list[0:-1])
-            else:
-                if CorrelatorConfiguration.objects.filter(line=line_number):
-                    corr_config = CorrelatorConfiguration.objects.get(line=line_number)
-                    if corr_config.active:
-                        corrs[line_list[-1]].append(corr_config)
-                else:
-                    new_corr_config = CorrelatorConfiguration(line=line_number)
-                    new_corr_config.save()
-                    corrs[line_list[-1]].append(new_corr_config)
+#    for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'corr.cfg')):
+#        line_string = line_string.strip()
+#        if line_string:
+#            line_list = line_string.split()
+#            line_list[0:-1] = [x.replace('-', ' ') for x in line_list[0:-1]]
+#            if line_string[0] == "#":
+ #               corrs[line_list[-1]].append(line_list[0:-1])
+ #           else:
+#                if CorrelatorConfiguration.objects.filter(line=line_number):
+#                    corr_config = CorrelatorConfiguration.objects.get(line=line_number)
+#                    if corr_config.active:
+#                        corrs[line_list[-1]].append(corr_config)
+#                else:
+#                    new_corr_config = CorrelatorConfiguration(line=line_number)
+#                    new_corr_config.save()
+#                    corrs[line_list[-1]].append(new_corr_config)
+
+    correlators = []
+    corr_confs = {}
 
     ctx = {'error': error,
            'read_only': block_status.value,
            'correlators': correlators,
-           'corrs': corrs,
+           'corrs': corr_confs,
            'antennas': antennas
            }
     return render_to_response('home/corr.djhtml', ctx, context_instance=RequestContext(request))
