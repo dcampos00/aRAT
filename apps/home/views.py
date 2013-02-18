@@ -3,7 +3,7 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 
 # models
-from aRAT.apps.home.models import Antenna, PAD, CorrelatorConfiguration, CentralloConfiguration, HolographyConfiguration
+from aRAT.apps.home.models import Antenna, PAD, CorrelatorConfiguration, CentralloConfiguration, HolographyConfiguration, TableHeader
 from aRAT.apps.common.models import Configuration
 from django.conf import settings
 
@@ -68,6 +68,9 @@ def ste_configuration_view(request):
     
     antennas = {}
     for antenna in Antenna.objects.all().order_by('name'):
+        if not antenna.active:
+            continue
+
         if antenna.vendor not in antennas:
             antennas.setdefault(antenna.vendor, [])
             vendors.append(antenna.vendor)
@@ -102,6 +105,9 @@ def pad_configuration_view(request):
     pads = {}
 
     for pad in PAD.objects.all().order_by('name'):
+        if not pad.active:
+            continue
+
         if pad.location not in pads:
             pads.setdefault(pad.location, [])
             locations.append(pad.location)
@@ -130,35 +136,23 @@ def corr_configuration_view(request):
     # the antennas are loaded from the db
     antennas = Antenna.objects.all()
 
-    # the correlator configurations are loaded, this are separated by location
-    # for this the correlator configurations are loaded in a dictionary
-#    corrs = [(c, []) for c in correlators]
-#    corrs = dict(c for c in corrs)
-
-#    for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'corr.cfg')):
-#        line_string = line_string.strip()
-#        if line_string:
-#            line_list = line_string.split()
-#            line_list[0:-1] = [x.replace('-', ' ') for x in line_list[0:-1]]
-#            if line_string[0] == "#":
- #               corrs[line_list[-1]].append(line_list[0:-1])
- #           else:
-#                if CorrelatorConfiguration.objects.filter(line=line_number):
-#                    corr_config = CorrelatorConfiguration.objects.get(line=line_number)
-#                    if corr_config.active:
-#                        corrs[line_list[-1]].append(corr_config)
-#                else:
-#                    new_corr_config = CorrelatorConfiguration(line=line_number)
-#                    new_corr_config.save()
-#                    corrs[line_list[-1]].append(new_corr_config)
-
     correlators = []
     corr_confs = {}
+
+    for corr_config in CorrelatorConfiguration.objects.all():
+        if not corr_config.active:
+            continue
+
+        if corr_config.correlator not in corr_confs:
+            corr_confs.setdefault(corr_config.correlator, [])
+            correlators.append(corr_config.correlator)
+        corr_confs[corr_config.correlator].append(corr_config)
 
     ctx = {'error': error,
            'read_only': block_status.value,
            'correlators': correlators,
-           'corrs': corr_confs,
+           'corr_confs': corr_confs,
+           'headers': headers,
            'antennas': antennas
            }
     return render_to_response('home/corr.djhtml', ctx, context_instance=RequestContext(request))
