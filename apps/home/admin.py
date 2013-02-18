@@ -81,7 +81,7 @@ class AntennaAdmin(admin.ModelAdmin):
                'error': error,
                }
 
-        return TemplateResponse(request, "admin/update_configuration.html", ctx);
+        return TemplateResponse(request, "admin/update_configuration.html", ctx)
 
 class PADAdmin(admin.ModelAdmin):
     actions = None
@@ -159,7 +159,7 @@ class PADAdmin(admin.ModelAdmin):
                'error': error,
                }
 
-        return TemplateResponse(request, "admin/update_configuration.html", ctx);
+        return TemplateResponse(request, "admin/update_configuration.html", ctx)
 
 class CorrelatorConfigurationAdmin(admin.ModelAdmin):
     actions = None
@@ -257,16 +257,16 @@ class CorrelatorConfigurationAdmin(admin.ModelAdmin):
                'changes': changes,
                'error': error,
                }
-        return TemplateResponse(request, "admin/update_configuration.html", ctx);
+        return TemplateResponse(request, "admin/update_configuration.html", ctx)
 
 class CentralloConfigurationAdmin(admin.ModelAdmin):
     actions = None
 
-    list_display = ('line_number', 'configuration', 'centrallo')
-    list_display_links = ('line_number', 'configuration')
+    list_display = ('identifier', 'configuration', 'centrallo')
+    list_display_links = ('identifier', 'configuration')
     list_filter = ['centrallo', 'active']
-    search_fields = ['line', 'centrallo', 'current_antenna__name', 'requested_antenna__name']
-    ordering = ['line', 'centrallo']
+    search_fields = ['identifier', 'centrallo', 'current_antenna__name', 'requested_antenna__name']
+    ordering = ['centrallo', 'identifier']
 
     fieldsets = (
         (None, {
@@ -284,6 +284,77 @@ class CentralloConfigurationAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def get_urls(self):
+        urls = patterns('',
+                        url(r'^update_configurations/$',
+                            self.admin_site.admin_view(self.update_configurations_view),
+                            name="update_configurations_view")
+                        )
+        urls += super(CentralloConfigurationAdmin, self).get_urls()
+
+        return urls
+
+    def update_configurations_view(self, request):
+        error = ''
+        changes = []
+        clo_confs = []
+        
+        header = None
+        
+        for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'clo.cfg')):
+            line_string = line_string.strip()
+            is_comment = line_string[0:2] == "//"
+
+            if line_string and not is_comment:
+                line_list = line_string.split()
+                line_list[0:-1] = [x.replace('-', ' ') for x in line_list[0:-1]]
+                if line_string[0] == "#":
+                    line_list[0:-1] = [x.replace('#', '') for x in line_list[0:-1]]
+                    if TableHeader.objects.filter(resource=line_list[-1]):
+                        header = TableHeader.objects.get(resource=line_list[-1])
+                        header.text = str(line_list[0:-1])
+                        header.save()
+                    else:
+                        new_header = TableHeader(text=str(line_list[0:-1]),
+                                                 resource=line_list[-1])
+                        new_header.save()
+                else:
+                    identifier = line_list[0]
+                    configuration = line_list[1:-1]
+                    centrallo = line_list[-1]
+
+                    header = TableHeader.objects.get(resource=centrallo)
+
+                    if CentralloConfiguration.objects.filter(identifier=identifier,
+                                                              centrallo=centrallo):
+                        clo_config = CentralloConfiguration.objects.get(identifier=identifier,
+                                                                          centrallo=centrallo)
+                       
+                        if clo_config.configuration != unicode(configuration):
+                            clo_config.configuration = unicode(configuration)
+                            clo_config.save()
+                            changes.append("The %s was updated."%clo_config)
+                        clo_confs.append(clo_config)
+                    else:
+                        new_clo_config = CentralloConfiguration(identifier=identifier,
+                                                                  centrallo=centrallo)
+                        new_clo_config.configuration = unicode(configuration)
+                        new_clo_config.header = header
+                        new_clo_config.save()
+                        changes.append("The %s was added."%new_clo_config)
+                        clo_confs.append(new_clo_config)
+
+        for clo_config in CentralloConfiguration.objects.all():
+            if clo_config not in clo_confs:
+                changes.append("The %s was deleted."%clo_config)
+                clo_config.delete()
+        
+        ctx = {'title': 'Update CentralLO Configurations',
+               'changes': changes,
+               'error': error,
+               }
+        return TemplateResponse(request, "admin/update_configuration.html", ctx)
 
 class HolographyConfigurationAdmin(admin.ModelAdmin):
     actions = None
