@@ -95,8 +95,6 @@ def pad_configuration_view(request):
 
     block_status = Configuration.objects.get(setting='BLOCK')
 
-#    locations = [i.strip() for i in open(settings.CONFIGURATION_DIR+'locations.cfg').readlines() if i.strip()]
-
     # the antennas are loaded from the db
     antennas = Antenna.objects.all()
 
@@ -131,8 +129,6 @@ def corr_configuration_view(request):
 
     block_status = Configuration.objects.get(setting='BLOCK')
 
-#    correlators = [i.strip() for i in open(settings.CONFIGURATION_DIR+'correlators.cfg').readlines() if i.strip()]
-
     # the antennas are loaded from the db
     antennas = Antenna.objects.all()
 
@@ -152,7 +148,6 @@ def corr_configuration_view(request):
            'read_only': block_status.value,
            'correlators': correlators,
            'corr_confs': corr_confs,
-           'headers': headers,
            'antennas': antennas
            }
     return render_to_response('home/corr.djhtml', ctx, context_instance=RequestContext(request))
@@ -168,33 +163,25 @@ def clo_configuration_view(request):
 
     block_status = Configuration.objects.get(setting='BLOCK')
 
-    centrallos = [i.strip() for i in open(settings.CONFIGURATION_DIR+'centrallos.cfg').readlines() if i.strip()]
     # the antennas are loaded from the db
     antennas = Antenna.objects.all()
 
-    clos = [(c, []) for c in centrallos]
-    clos = dict(c for c in clos)
+    centrallos = []
+    clo_confs = {}
 
-    for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'clo.cfg')):
-        line_string = line_string.strip()
-        if line_string:
-            line_list = line_string.split()
-            line_list[0:-1] = [x.replace('-', ' ') for x in line_list[0:-1]]
-            if line_string[0] == "#":
-                clos[line_list[-1]].append(line_list[0:-1])
-            else:
-                if CentralloConfiguration.objects.filter(line=line_number):
-                    clo_config = CentralloConfiguration.objects.get(line=line_number)
-                    clos[line_list[-1]].append(clo_config)
-                else:
-                    new_clo_config = CentralloConfiguration(line=line_number)
-                    new_clo_config.save()
-                    clos[line_list[-1]].append(new_clo_config)
+    for clo_config in CentralloConfiguration.objects.all():
+        if not clo_config.active:
+            continue
+
+        if clo_config.centrallo not in clo_confs:
+            clo_confs.setdefault(clo_config.centrallo, [])
+            centrallos.append(clo_config.centrallo)
+        clo_confs[clo_config.centrallo].append(clo_config)
 
     ctx = {'error': error,
            'read_only': block_status.value,
            'centrallos': centrallos,
-           'clos': clos,
+           'clo_confs': clo_confs,
            'antennas':antennas
            }
     return render_to_response('home/clo.djhtml', ctx, context_instance=RequestContext(request))
