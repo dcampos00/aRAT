@@ -7,6 +7,7 @@ from aRAT.apps.home.models import Antenna, PAD, CorrelatorConfiguration, Central
 from django.db.models import F, Q
 
 from aRAT.apps.common.models import Configuration
+from aRAT.apps.home.views import read_only as check_read_only
 from django.conf import settings
 
 DATE_FORMAT = "%Y-%m-%d" 
@@ -25,7 +26,7 @@ def ste_update_alerts(request, ste_id='', antenna_id=''):
     dajax = Dajax() # object that manage the AJAX connection
     
     # is retrieved the current block status of the application
-    read_only = Configuration.objects.get(setting='BLOCK').value
+    read_only = check_read_only(request)
 
     # first the antenna information is updated
     # if is passed a antenna_id and the application is not in read_only mode
@@ -76,7 +77,7 @@ def pad_update_alerts(request, pad_id='', antenna_id=''):
     dajax = Dajax()
 
     # is retrieved the current block status of the application
-    read_only = Configuration.objects.get(setting='BLOCK').value
+    read_only = check_read_only(request)
     
     # first the pad information is updated
     if pad_id != '' and not read_only:
@@ -149,7 +150,7 @@ def corr_update_alerts(request, configuration_id='', antenna_id=''):
     dajax = Dajax()
 
     # is retrieved the current block status of the application
-    read_only = Configuration.objects.get(setting='BLOCK').value
+    read_only = check_read_only(request)
 
     # first the correlator configuration is updated
     if configuration_id != '' and not read_only:
@@ -220,7 +221,7 @@ def clo_update_alerts(request, configuration_id='', antenna_id=''):
     dajax = Dajax()
 
     # is retrieved the current block status of the application
-    read_only = Configuration.objects.get(setting='BLOCK').value
+    read_only = check_read_only(request)
 
     # first the pad information is updated
     if configuration_id != '' and not read_only:
@@ -291,7 +292,7 @@ def holo_update_alerts(request, holo_id='', antenna_id=''):
     dajax = Dajax()
 
     # is retrieved the current block status of the application
-    read_only = Configuration.objects.get(setting='BLOCK').value
+    read_only = check_read_only(request)
 
     # first the pad information is updated
     if holo_id != '' and not read_only:
