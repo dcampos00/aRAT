@@ -1,7 +1,7 @@
 from aRAT.apps.webServices.blockUnblock.views import blockUnblockService
 
 from django.contrib import admin
-from aRAT.apps.home.models import Antenna, PAD, CorrelatorConfiguration, CentralloConfiguration, HolographyConfiguration
+from aRAT.apps.home.models import Antenna, PAD, CorrelatorConfiguration, CentralloConfiguration, HolographyConfiguration, TableHeader
 from aRAT.apps.common.models import Configuration
 
 from django.contrib.admin.sites import AdminSite
@@ -160,11 +160,12 @@ class PADAdmin(admin.ModelAdmin):
 class CorrelatorConfigurationAdmin(admin.ModelAdmin):
     actions = None
 
-    list_display = ('line_number', 'caimap', 'configuration', 'correlator')
-    list_display_links = ('caimap', 'line_number', 'configuration')
+#    list_display = ('line_number', 'caimap', 'configuration', 'correlator')
+    list_display = ('caimap', 'configuration', 'correlator')
+    list_display_links = ('caimap', 'configuration')
     list_filter = ['correlator', 'active']
     search_fields = ['line', 'correlator', 'current_antenna__name', 'requested_antenna__name']
-    ordering = ['line', 'correlator']
+    ordering = ['correlator', 'caimap']
 
     fieldsets = (
         (None, {
@@ -197,23 +198,52 @@ class CorrelatorConfigurationAdmin(admin.ModelAdmin):
         error = ''
         changes = []
         corr_confs = []
-
+        
+        header = None
+        
         for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'corr.cfg')):
             line_string = line_string.strip()
             if line_string:
                 line_list = line_string.split()
                 line_list[0:-1] = [x.replace('-', ' ') for x in line_list[0:-1]]
                 if line_string[0] == "#":
-                corrs[line_list[-1]].append(line_list[0:-1])
-            else:
-                if CorrelatorConfiguration.objects.filter(line=line_number):
-                    corr_config = CorrelatorConfiguration.objects.get(line=line_number)
-                    if corr_config.active:
-                        corrs[line_list[-1]].append(corr_config)
+                    line_list[0:-1] = [x.replace('#', '') for x in line_list[0:-1]]
+                    if TableHeader.objects.filter(resource=line_list[-1]):
+                        header = TableHeader.objects.get(resource=line_list[-1])
+                        header.text = str(line_list[0:-1])
+                        header.save()
+                    else:
+                        new_header = TableHeader(text=str(line_list[0:-1]),
+                                                 resource=line_list[-1])
+                        new_header.save()
                 else:
-                    new_corr_config = CorrelatorConfiguration(line=line_number)
-                    new_corr_config.save()
-                    corrs[line_list[-1]].append(new_corr_config)
+                    caimap = line_list[0]
+                    configuration = line_list[1:-1]
+                    correlator = line_list[-1]
+
+                    header = TableHeader.objects.get(resource=correlator)
+
+                    if CorrelatorConfiguration.objects.filter(caimap=caimap,
+                                                              correlator=correlator):
+                        corr_config = CorrelatorConfiguration.objects.get(caimap=caimap,
+                                                                          correlator=correlator)
+                        corr_config.configuration = str(configuration)
+                        corr_config.save()
+                        changes.append("The %s was updated."%corr_config)
+                        corr_confs.append(corr_config)
+                    else:
+                        new_corr_config = CorrelatorConfiguration(caimap=caimap,
+                                                                  correlator=correlator)
+                        new_corr_config.configuration = str(configuration)
+                        new_corr_config.header = header
+                        new_corr_config.save()
+                        changes.append("The %s was added."%new_corr_config)
+                        corr_confs.append(new_corr_config)
+
+        for corr_config in CorrelatorConfiguration.objects.all():
+            if corr_config not in corr_confs:
+                changes.append("The %s was deleted."%corr_config)
+                corr_config.delete()
         
         ctx = {'title': 'Update Correlator Configurations',
                'changes': changes,
