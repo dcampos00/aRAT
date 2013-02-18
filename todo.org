@@ -1,6 +1,6 @@
 #+TODO: TODO(t) IN-PROGRESS(p) | DONE(d!)
 
-* Things pending in aRAT Project [40%]
+* CODE [75%]
 ** DONE web services [100%]
    - State "DONE"       from "IN-PROGRESS" [2013-02-13 Wed 16:20]
    - [X] block/unblock web service
@@ -22,30 +22,38 @@
      + [X] Correlator Configuration :: A Corr Config can only have an Antenna associated
      + [X] CentralLO Configuration :: A CLO Config can only have an Antenna associated
      + [X] Holography Recetor :: A Holography Receptor can only have an Antenna associated
-** IN-PROGRESS review the restrictions [100%]
+** DONE review the restrictions [50%]
+   - State "DONE"       from "IN-PROGRESS" [2013-02-18 Mon 17:12]
 *** DONE change the restriction errors [4/4]
     - State "DONE"       from "IN-PROGRESS" [2013-02-13 Wed 16:20]
     - [X] PAD
     - [X] Correlator Configuration
     - [X] CentralLO Configuration
     - [X] Holography Receptor
-*** TODO changes [50%]
-**** TODO user levels control [0%]
+
+** TODO changes [75%]
+*** TODO user levels control [0%]
      Will exist three user level/groups
      - default :: This user only can open the application in read mode
      - modify :: users that will can modify the request in the application
      - admin :: users with access to admin panel (will be superusers in Django)
-     - [ ] add modify group permissions
-**** DONE Admin Panel Changes [100%]
+     - [ ] add/modify group permissions
+*** DONE Admin Panel Changes [100%]
+     - State "DONE"       from "IN-PROGRESS" [2013-02-18 Mon 17:09]
      - State "DONE"       from "IN-PROGRESS" [2013-02-15 Fri 13:40]
      - [X] Add web services control
-     - [ ] Add possibility of load the cfg files from the panel
-**** DONE changes in restrictions [100%]
+     - [X] Add possibility of load the cfg files from the panel
+*** DONE changes in restrictions [100%]
      - State "DONE"       from "IN-PROGRESS" [2013-02-15 Fri 16:54]
      - [X] if Antenna in STE => Antenna in PAD
      - [X] if Antenna with Corr, Clo or Holo => Antenna in STE and PAD
-**** TODO use diferent ids to know if is a new configuration or not
+*** DONE use diferent ids to know if is a new configuration or not
+     - State "DONE"       from "IN-PROGRESS" [2013-02-18 Mon 17:09]
      Will be used the first column how *id*
+     Now the resources used each one a particular unique key to comparted if
+     this resource is in the DB or not
+
+* DOCUMENTATION [%]
 ** IN-PROGRESS documents [%]
    - [ ] Administration manual
    - [ ] Wiki project :: Something was did it
