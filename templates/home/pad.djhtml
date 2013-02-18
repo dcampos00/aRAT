@@ -31,7 +31,7 @@
 	      </thead>
 	      <tbody>
 		{% for pad in pads_by_cols %}
-		<tr class="pad-container" data-resource-id="{{ pad.line }}">
+		<tr class="pad-container" data-resource-id="{{ pad.id }}">
 		  <td>
                     {{ pad.name }}
                   </td>
