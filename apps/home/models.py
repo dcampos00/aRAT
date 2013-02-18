@@ -326,8 +326,6 @@ class PAD(Resource):
         return 'PAD %s'%self.name
 
 class CorrelatorConfiguration(Resource):
-    # in the db is saved the line of the configuration file that match with
-    # the configuration of the CorrelatorConfiguration
 
     caimap = models.IntegerField()
     configuration = models.TextField()
@@ -360,9 +358,9 @@ class CorrelatorConfiguration(Resource):
         """
 
         corr_conf_to_check = []
-        for corr_conf_line in eval(self.errors):
+        for corr_conf_id in eval(self.errors):
             corr_conf_to_check.append(
-                CorrelatorConfiguration.objects.get(line=corr_conf_line))
+                CorrelatorConfiguration.objects.get(id=corr_conf_id))
 
         tmp_errors = []
 
@@ -378,7 +376,7 @@ class CorrelatorConfiguration(Resource):
         caller.remove(self)
 
         for corr_conf in local_errors:
-            tmp_errors.append(corr_conf.line)
+            tmp_errors.append(corr_conf.id)
 
         self.errors = str(tmp_errors)
 
@@ -488,7 +486,7 @@ class CorrelatorConfiguration(Resource):
         for e in eval(self.errors):
             text = "The Antenna %s also will be assigned the %s"%(
                 self.requested_antenna,
-                CorrelatorConfiguration.objects.get(line=e).configuration()
+                CorrelatorConfiguration.objects.get(id=e)
                 )
             text += " Correlator Configuration."
             error.append(text)
@@ -514,18 +512,6 @@ class CorrelatorConfiguration(Resource):
                                self.configuration)
 
 class CentralloConfiguration(Resource):
-    # in the db is saved the line of the configuration file that match with the configuration of
-    # the CentralLO
- #   _LINES = []
- #   for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'clo.cfg')):
- #       if line_string[0] != "#":
- #           line_string = line_string.strip()
- #           if line_string:
- #               _LINES.append((line_number, line_string))
-
-#    _LINES = tuple(_LINES)
-
-#    line = models.IntegerField(choices=_LINES, unique=True)
 
     identifier = models.CharField(max_length=20)
     configuration = models.TextField()
@@ -702,18 +688,19 @@ class CentralloConfiguration(Resource):
 class HolographyConfiguration(Resource):
     """Class that represents the Model of Holography Receptor Configuration"""
 
-    _LINES = []
-    for line_number, line_string in enumerate(
-        open(settings.CONFIGURATION_DIR+'holography.cfg')):
-        if line_string[0] != "#":
-            line_string = line_string.strip()
-            if line_string:
-                _LINES.append((line_number, line_string))
+#    _LINES = []
+#    for line_number, line_string in enumerate(
+#        open(settings.CONFIGURATION_DIR+'holography.cfg')):
+#        if line_string[0] != "#":
+#            line_string = line_string.strip()
+#            if line_string:
+#                _LINES.append((line_number, line_string))
 
-    _LINES = tuple(_LINES)
+#    _LINES = tuple(_LINES)
 
-    line = models.IntegerField(choices=_LINES, unique=True)
+#    line = models.IntegerField(choices=_LINES, unique=True)
 
+    name = models.CharField(max_length=30)
     assigned = models.BooleanField(default=True, blank=True)
     current_antenna = models.OneToOneField(Antenna,
                                            related_name="current_holo_antenna",
@@ -736,8 +723,8 @@ class HolographyConfiguration(Resource):
         """
 
         holo_to_check = []
-        for holo_line in eval(self.errors):
-            holo_to_check.append(HolographyConfiguration.objects.get(line=holo_line))
+        for holo_id in eval(self.errors):
+            holo_to_check.append(HolographyConfiguration.objects.get(id=holo_id))
 
         tmp_errors = []
 
@@ -754,7 +741,7 @@ class HolographyConfiguration(Resource):
         caller.remove(self)
 
         for holo in local_errors:
-            tmp_errors.append(holo.line)
+            tmp_errors.append(holo.id)
 
         self.errors = str(tmp_errors)
 
@@ -816,13 +803,6 @@ class HolographyConfiguration(Resource):
 
         return errors
 
-    def name(self):
-        return "%s"%self.get_line_display()
-
-    def line_number(self):
-        return "%d"%self.line
-
-
     def text_status(self):
         """
         This method returns a list that describe the current status of the
@@ -861,8 +841,9 @@ class HolographyConfiguration(Resource):
             antenna = self.current_antenna
 
         error = []
-        for e in self.local_restriction_errors():
-            text = "The Antenna %s also will have assigned %s."%(antenna, e)
+        for e in eval(self.errors):
+            text = "The Antenna %s also will have assigned %s."%(antenna,
+                                                                 HolographyConfiguration.objects.get(id=e))
             error.append(text)
 
         for e in self.global_restriction_errors():
@@ -881,4 +862,4 @@ class HolographyConfiguration(Resource):
                 or (self.current_antenna is not None and self.assigned == False))
 
     def __unicode__(self):
-        return "Holography Receptor %s"%self.get_line_display()
+        return "Holography Receptor %s"%self.name
