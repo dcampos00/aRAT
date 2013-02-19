@@ -65,6 +65,50 @@ def ste_update_alerts(request, ste_id='', antenna_id=''):
     return dajax.json()
 
 @dajaxice_register
+def band_update_alerts(request, band_array=[], antenna_id=''):
+    dajax = Dajax()
+
+    # is retrieved the current block status of the application
+    read_only = check_read_only(request)
+
+    if antenna_id != '' and not read_only:
+        antenna = Antenna.objects.get(id=antenna_id)
+        # if the ste_id is passed and if the ste is not the same that
+        # the current a new STE is assigned to the antenna
+        if band_array and str(band_array) != antenna.current_band:
+            antenna.requested_band = str(band_array)
+        else:
+            antenna.requested_band = "[]"
+
+        # The requester and request_date is updated
+        # antenna.requester = request.user
+        # antenna.request_date = datetime.now()
+        antenna.save() # the Antenna is saved
+       
+    for antenna in Antenna.objects.all():
+        if not antenna.active:
+            continue
+
+        # the status of the antenna is obtained in HTML format
+        status = antenna.html_status()
+
+        requested_band = antenna.requested_band
+        if requested_band == "[-1]":
+            requested_band = "[]"
+
+        # the data is passed to the template function update_status
+        dajax.add_data({'antenna': antenna.id,
+                        'requested_band': requested_band,
+                        'current_band': antenna.current_band,
+                        'is_requested': antenna.is_requested(),
+                        'error': antenna.exist_errors(),
+                        'read_only': read_only,
+                        'status': status},
+                       'update_status')
+
+    return dajax.json()
+
+@dajaxice_register
 def pad_update_alerts(request, pad_id='', antenna_id=''):
     """
     Function that allow keep update the alerts for PADs

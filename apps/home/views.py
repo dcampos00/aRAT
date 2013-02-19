@@ -86,6 +86,32 @@ def ste_configuration_view(request):
            }
     return render_to_response('home/ste.djhtml', ctx, context_instance=RequestContext(request))
 
+def band_configuration_view(request):
+    error = ''
+
+    if not request.user.is_authenticated():
+        return HttpResponseRedirect("/login")
+
+    bands = [i for i in xrange(1,11)]
+    vendors = []
+    antennas = {}
+    for antenna in Antenna.objects.all().order_by('name'):
+        if not antenna.active:
+            continue
+
+        if antenna.vendor not in antennas:
+            antennas.setdefault(antenna.vendor, [])
+            vendors.append(antenna.vendor)
+        antennas[antenna.vendor].append(antenna)
+    
+    ctx = {'error': error,
+           'read_only': read_only(request),
+           'vendors': vendors,
+           'bands': bands,
+           'antennas': antennas
+           }
+    return render_to_response('home/band.djhtml', ctx, context_instance=RequestContext(request))
+
 def pad_configuration_view(request):
     """View for PAD configurations"""
 

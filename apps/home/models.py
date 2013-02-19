@@ -105,14 +105,27 @@ class Antenna(Resource):
     current_ste = models.IntegerField(null=True, choices=STEs)
     requested_ste = models.IntegerField(null=True, blank=True, choices=STEs)
 
+    current_band = models.CharField(default="[]", max_length=100)
+    requested_band = models.CharField(default="[]", blank=True, max_length=100)
+
     vendor = models.CharField(null=True, max_length=10)
 
     def text_status(self):
         text_status = []
         if self.is_requested():
-            text = "%s will be changed to %s"%(self, 
-                                               self.get_requested_ste_display())
-            text_status.append(text)
+            if self.is_ste_request():
+                text = "%s will be changed to %s"%(self, 
+                                                   self.get_requested_ste_display())
+                text_status.append(text)
+
+            if self.is_band_request():
+                if self.requested_band == "[-1]":
+                    text = "The bands %s will be unassigned of %s."%(self.current_band,
+                                                                    self)
+                else:
+                    text = "The bands %s will be assigned to %s."%(self.requested_band,
+                                                                   self)
+                text_status.append(text)
         else:
             text = "%s is in %s"%(self, self.get_current_ste_display())
             text_status.append(text)
@@ -121,7 +134,7 @@ class Antenna(Resource):
             for text in self.text_error():
                 text_status.append("Error: %s"%text)
 
-        if self.is_requested():
+        if self.is_ste_request():
             text_request = "-- Request done by %s"%self.request_text_info()
             text_status.append(text_request)
 
@@ -155,9 +168,16 @@ class Antenna(Resource):
 
         return result
 
-    def is_requested(self):
+    def is_ste_request(self):
         return (self.requested_ste != self.current_ste
-                and self.requested_ste is not None)
+                       and self.requested_ste is not None)
+
+    def is_band_request(self):
+        return (self.requested_band != self.current_band
+                and self.requested_band != "[]")
+
+    def is_requested(self):
+        return self.is_ste_request() or self.is_band_request()
 
     def __unicode__(self):
         return '%s'%self.name
