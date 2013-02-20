@@ -48,6 +48,8 @@ def ste_update_alerts(request, ste_id='', antenna_id=''):
     # is loaded all current status of the ste configuration
     antennas = Antenna.objects.all()
     for antenna in antennas:
+        if not antenna.active:
+            continue
 
         # the status of the antenna is obtained in HTML format
         status = antenna.html_status()
