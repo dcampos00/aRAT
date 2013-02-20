@@ -31,13 +31,14 @@
     - [X] CentralLO Configuration
     - [X] Holography Receptor
 
-** TODO changes [75%]
-*** TODO user levels control [0%]
+** TODO changes [83%]
+*** DONE user levels control [100%]
+    - State "DONE"       from "IN-PROGRESS" [2013-02-19 Tue 10:45]
      Will exist three user level/groups
      - default :: This user only can open the application in read mode
      - modify :: users that will can modify the request in the application
      - admin :: users with access to admin panel (will be superusers in Django)
-     - [ ] add/modify group permissions
+     - [X] add/modify group permissions
 *** DONE Admin Panel Changes [100%]
      - State "DONE"       from "IN-PROGRESS" [2013-02-18 Mon 17:09]
      - State "DONE"       from "IN-PROGRESS" [2013-02-15 Fri 13:40]
@@ -53,6 +54,9 @@
      Now the resources used each one a particular unique key to comparted if
      this resource is in the DB or not
 
+*** DONE add bands to resources
+    - State "DONE"       from "IN-PROGRESS" [2013-02-19 Tue 17:51]
+*** TODO generate json to CCR
 * DOCUMENTATION [%]
 ** IN-PROGRESS documents [%]
    - [ ] Administration manual
