@@ -37,7 +37,7 @@
 		   </tr>
 		 </thead>
 		 <tbody>
-	           {% else %}
+	           {% endif %}
 	           <tr data-resource-id="{{ clo_config.id }}">
 		     <td class="change-antenna droppable">
 		       <div class="text-antenna draggable" data-antenna-id="{{ clo_config.current_antenna.id }}">{{ clo_config.current_antenna }}</div>
@@ -45,7 +45,6 @@
                      <td>{{ clo_config.identifier }}</td>
 		     {% for i in clo_config.configuration|eval %}<td>{{ i }}</td>{% endfor %}
 	           </tr>
-	         {% endif %}
 	           {% if forloop.last %}</tbody>{% endif %}
 	         {% endfor %}
 	       </table>    
