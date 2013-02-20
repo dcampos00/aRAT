@@ -31,7 +31,7 @@
     - [X] CentralLO Configuration
     - [X] Holography Receptor
 
-** TODO changes [83%]
+** TODO changes [100%]
 *** DONE user levels control [100%]
     - State "DONE"       from "IN-PROGRESS" [2013-02-19 Tue 10:45]
      Will exist three user level/groups
@@ -56,7 +56,10 @@
 
 *** DONE add bands to resources
     - State "DONE"       from "IN-PROGRESS" [2013-02-19 Tue 17:51]
-*** TODO generate json to CCR
+*** DONE generate json to CCR
+    - State "DONE"       from "IN-PROGRESS" [2013-02-20 Wed 16:18]
+*** TODO generate better messages in the application
+*** TODO add restriction that the bands cannot be empty
 * DOCUMENTATION [%]
 ** IN-PROGRESS documents [%]
    - [ ] Administration manual
