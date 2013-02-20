@@ -39,13 +39,7 @@ class AntennaAdmin(admin.ModelAdmin):
                       in enumerate(open(settings.CONFIGURATION_DIR+'stes.cfg')) 
                       if i.strip()])
 
-        for ste in STEs:
-            if 'VENDOR' in ste:
-                default_ste = ste[0]
-                error = ''
-                break
-            else:
-                error = 'The STE VENDOR does not exist!'
+        default_ste = 'VENDOR'
 
         if error == '':
             for line_string in open(settings.CONFIGURATION_DIR+'antennas.cfg').readlines():
@@ -205,7 +199,7 @@ class CorrelatorConfigurationAdmin(admin.ModelAdmin):
         
         header = None
         
-        for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'corr.cfg')):
+        for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'corr_configs.cfg')):
             line_string = line_string.strip()
             is_comment = line_string[0:2] == "//"
 
@@ -302,7 +296,7 @@ class CentralloConfigurationAdmin(admin.ModelAdmin):
         
         header = None
         
-        for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'clo.cfg')):
+        for line_number, line_string in enumerate(open(settings.CONFIGURATION_DIR+'clo_configs.cfg')):
             line_string = line_string.strip()
             is_comment = line_string[0:2] == "//"
 

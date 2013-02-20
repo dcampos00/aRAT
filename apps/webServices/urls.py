@@ -17,6 +17,9 @@ urlpatterns = patterns('aRAT.apps.webServices',
     url(r'^ws/applyChanges$',
         'applyChanges.views.apply_changes_service',
         name='ws_apply_changes'),
+    url(r'^ws/resourcesStatus$',
+        'resources_status.views.resources_status_service',
+        name='ws_resources_status'),
 
     # Admin web Services Views
     url(r'^admin/block_app',

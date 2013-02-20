@@ -97,13 +97,13 @@ class Antenna(Resource):
     name = models.CharField(max_length=5, unique=True)
 
     # ste configuration fields
-    STEs = tuple([tuple([ln, i.strip()]) 
-                  for ln, i 
-                  in enumerate(open(settings.CONFIGURATION_DIR+'stes.cfg')) 
+    STEs = tuple([tuple([i.strip(), i.strip()]) 
+                  for i 
+                  in open(settings.CONFIGURATION_DIR+'stes.cfg').readlines() 
                   if i.strip()])
 
-    current_ste = models.IntegerField(null=True, choices=STEs)
-    requested_ste = models.IntegerField(null=True, blank=True, choices=STEs)
+    current_ste = models.CharField(max_length=10, null=True, choices=STEs)
+    requested_ste = models.CharField(max_length=10, null=True, blank=True, choices=STEs)
 
     current_band = models.CharField(default="[]", max_length=100)
     requested_band = models.CharField(default="[]", blank=True, max_length=100)
@@ -115,7 +115,7 @@ class Antenna(Resource):
         if self.is_requested():
             if self.is_ste_request():
                 text = "%s will be changed to %s"%(self, 
-                                                   self.get_requested_ste_display())
+                                                   self.requested_ste)
                 text_status.append(text)
 
             if self.is_band_request():
@@ -127,7 +127,7 @@ class Antenna(Resource):
                                                                    self)
                 text_status.append(text)
         else:
-            text = "%s is in %s"%(self, self.get_current_ste_display())
+            text = "%s is in %s"%(self, self.current_ste)
             text_status.append(text)
 
         if self.exist_errors():
@@ -141,22 +141,41 @@ class Antenna(Resource):
         return text_status
 
     def global_restriction_errors(self):
+        errors = []
         if (self.requested_ste is None and self.current_ste is None):
-            return []
+            pass
         
         if self.requested_ste is not None:
-            ste = self.get_requested_ste_display()
+            ste = self.requested_ste
         else:
-            ste = self.get_current_ste_display()
+            ste = self.current_ste
 
         if ste == 'VENDOR':
-            return []
+            if self.is_band_request() and self.requested_band != "[-1]":
+                errors.append(2)
         else:
-            pads = PAD.objects.filter(models.Q(current_antenna=self) | models.Q(requested_antenna=self))
+            pads = PAD.objects.filter(models.Q(current_antenna=self, assigned=True) | models.Q(requested_antenna=self))
             if pads:
-                return []
+                pass
             else:
-                return [1]
+                errors.append(1)
+
+            if ste == 'AOS':
+                is_used_aos2 = Antenna.objects.filter(requested_ste='AOS2')
+                if is_used_aos2:
+                    clo_confs = CentralloConfiguration.objects.filter(models.Q(current_antenna=self, assigned=True) | models.Q(requested_antenna=self))
+                    for clo_conf in clo_confs:
+                        if ((clo_conf.sas_ch() == 5 and clo_conf.sas_node() >= '0x340')
+                            or (clo_conf.llc_ch() == 3 and clo_conf.llc_node() >= '0x240')):
+                            errors.append(3)
+            elif ste == 'AOS2':
+                clo_confs = CentralloConfiguration.objects.filter(models.Q(current_antenna=self, assigned=True) | models.Q(requested_antenna=self))
+                for clo_conf in clo_confs:
+                    if ((clo_conf.sas_ch() != 5 and clo_conf.sas_node() < '0x340')
+                        or (clo_conf.llc_ch() != 3 and clo_conf.llc_node() < '0x240')):
+                        errors.append(4)
+
+        return errors
 
     def text_error(self):
         result = []
@@ -164,7 +183,15 @@ class Antenna(Resource):
         for e in self.global_restriction_errors():
             if e == 1:
                 text_error = "The Antenna must have associated a PAD."
-                result.append(text_error)
+            elif e == 2:
+                text_error = "The Antenna must have associated a STE."
+            elif e == 3:
+                text_error = "The Antenna have an invalid CentralLO Configuration, must be moved of STE to AOS2."
+            elif e == 4:
+                text_error = "The Antenna must have a valid CentralLO Configuration in AOS2."
+            else:
+                continue
+            result.append(text_error)
 
         return result
 
@@ -268,9 +295,9 @@ class PAD(Resource):
             return []
 
         if antenna.requested_ste is not None:
-            ste = antenna.get_requested_ste_display()
+            ste = antenna.requested_ste
         elif antenna.current_ste is not None:
-            ste = antenna.get_current_ste_display()
+            ste = antenna.current_ste
         else:
             return [1]
 
@@ -442,9 +469,9 @@ class CorrelatorConfiguration(Resource):
             return []
 
         if antenna.requested_ste is not None:
-            ste = antenna.get_requested_ste_display()
+            ste = antenna.requested_ste
         elif antenna.current_ste is not None:
-            ste = antenna.get_current_ste_display()
+            ste = antenna.current_ste
         else:
             errors.append(2)
 
@@ -526,6 +553,32 @@ class CorrelatorConfiguration(Resource):
     def is_requested(self):
         return (self.requested_antenna is not None
                 or (self.current_antenna is not None and self.assigned == False))
+
+    def drx_data(self):
+        if self.correlator == 'ACA-Corr':
+            return None, None, None, None
+        configuration = eval(self.configuration)
+        drxbbpr0 = "%s-%s"%(configuration[-8], configuration[-7]) if configuration[-8] != " " else None
+        drxbbpr1 = "%s-%s"%(configuration[-6], configuration[-5]) if configuration[-6] != " " else None
+        drxbbpr2 = "%s-%s"%(configuration[-4], configuration[-3]) if configuration[-4] != " " else None
+        drxbbpr3 = "%s-%s"%(configuration[-2], configuration[-1]) if configuration[-2] != " " else None
+        return drxbbpr0, drxbbpr1, drxbbpr2, drxbbpr3
+
+    def dtsr_data(self):
+        if self.correlator != 'ACA-Corr':
+            return None, None, None, None
+        configuration = eval(self.configuration)
+        dtsrbbpr0 = "%s-%s"%(configuration[-8], configuration[-7]) if configuration[-8] != " " else None
+        dtsrbbpr1 = "%s-%s"%(configuration[-6], configuration[-5]) if configuration[-6] != " " else None
+        dtsrbbpr2 = "%s-%s"%(configuration[-4], configuration[-3]) if configuration[-4] != " " else None
+        dtsrbbpr3 = "%s-%s"%(configuration[-2], configuration[-1]) if configuration[-2] != " " else None
+        return dtsrbbpr0, dtsrbbpr1, dtsrbbpr2, dtsrbbpr3
+
+    def cai_acacai_data(self):
+        if self.correlator != 'ACA-Corr':
+            return self.caimap, None
+        else:
+            return None, self.caimap
 
     def __unicode__(self):
         return "%s - %s"%(self.caimap,
@@ -622,9 +675,9 @@ class CentralloConfiguration(Resource):
             return []
 
         if antenna.requested_ste is not None:
-            ste = antenna.get_requested_ste_display()
+            ste = antenna.requested_ste
         elif antenna.current_ste is not None:
-            ste = antenna.get_current_ste_display()
+            ste = antenna.current_ste
         else:
             errors.append(2)
 
@@ -701,6 +754,18 @@ class CentralloConfiguration(Resource):
     def is_requested(self):
         return (self.requested_antenna is not None
                 or (self.current_antenna is not None and self.assigned == False))
+
+    def sas_ch(self):
+        return int(eval(self.configuration)[0])
+
+    def sas_node(self):
+        return eval(self.configuration)[1]
+
+    def llc_ch(self):
+        return int(eval(self.configuration)[2])
+
+    def llc_node(self):
+        return eval(self.configuration)[3]
 
     def __unicode__(self):
         return "%s - %s"%(self.identifier, self.configuration)
@@ -803,9 +868,9 @@ class HolographyConfiguration(Resource):
             return []
 
         if antenna.requested_ste is not None:
-            ste = antenna.get_requested_ste_display()
+            ste = antenna.requested_ste
         elif antenna.current_ste is not None:
-            ste = antenna.get_current_ste_display()
+            ste = antenna.current_ste
         else:
             errors.append(2)
 
