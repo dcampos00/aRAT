@@ -175,6 +175,16 @@ class Antenna(Resource):
                         or (clo_conf.llc_ch() != 3 and clo_conf.llc_node() < '0x240')):
                         errors.append(4)
 
+            
+            if ste != "TFOHG":
+                # Band restrcition
+                if self.is_band_request():
+                    if self.requested_band == "[]":
+                        errors.append(5)
+                else:
+                    if self.current_band == "[]":
+                        errors.append(5)
+
         return errors
 
     def text_error(self):
@@ -189,6 +199,8 @@ class Antenna(Resource):
                 text_error = "The Antenna have an invalid CentralLO Configuration, must be moved of STE to AOS2."
             elif e == 4:
                 text_error = "The Antenna must have a valid CentralLO Configuration in AOS2."
+            elif e == 5:
+                text_error = "The Antenna must have associated a bands configuration."
             else:
                 continue
             result.append(text_error)
@@ -216,7 +228,7 @@ class PAD(Resource):
     name = models.CharField(max_length=10, unique=True)
     assigned = models.BooleanField(default=True, blank=True)
 
-    current_antenna = models.OneToOneField(Antenna,
+    current_antenna = models.ForeignKey(Antenna,
                                            related_name="current_pad_antenna",
                                            null=True,
                                            on_delete=models.SET_NULL)
@@ -473,6 +485,7 @@ class CorrelatorConfiguration(Resource):
         elif antenna.current_ste is not None:
             ste = antenna.current_ste
         else:
+            print "%s"%antenna
             errors.append(2)
 
         pads = PAD.objects.filter(models.Q(current_antenna=antenna, requested_antenna=None) | models.Q(requested_antenna=antenna))
@@ -594,7 +607,7 @@ class CentralloConfiguration(Resource):
 
     unique_together = (identifier, centrallo)
 
-    current_antenna = models.OneToOneField(Antenna,
+    current_antenna = models.ForeignKey(Antenna,
                                            related_name="current_clo_antenna",
                                            null=True,
                                            on_delete=models.SET_NULL)
@@ -773,21 +786,9 @@ class CentralloConfiguration(Resource):
 class HolographyConfiguration(Resource):
     """Class that represents the Model of Holography Receptor Configuration"""
 
-#    _LINES = []
-#    for line_number, line_string in enumerate(
-#        open(settings.CONFIGURATION_DIR+'holography.cfg')):
-#        if line_string[0] != "#":
-#            line_string = line_string.strip()
-#            if line_string:
-#                _LINES.append((line_number, line_string))
-
-#    _LINES = tuple(_LINES)
-
-#    line = models.IntegerField(choices=_LINES, unique=True)
-
     name = models.CharField(max_length=30)
     assigned = models.BooleanField(default=True, blank=True)
-    current_antenna = models.OneToOneField(Antenna,
+    current_antenna = models.ForeignKey(Antenna,
                                            related_name="current_holo_antenna",
                                            null=True,
                                            on_delete=models.SET_NULL)
