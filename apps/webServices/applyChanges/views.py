@@ -42,9 +42,14 @@ class applyChangesService(ServiceBase):
                     _request_text += "%s\n"%status
                 
                 # is saved the requested ste to current ste
-                antenna.current_ste = antenna.requested_ste
+                if antenna.is_ste_request():
+                    antenna.current_ste = antenna.requested_ste
+
+                if antenna.is_band_request():
+                    antenna.current_band = antenna.requested_band
 
                 # is cleaned the request data
+                antenna.requested_band = "[]"
                 antenna.requested_ste = None
                 antenna.requester = None
                 antenna.request_date = None
