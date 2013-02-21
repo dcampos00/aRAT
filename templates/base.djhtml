@@ -130,47 +130,19 @@
 	  <script src="{{ STATIC_URL }}js/jquery-ui-1.10.0.custom.min.js"></script>
 	  <!-- Bootstrap -->
 	  <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
-	  <!-- transition / effect library -->
-	  <!-- <script src="{{ STATIC_URL }}js/bootstrap-transition.js"></script> -->
-	    <!-- custom dropdown library 
-	    <script src="{{ STATIC_URL }}js/bootstrap-dropdown.js"></script> -->
-	    <!-- scrolspy library 
-	    <script src="{{ STATIC_URL }}js/bootstrap-scrollspy.js"></script> -->
-	       <!-- library for creating tabs 
-		    <script src="{{ STATIC_URL }}js/bootstrap-tab.js"></script> -->
-	       <!-- library for advanced tooltip 
-		    <script src="{{ STATIC_URL }}js/bootstrap-tooltip.js"></script> -->
-	       <!-- popover effect library 
-		    <script src="{{ STATIC_URL }}js/bootstrap-popover.js"></script>  -->
-	       <!-- tour library 
-		    <script src="{{ STATIC_URL }}js/bootstrap-tour.js"></script> -->
-	       <!-- library for cookie management
-		    <script src="{{ STATIC_URL }}js/jquery.cookie.js"></script> -->
-	       <!-- calander plugin 
-		    <script src="{{ STATIC_URL }}js/fullcalendar.min.js"></script>-->
-	    <!-- data table plugin -->
-	    <script src="{{ STATIC_URL }}js/jquery.dataTables.min.js"></script>
-
-	       
-	       <!-- checkbox, radio, and file input styler 
-		    <script src="{{ STATIC_URL }}js/jquery.uniform.min.js"></script> -->
-	       <!-- notification plugin
-		    <script src="{{ STATIC_URL }}js/jquery.noty.js"></script> -->
-	       <!-- for iOS style toggle switch
-		    <script src="{{ STATIC_URL }}js/jquery.iphone.toggle.js"></script> -->
-	       <!-- history.js for cross-browser state change on ajax
-		    <script src="{{ STATIC_URL }}js/jquery.history.js"></script> -->
-	    <!-- bootbox.min.js -->
-	    <script src="{{ STATIC_URL }}js/bootbox.min.js"></script>
-	    <!-- selec2.min.js for better selects fields -->
-	    <script src="{{ STATIC_URL }}js/select2.min.js"></script>
-	    <!-- dajaxice.js -->
-	    {% dajaxice_js_import %}
-	    <!-- jquery.dajax.core.js ajax django library -->
-	       <script src="{{ STATIC_URL }}js/jquery.dajax.core.js"></script>
-	       <!-- application aRAT script -->
-            <script src="{{ STATIC_URL }}js/aRAT.js"></script>
-	    {% block Javascript %}{% endblock %}	
+	  <!-- data table plugin -->
+	  <script src="{{ STATIC_URL }}js/jquery.dataTables.min.js"></script>
+	  <!-- bootbox.min.js -->
+	  <script src="{{ STATIC_URL }}js/bootbox.min.js"></script>
+	  <!-- selec2.min.js for better selects fields -->
+	  <script src="{{ STATIC_URL }}js/select2.min.js"></script>
+	  <!-- dajaxice.js -->
+	  {% dajaxice_js_import %}
+	  <!-- jquery.dajax.core.js ajax django library -->
+	  <script src="{{ STATIC_URL }}js/jquery.dajax.core.js"></script>
+	  <!-- application aRAT script -->
+          <script src="{{ STATIC_URL }}js/aRAT.js"></script>
+	  {% block Javascript %}{% endblock %}	
       {% endblock %}		
 </body>
 </html>
