@@ -7,6 +7,7 @@
 
 {% block Content %}
 <div id="debug">DEBUG DIV {{ read_only }}</div>
+  <div class="row-fluid alerts-container"></div>
 
   <ul class="nav nav-tabs" id="antennasTab">
     {% for vendor in vendors %}
@@ -18,7 +19,6 @@
     {% for vendor, antennas in antennas.items %}
     <div class="tab-pane" id="{{ vendor|cut:" "|lower }}">
       <div class="row-fluid">
-        <div id="alerts-{{ vendor|lower }}" class="row-fluid alerts-container"></div>
         <div class="row-fluid">
 	  {% for antennas_by_vendor in antennas|rows_distributed:"2" %}  
 	  <div class="span6">
@@ -36,7 +36,7 @@
 		      <td>
 		        <div class="btn-group" data-toggle="buttons-checkbox" data-band-array="{{ antenna.current_band }}" data-band-array-req="[]">
 			  {% for band in bands %}
-                          <button type="button" class="btn-band btn{% if band in antenna.current_band|eval %} btn-info active{% endif %}" value="{{ band }}">{{ band }}</button>
+                          <button type="button" class="btn-band btn{% if antenna.current_band == "[]" and antenna.requested_band == "[]" and band in "[3,6,7,9]"|eval%} active{% else %}{% if band in antenna.current_band|eval %} btn-info active{% endif %}{% endif %}" value="{{ band }}">{{ band }}</button>
 			  {% endfor %}
 		        </div>
 		      </td>
@@ -65,16 +65,16 @@
   function update_status(data){
     var tr = $("tr[data-antenna-id='"+data.antenna+"']");
 
-    alerts = tr.parents(".tab-pane").find(".alerts-container");
+    alerts = $(".alerts-container");
 
     tr.removeClass("btn-info btn-danger");
     tr.find("button").removeClass("btn-success");
     if (data.is_requested) {
-/*      current_band = eval(data.current_band);
+      /*      current_band = eval(data.current_band);
       for (i=0; i < current_length.length; ++i) {
-        tr.find("button[value='"+current_band[i]+"']").addClass("active");
-        console.log(current_band[i]);
-      }*/
+      tr.find("button[value='"+current_band[i]+"']").addClass("active");
+      console.log(current_band[i]);
+    }*/
 
       requested_band = eval(data.requested_band);
       for (i=0; i < requested_band.length; ++i) {
