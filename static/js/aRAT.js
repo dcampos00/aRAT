@@ -55,7 +55,10 @@ function updateAlert(alerts_div, type, text, id, read_only) {
 	}
 	html_alert += "<div class=\"alert-text\">"+text+"</div>";
 	html_alert += "</div>";
-	alerts_div.append( html_alert );
+	
+	new_alert = $(html_alert)
+	alerts_div.append( new_alert );
+
     }
 }
 
