@@ -179,10 +179,6 @@ class Antenna(Resource):
                 text_error = "The Antenna must have associated a PAD."
             elif e == 2:
                 text_error = "The Antenna must have associated a STE."
-            elif e == 3:
-                text_error = "The Antenna have an invalid CentralLO Configuration, must be moved of STE to AOS2."
-            elif e == 4:
-                text_error = "The Antenna must have a valid CentralLO Configuration in AOS2."
             elif e == 5:
                 text_error = "The Antenna must have associated a bands configuration."
             else:
@@ -297,7 +293,7 @@ class PAD(Resource):
         else:
             return [1]
 
-        if self.location == 'AOS' and (ste == 'AOS' or ste == 'AOS2'):
+        if self.location == 'AOS' and ste == 'AOS':
             return []
         elif self.location == 'OSF' and (ste == 'TFINT' or ste == 'TFSD' or ste == 'TFOHG'):
             return []
@@ -481,7 +477,7 @@ class CorrelatorConfiguration(Resource):
 
         if self.correlator == 'BL-Corr' and (ste == 'AOS'):
             pass
-        elif self.correlator == 'ACA-Corr' and (ste == 'AOS' or ste == 'AOS2'):
+        elif self.correlator == 'ACA-Corr' and (ste == 'AOS'):
             pass
         elif self.correlator == 'OSF-Corr' and (ste == 'TFINT'):
             pass
@@ -685,7 +681,7 @@ class CentralloConfiguration(Resource):
         else:
             errors.append(3)
 
-        if self.centrallo == 'AOS' and (ste == 'AOS' or ste == 'AOS2'):
+        if self.centrallo == 'AOS' and (ste == 'AOS'):
             pass
         elif self.centrallo == 'TFINT' and (ste == 'TFINT'):
             pass
