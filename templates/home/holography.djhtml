@@ -12,6 +12,7 @@ Holography Configuration
 {% block Content %}
 <div id="debug">DEBUG DIV</div>
 
+{% if holos %}
 <div class="tab-pane">
   <div id="alerts-holography" class="row-fluid alerts-container"></div>
   <!-- <div class="row-fluid"><form class="pull-right"><input type="text" class="filter" placeholder="Filter by PAD"></form></div> -->
@@ -39,6 +40,7 @@ Holography Configuration
       </div>
     </div>
 </div>
+{% endif %}
 
 {% if not read_only %}
 <div class="antenna-change-select hide original">
