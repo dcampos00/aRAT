@@ -429,6 +429,11 @@ class CustomAdminSite(AdminSite):
             block_status = Configuration(setting='BLOCK', value=False)
             block_status.save()
 
+        requester_group = Group.objects.filter(name='Requester')
+        if not requester_group:
+            requester_group = Group(name='Requester')
+            requester_group.save()
+        
         consistent = checkConsistencyService.check("") == "SUCCESS"
 
         extra_context = {'read_only': block_status.value,
