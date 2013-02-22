@@ -6,25 +6,37 @@
 {% block Content %}
 <div class="row-fluid">
   <div class="alerts-container">
-    <h3>STE Requests</h3>
-    <div id="steRequests">
-      <center>There are no requests</center>
-    </div>
-    <h3>PAD Requests</h3>
-    <div id="padRequests">
-      <center>There are no requests</center>
-    </div>
-    <h3>Correlator Configurarion Requests</h3>
-    <div id="corrRequests">
-      <center>There are no requests</center>
-    </div>
-    <h3>CentralLO Configuration Requests</h3>
-    <div id="cloRequests">
-      <center>There are no requests</center>
-    </div>
-    <h3>Holography Requests</h3>
-    <div id="holoRequests">
-      <center>There are no requests</center>
+    <div class="accordion-group">
+      <div class="accordion-heading">
+        <a href="#steRequests" data-toggle="collapse" class="accordion-toggle"><h3>STE Requests</h3></a>
+      </div>
+      <div id="steRequests" class="accordion-body collapse in">
+        <center>There are no requests</center>
+      </div>
+      <div class="accordion-heading">
+        <a href="#padRequests" data-toggle="collapse" class="accordion-toggle"><h3>PAD Requests</h3></a>
+      </div>
+      <div id="padRequests" class="accordion-body collapse in">
+        <center>There are no requests</center>
+      </div>
+      <div class="accordion-heading">
+        <a href="#corrRequests" data-toggle="collapse" class="accordion-toggle"><h3>Correlator Configurarion Requests</h3></a>
+      </div>
+      <div id="corrRequests" class="accordion-body collapse in">
+        <center>There are no requests</center>
+      </div>
+      <div class="accordion-heading">
+        <a href="#cloRequests" data-toggle="collapse" class="accordion-toggle"><h3>CentralLO Configuration Requests</h3></a>
+      </div>
+      <div id="cloRequests" class="accordion-body collapse in">
+        <center>There are no requests</center>
+      </div>
+      <div class="accordion-heading">
+        <a href="#holoRequests" data-toggle="collapse" class="accordion-toggle"><h3>Holography Requests</h3></a>
+      </div>
+      <div id="holoRequests" class="accordion-body collapse in">
+        <center>There are no requests</center>
+      </div>
     </div>
   </div>
 </div>
