@@ -1,6 +1,7 @@
 #+TODO: TODO(t) IN-PROGRESS(p) | DONE(d!)
 
-* CODE [100%]
+* CODE [100%] 
+  Task that are refers to programming
 ** DONE web services [100%]
    - State "DONE"       from "IN-PROGRESS" [2013-02-13 Wed 16:20]
    - [X] block/unblock web service
@@ -66,6 +67,7 @@
     with the possibility of change between resources alerts and antenna alerts
 *** TODO write better comfirmation messages
 * DOCUMENTATION [%]
+  Tasks that are refers to document the project
 ** IN-PROGRESS documents [%]
    - [ ] Administration manual
    - [ ] Wiki project :: Something was did it
