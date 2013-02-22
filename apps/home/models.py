@@ -160,22 +160,6 @@ class Antenna(Resource):
             else:
                 errors.append(1)
 
-            if ste == 'AOS':
-                is_used_aos2 = Antenna.objects.filter(requested_ste='AOS2')
-                if is_used_aos2:
-                    clo_confs = CentralloConfiguration.objects.filter(models.Q(current_antenna=self, assigned=True) | models.Q(requested_antenna=self))
-                    for clo_conf in clo_confs:
-                        if ((clo_conf.sas_ch() == 5 and clo_conf.sas_node() >= '0x340')
-                            or (clo_conf.llc_ch() == 3 and clo_conf.llc_node() >= '0x240')):
-                            errors.append(3)
-            elif ste == 'AOS2':
-                clo_confs = CentralloConfiguration.objects.filter(models.Q(current_antenna=self, assigned=True) | models.Q(requested_antenna=self))
-                for clo_conf in clo_confs:
-                    if ((clo_conf.sas_ch() != 5 and clo_conf.sas_node() < '0x340')
-                        or (clo_conf.llc_ch() != 3 and clo_conf.llc_node() < '0x240')):
-                        errors.append(4)
-
-            
             if ste != "TFOHG":
                 # Band restrcition
                 if self.is_band_request():
