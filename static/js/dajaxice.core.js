@@ -19,12 +19,20 @@ var Dajaxice = {
     
         home: {
     
+    ste_update_alerts: function(callback_function, argv, custom_settings){
+        Dajaxice.call('aRAT.apps.home.ste_update_alerts', 'POST', callback_function, argv, custom_settings);
+    },
+
     holo_update_alerts: function(callback_function, argv, custom_settings){
         Dajaxice.call('aRAT.apps.home.holo_update_alerts', 'POST', callback_function, argv, custom_settings);
     },
 
-    ste_update_alerts: function(callback_function, argv, custom_settings){
-        Dajaxice.call('aRAT.apps.home.ste_update_alerts', 'POST', callback_function, argv, custom_settings);
+    band_update_alerts: function(callback_function, argv, custom_settings){
+        Dajaxice.call('aRAT.apps.home.band_update_alerts', 'POST', callback_function, argv, custom_settings);
+    },
+
+    clo_update_alerts: function(callback_function, argv, custom_settings){
+        Dajaxice.call('aRAT.apps.home.clo_update_alerts', 'POST', callback_function, argv, custom_settings);
     },
 
     corr_update_alerts: function(callback_function, argv, custom_settings){
@@ -33,10 +41,6 @@ var Dajaxice = {
 
     pad_update_alerts: function(callback_function, argv, custom_settings){
         Dajaxice.call('aRAT.apps.home.pad_update_alerts', 'POST', callback_function, argv, custom_settings);
-    },
-
-    clo_update_alerts: function(callback_function, argv, custom_settings){
-        Dajaxice.call('aRAT.apps.home.clo_update_alerts', 'POST', callback_function, argv, custom_settings);
     }
 
 
