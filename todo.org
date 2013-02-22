@@ -1,6 +1,6 @@
 #+TODO: TODO(t) IN-PROGRESS(p) | DONE(d!)
 
-* CODE [75%]
+* CODE [100%]
 ** DONE web services [100%]
    - State "DONE"       from "IN-PROGRESS" [2013-02-13 Wed 16:20]
    - [X] block/unblock web service
@@ -22,7 +22,7 @@
      + [X] Correlator Configuration :: A Corr Config can only have an Antenna associated
      + [X] CentralLO Configuration :: A CLO Config can only have an Antenna associated
      + [X] Holography Recetor :: A Holography Receptor can only have an Antenna associated
-** DONE review the restrictions [50%]
+** DONE review the restrictions [100%]
    - State "DONE"       from "IN-PROGRESS" [2013-02-18 Mon 17:12]
 *** DONE change the restriction errors [4/4]
     - State "DONE"       from "IN-PROGRESS" [2013-02-13 Wed 16:20]
@@ -31,7 +31,8 @@
     - [X] CentralLO Configuration
     - [X] Holography Receptor
 
-** TODO changes [100%]
+** DONE changes [100%]
+   - State "DONE"       from "IN-PROGRESS" [2013-02-22 Fri 10:58]
 *** DONE user levels control [100%]
     - State "DONE"       from "IN-PROGRESS" [2013-02-19 Tue 10:45]
      Will exist three user level/groups
@@ -58,8 +59,12 @@
     - State "DONE"       from "IN-PROGRESS" [2013-02-19 Tue 17:51]
 *** DONE generate json to CCR
     - State "DONE"       from "IN-PROGRESS" [2013-02-20 Wed 16:18]
+*** DONE add restriction that the bands cannot be empty
+    - State "DONE"       from "IN-PROGRESS" [2013-02-22 Fri 10:56]
+** possible changes
 *** TODO generate better messages in the application
-*** TODO add restriction that the bands cannot be empty
+    with the possibility of change between resources alerts and antenna alerts
+*** TODO write better comfirmation messages
 * DOCUMENTATION [%]
 ** IN-PROGRESS documents [%]
    - [ ] Administration manual
