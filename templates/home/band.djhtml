@@ -69,16 +69,17 @@
 
     tr.removeClass("btn-info btn-danger");
     tr.find("button").removeClass("btn-success");
-    if (data.is_requested) {
-      /*      current_band = eval(data.current_band);
-      for (i=0; i < current_length.length; ++i) {
-      tr.find("button[value='"+current_band[i]+"']").addClass("active");
-      console.log(current_band[i]);
-    }*/
 
+    if (data.is_requested) {
       requested_band = eval(data.requested_band);
       for (i=0; i < requested_band.length; ++i) {
-        tr.find("button[value='"+requested_band[i]+"']").addClass("btn-success");
+        band_button = tr.find("button[value='"+requested_band[i]+"']");
+        band_button.removeClass("btn-info");
+        if (tr.find(".antenna-change-apply").length > 0 && tr.find(".antenna-change-apply").is(":visible")) {
+          band_button.addClass("btn-success");
+        } else {
+          band_button.addClass("btn-success active");
+        }
       }
 
       if (data.error){
@@ -105,6 +106,12 @@
                   data.antenna,
                   true);
     } else {
+      current_band = eval(data.current_band);
+      for (i=0; i < current_band.length; ++i) {
+        tr.find("button[value='"+current_band[i]+"']").addClass("btn-info active");
+        console.log(current_band[i]);
+      }
+
       removeAlert(alerts, data.antenna);
       tr.removeClass("btn-info");
       $.Deferred().done(
@@ -126,10 +133,21 @@
     });
 
     {% if not read_only %}
-    $(".btn-band").click(function (e) {
-      //e.preventDefault();
+    $("tr.antenna").click(function (e) {
+      applyButton = $(this).find(".antenna-change-apply");
+      if (applyButton.length > 0) {
+        if (applyButton.is(":visible")) {
+          applyButton.hide();
+        } else {
+          applyButton.show();
+        }
+      } else {
+        $(this).children("td:last").append($(".antenna-change-apply.original").clone());
+        $(this).find(".antenna-change-apply").removeClass("original").show();
+      }
+    });
 
-      /*$(".antenna-change-apply:not(.original)").remove();*/      
+    $(".btn-band").click(function (e) {
       parent = $(this).parents("tr.antenna");
       applyButton = parent.find(".antenna-change-apply");
       if (applyButton.length > 0) {
@@ -139,35 +157,26 @@
         parent.find(".antenna-change-apply").removeClass("original").show();
       }
 
-      button_group = $(this).parents(".btn-group");
-      if (button_group.data("bandArrayReq").length <= 0) {
-        console.log(button_group.data("bandArray"));
-        button_group.data("bandArrayReq", button_group.data("bandArray").slice(0));
-      }
-
-      band_array = button_group.data("bandArrayReq");
-
-      btn_val = parseInt($(this).val());
-
-      if (band_array.indexOf(btn_val) == -1) {
-        //$(this).addClass("active");
-        console.log(band_array.indexOf(btn_val));
-        band_array.push(btn_val);
+      if( $(this).hasClass("active") ){
+        $(this).removeClass("active");
       } else {
-        console.log(band_array.indexOf(btn_val));
-        band_array.splice(band_array.indexOf(btn_val), 1);
-        //$(this).removeClass("active");
+        $(this).addClass("active");
       }
 
+      e.stopPropagation();
 
-      console.log(band_array);
     });
 
     $(document).on("click", ".btn-apply", function (e) {
+      console.log("click btn-apply");
       e.preventDefault();
 
       button_group = $(this).parents(".antenna-change-apply").siblings(".btn-group");
-      val_buttons = button_group.data("bandArrayReq");
+      val_buttons = [];
+
+      button_group.find("button.active").each(function () {
+        val_buttons.push(parseInt($(this).val()));
+      });
 
       console.log(val_buttons);
 
@@ -197,6 +206,13 @@
       parent.find(".btn-info").addClass("active");
       parent.find(".btn-success").addClass("active");
       parent.find(".btn-group").data("bandArrayReq", []);
+
+      if (parent.find(".active").length <= 0) {
+        default_bands = [3,6,7,9];
+        for (i=0; i<default_bands.length; i++) {
+          parent.find("button[value='"+default_bands[i]+"']").addClass("active");
+        }
+      }
 
       console.log(parent.find(".btn-group").data("bandArrayReq"));
 
