@@ -4,7 +4,7 @@ COMMON_SETTINGS = (
     (u'BLOCK', u'Block'),
     )
 
-# Create your models here.
+
 class Configuration(models.Model):
     """
     Model that allows to define the settings of the application.
@@ -13,9 +13,11 @@ class Configuration(models.Model):
     """
 
     # name of the setting that will be stored
-    setting = models.CharField(max_length=5, choices=COMMON_SETTINGS, unique=True)
+    setting = models.CharField(max_length=5,
+                               choices=COMMON_SETTINGS,
+                               unique=True)
     # boolean value of the setting that will be stored
     value = models.BooleanField(default=False)
 
     def __unicode__(self):
-        return "%s"%self.setting
+        return "%s" % self.setting
