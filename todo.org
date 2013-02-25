@@ -66,13 +66,18 @@
 *** TODO generate better messages in the application
     with the possibility of change between resources alerts and antenna alerts
 *** TODO write better comfirmation messages
-* DOCUMENTATION [%]
+* DOCUMENTATION [50%]
   Tasks that are refers to document the project
-** IN-PROGRESS documents [%]
+** IN-PROGRESS documents [0%]
    - [ ] Administration manual
    - [ ] Wiki project :: Something was did it
-** IN-PROGRESS documentation [0%]
-   - [-] Code documentation [75%]
+   - [-] Installation documents [1/3]
+     - [ ] write the requirements to deploy the application
+     - [ ] write a little manual to deploy the application
+     - [X] Create requirements.txt
+** DONE documentation [100%]
+   - State "DONE"       from "IN-PROGRESS" [2013-02-25 Mon 16:25]
+   - [X] Code documentation [100%]
      + [X] web services documentation [4/4]
        - [X] block/Unblock
        - [X] checkConsistency
@@ -80,6 +85,4 @@
        - [X] changes pages
      + [X] Ajax.py documentation
      + [X] Views documentation
-     + [ ] Models documentation
-   - [ ] Installation documentation [0/1]
-     + [ ] Create requirements.txt :: To install all requires libraries with pip
+     + [X] Models documentation
