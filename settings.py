@@ -30,7 +30,8 @@ AUTHENTICATION_BACKENDS = (
 
 # END LDAP Configuration
 
-CONFIGURATION_DIR = os.path.join( os.path.dirname( os.path.abspath(__file__) ), 'configuration/' )
+CONFIGURATION_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                  'configuration/')
 COMPRESS_HTML = True
 AUTO_LOGOUT_DELAY = 10
 
@@ -45,12 +46,12 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'arat_db',                      # Or path to database file if using sqlite3.
-        'USER': 'root',                      # Not used with sqlite3.
-        'PASSWORD': '123456',                  # Not used with sqlite3.
-        'HOST': 'localhost',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'arat_db',
+        'USER': 'root',
+        'PASSWORD': '123456',
+        'HOST': 'localhost',
+        'PORT': '',
     }
 }
 
@@ -101,7 +102,7 @@ STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    os.path.join( os.path.dirname( os.path.abspath(__file__) ), 'static' ),
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static'),
 )
 
 # List of finder classes that know how to find static files in
@@ -152,10 +153,7 @@ ROOT_URLCONF = 'aRAT.urls'
 WSGI_APPLICATION = 'aRAT.wsgi.application'
 
 TEMPLATE_DIRS = (
-    os.path.join( os.path.dirname( os.path.abspath(__file__) ), 'templates' ),
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates'),
 )
 
 INSTALLED_APPS = (
@@ -180,7 +178,7 @@ INSTALLED_APPS = (
     # apps Installed
     'aRAT.apps.common',
     'aRAT.apps.home',
-    
+
     #Dajaxice
     'dajaxice',
     'dajax',
