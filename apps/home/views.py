@@ -2,8 +2,13 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 
-# models
-from aRAT.apps.home.models import Antenna, PAD, CorrelatorConfiguration, CentralloConfiguration, HolographyConfiguration, TableHeader
+# are imported the models of the application
+from aRAT.apps.home.models import (Antenna, PAD,
+                                   CorrelatorConfiguration,
+                                   CentralloConfiguration,
+                                   HolographyConfiguration,
+                                   TableHeader)
+# is imported the model that contains all the configurations
 from aRAT.apps.common.models import Configuration
 from django.conf import settings
 
@@ -11,11 +16,17 @@ from django.conf import settings
 import logging
 from django.contrib.auth import authenticate, login, logout
 
+
 def read_only(request):
+    """
+    Return *True* if a request is the application
+    is in read only mode for the user
+    """
     block_status = Configuration.objects.get(setting='BLOCK').value
     is_requester = request.user.groups.filter(name='Requester')
 
     return block_status or not is_requester
+
 
 def login_user_view(request):
     """View to login in authenticate system"""
@@ -30,7 +41,7 @@ def login_user_view(request):
 
         username = form['username'].strip()
         password = form['password']
-        
+
         user = authenticate(username=username, password=password)
         if user is not None:
             login(request, user)
@@ -39,22 +50,33 @@ def login_user_view(request):
             state = 'Your username and/or password were incorrect.'
 
     ctx = {'state': state, 'username': username}
-    return render_to_response('home/login.djhtml', ctx, context_instance=RequestContext(request))
+    return render_to_response('home/login.djhtml',
+                              ctx,
+                              context_instance=RequestContext(request))
+
 
 def logout_user_view(request):
     """Logout View"""
 
+    # the user is logout
     logout(request)
     return HttpResponseRedirect("/")
 
+
 def home_view(request):
-    """Home view"""
+    """
+    Home view, That view is an overview of the current
+    status of the system
+    """
 
     if not request.user.is_authenticated():
         return HttpResponseRedirect("/login")
 
     ctx = {'read_only': read_only(request)}
-    return render_to_response('home/index.djhtml', ctx, context_instance=RequestContext(request))
+    return render_to_response('home/index.djhtml',
+                              ctx,
+                              context_instance=RequestContext(request))
+
 
 def ste_configuration_view(request):
     """View for STE configurations"""
@@ -66,7 +88,7 @@ def ste_configuration_view(request):
 
     vendors = []
     stes = Antenna().STEs
-    
+
     antennas = {}
     for antenna in Antenna.objects.all().order_by('name'):
         if not antenna.active:
@@ -81,18 +103,23 @@ def ste_configuration_view(request):
     ctx = {'error': error,
            'read_only': read_only(request),
            'vendors': vendors,
-           'stes':stes,
+           'stes': stes,
            'antennas': antennas
            }
-    return render_to_response('home/ste.djhtml', ctx, context_instance=RequestContext(request))
+    return render_to_response('home/ste.djhtml',
+                              ctx,
+                              context_instance=RequestContext(request))
+
 
 def band_configuration_view(request):
+    """View for Band Configurations"""
     error = ''
 
     if not request.user.is_authenticated():
         return HttpResponseRedirect("/login")
 
-    bands = [i for i in xrange(1,11)]
+    # the bands values are created
+    bands = [i for i in xrange(1, 11)]
     vendors = []
     antennas = {}
     for antenna in Antenna.objects.all().order_by('name'):
@@ -103,14 +130,18 @@ def band_configuration_view(request):
             antennas.setdefault(antenna.vendor, [])
             vendors.append(antenna.vendor)
         antennas[antenna.vendor].append(antenna)
-    
+
     ctx = {'error': error,
            'read_only': read_only(request),
            'vendors': vendors,
            'bands': bands,
            'antennas': antennas
            }
-    return render_to_response('home/band.djhtml', ctx, context_instance=RequestContext(request))
+
+    return render_to_response('home/band.djhtml',
+                              ctx,
+                              context_instance=RequestContext(request))
+
 
 def pad_configuration_view(request):
     """View for PAD configurations"""
@@ -122,7 +153,6 @@ def pad_configuration_view(request):
 
     # the antennas are loaded from the db
     antennas = Antenna.objects.all()
-
 
     locations = []
     pads = {}
@@ -139,10 +169,14 @@ def pad_configuration_view(request):
     ctx = {'error': error,
            'read_only': read_only(request),
            'locations': locations,
-           'pads':pads,
-           'antennas':antennas
+           'pads': pads,
+           'antennas': antennas
            }
-    return render_to_response('home/pad.djhtml', ctx, context_instance=RequestContext(request))
+
+    return render_to_response('home/pad.djhtml',
+                              ctx,
+                              context_instance=RequestContext(request))
+
 
 def corr_configuration_view(request):
     """View for Correlator configuration"""
@@ -176,7 +210,9 @@ def corr_configuration_view(request):
            'corr_confs': corr_confs,
            'antennas': antennas
            }
-    return render_to_response('home/corr.djhtml', ctx, context_instance=RequestContext(request))
+    return render_to_response('home/corr.djhtml',
+                              ctx,
+                              context_instance=RequestContext(request))
 
 
 def clo_configuration_view(request):
@@ -206,9 +242,12 @@ def clo_configuration_view(request):
            'read_only': read_only(request),
            'centrallos': centrallos,
            'clo_confs': clo_confs,
-           'antennas':antennas
+           'antennas': antennas
            }
-    return render_to_response('home/clo.djhtml', ctx, context_instance=RequestContext(request))
+    return render_to_response('home/clo.djhtml',
+                              ctx,
+                              context_instance=RequestContext(request))
+
 
 def holography_configuration_view(request):
     """View for Holography Receptor Configurations"""
@@ -233,4 +272,7 @@ def holography_configuration_view(request):
            'holos': holos,
            'antennas': antennas
            }
-    return render_to_response('home/holography.djhtml', ctx, context_instance=RequestContext(request))
+
+    return render_to_response('home/holography.djhtml',
+                              ctx,
+                              context_instance=RequestContext(request))

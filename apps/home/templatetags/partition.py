@@ -19,6 +19,7 @@ from django.template import Library
 
 register = Library()
 
+
 def rows(thelist, n):
     """
     Break a list into ``n`` rows, filling up each row to the maximum equal
@@ -55,7 +56,9 @@ def rows(thelist, n):
 
     if list_len % n != 0:
         split += 1
-    return [thelist[split*i:split*(i+1)] for i in range(n)]
+
+    return [thelist[split * i:split * (i + 1)] for i in range(n)]
+
 
 def rows_distributed(thelist, n):
     """
@@ -96,19 +99,20 @@ def rows_distributed(thelist, n):
     rows = []
     for i in range(n):
         if remainder:
-            start, end = (split+1)*i, (split+1)*(i+1)
+            start, end = (split + 1) * i, (split + 1) * (i + 1)
         else:
-            start, end = split*i+offset, split*(i+1)+offset
+            start, end = split * i + offset, split * (i + 1) + offset
         rows.append(thelist[start:end])
         if remainder:
             remainder -= 1
             offset += 1
     return rows
 
+
 def columns(thelist, n):
     """
-    Break a list into ``n`` columns, filling up each column to the maximum equal
-    length possible. For example::
+    Break a list into ``n`` columns, filling up each column to the maximum
+    equal length possible. For example::
 
         >>> from pprint import pprint
         >>> for i in range(7, 11):
@@ -150,8 +154,9 @@ def columns(thelist, n):
     return [thelist[i::split] for i in range(split)]
 
 register.filter('rows', rows)
-register.filter('rows_distributed',rows_distributed)
+register.filter('rows_distributed', rows_distributed)
 register.filter('columns', columns)
+
 
 def _test():
     import doctest

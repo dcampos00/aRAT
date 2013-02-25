@@ -1,30 +1,36 @@
-import random
 from datetime import datetime
 from dajax.core import Dajax
 from dajaxice.decorators import dajaxice_register
 
-from aRAT.apps.home.models import Antenna, PAD, CorrelatorConfiguration, CentralloConfiguration, HolographyConfiguration
-from django.db.models import F, Q
-
+# are imported the models of the application
+from aRAT.apps.home.models import (Antenna, PAD,
+                                   CorrelatorConfiguration,
+                                   CentralloConfiguration,
+                                   HolographyConfiguration)
 from aRAT.apps.common.models import Configuration
+
 from aRAT.apps.home.views import read_only as check_read_only
 from django.conf import settings
 
-DATE_FORMAT = "%Y-%m-%d" 
-TIME_FORMAT = "%H:%M:%S"
 
 @dajaxice_register
 def ste_update_alerts(request, ste_id='', antenna_id=''):
     """
-    Function that allow keep update the requests for STEs
+    allows keep update the requests status for STEs configuration.
+
+    If ste_id and antenna_id is *None* the functions returns the current
+    status of the all ste configuration.
+
+    If antenna_id is different to *None* the antenna is updated.
 
     Arguments:
     - `ste_id`: is the id of STE that will be assigned to the Antenna
+    (in the application the STE_id is its *name*)
     - `antenna_id`: the id of the Antenna that will be updated
     """
 
-    dajax = Dajax() # object that manage the AJAX connection
-    
+    dajax = Dajax()  # object that manage the AJAX connection
+
     # is retrieved the current block status of the application
     read_only = check_read_only(request)
 
@@ -43,7 +49,7 @@ def ste_update_alerts(request, ste_id='', antenna_id=''):
         # The requester and request_date is updated
         antenna.requester = request.user
         antenna.request_date = datetime.now()
-        antenna.save() # the Antenna is saved
+        antenna.save()  # the Antenna is saved
 
     # is loaded all current status of the ste configuration
     antennas = Antenna.objects.all()
@@ -66,9 +72,22 @@ def ste_update_alerts(request, ste_id='', antenna_id=''):
 
     return dajax.json()
 
+
 @dajaxice_register
 def band_update_alerts(request, band_array=[], antenna_id=''):
-    dajax = Dajax()
+    """
+    Return the status bands assigned to the antennas.
+
+    If antenna_id is not *None* the antenna's bands of the antenna
+    with id equal to antenna_id are updated with band_array
+
+    Arguments:
+    `band_array`: array that contains the bands that will be assigned
+    to the antenna
+    `antenna_id`: id of the antenna that will be updated
+    """
+
+    dajax = Dajax()  # object that manage the AJAX response
 
     # is retrieved the current block status of the application
     read_only = check_read_only(request)
@@ -85,9 +104,10 @@ def band_update_alerts(request, band_array=[], antenna_id=''):
         # The requester and request_date is updated
         # antenna.requester = request.user
         # antenna.request_date = datetime.now()
-        antenna.save() # the Antenna is saved
-       
+        antenna.save()  # the Antenna is saved
+
     for antenna in Antenna.objects.all():
+        # if a antenna is not active is skipped
         if not antenna.active:
             continue
 
@@ -110,10 +130,15 @@ def band_update_alerts(request, band_array=[], antenna_id=''):
 
     return dajax.json()
 
+
 @dajaxice_register
 def pad_update_alerts(request, pad_id='', antenna_id=''):
     """
-    Function that allow keep update the alerts for PADs
+    Allows keep update the alerts for PADs. Also update the configuration
+    of the PAD
+
+    If pad_id is not *None* the antenna assigned to the PAD is updated
+    to the antenna with the id equal to antenna_id
 
     Arguments:
     - `pad_id`: id value of a pad that will be updated
@@ -124,7 +149,7 @@ def pad_update_alerts(request, pad_id='', antenna_id=''):
 
     # is retrieved the current block status of the application
     read_only = check_read_only(request)
-    
+
     # first the pad information is updated
     if pad_id != '' and not read_only:
         pad = PAD.objects.get(id=pad_id)
@@ -133,8 +158,8 @@ def pad_update_alerts(request, pad_id='', antenna_id=''):
             pad.assigned = False
             pad.requested_antenna = None
         # if a PAD will be changed to another antenna
-        elif (antenna_id != '' 
-              and antenna_id != 'None' 
+        elif (antenna_id != ''
+              and antenna_id != 'None'
               and pad.current_antenna != Antenna.objects.get(id=antenna_id)):
             pad.requested_antenna = Antenna.objects.get(id=antenna_id)
             pad.assigned = True
@@ -144,14 +169,14 @@ def pad_update_alerts(request, pad_id='', antenna_id=''):
             pad.assigned = True
         pad.requester = request.user
         pad.request_date = datetime.now()
-        pad.save() # the PAD information is saved
-        pad.update_restriction_errors()
+        pad.save()  # the PAD information is saved
+        pad.update_restriction_errors()  # the restriction errors are updated
 
-    # is loaded all current status of the PADs
+    # are loaded all current status of the PADs
     for pad in PAD.objects.all():
         if not pad.active:
             continue
-        
+
         current_antenna_name = current_antenna_id = None
         requested_antenna_name = requested_antenna_id = None
 
@@ -164,7 +189,6 @@ def pad_update_alerts(request, pad_id='', antenna_id=''):
 
         status = pad.html_status()
         exist_errors = pad.exist_errors()
-
 
         dajax.add_data({'resource': {'id': pad.id,
                                      'name': pad.name,
@@ -183,14 +207,17 @@ def pad_update_alerts(request, pad_id='', antenna_id=''):
 
     return dajax.json()
 
+
 @dajaxice_register
 def corr_update_alerts(request, configuration_id='', antenna_id=''):
     """
-    Function that keeps updated the alerts of Correlator Configuration
+    Keeps updated the alerts of Correlator Configuration
+
+    If configuration_id is not *None* then the configuration with id equal
+    to configuration_id assigned to the antenna with id equal to antenna_id
 
     Arguments:
-    `configuration_id`: identifier of the configuration, each configuration
-    has only one line number associated
+    `configuration_id`: identifier of the correlator configuration
     `antenna_id`: identifier of the Antenna to be requested
     """
     dajax = Dajax()
@@ -205,7 +232,7 @@ def corr_update_alerts(request, configuration_id='', antenna_id=''):
             corr.assigned = False
             corr.requested_antenna = None
         elif (antenna_id != ''
-              and antenna_id != 'None' 
+              and antenna_id != 'None'
               and corr.current_antenna != Antenna.objects.get(id=antenna_id)):
             corr.requested_antenna = Antenna.objects.get(id=antenna_id)
             corr.assigned = True
@@ -254,22 +281,26 @@ def corr_update_alerts(request, configuration_id='', antenna_id=''):
 
     return dajax.json()
 
+
 @dajaxice_register
 def clo_update_alerts(request, configuration_id='', antenna_id=''):
     """
-    Function that keeps updated the alerts of CentralLO Configuration
+    Keeps updated the alerts of CentralLO Configuration.
+
+    If configuration_id is not *None* then the configuration with id equal
+    to configuration_id assigned to the antenna with id equal to antenna_id
 
     Arguments:
-    `configuration_id`: identifier of the configuration, each configuration
-    has only one line number associated
-    `antenna_id`: identifier of the Antenna to be requested
+    `configuration_id`: identifier of the centrallo configuration.
+    `antenna_id`: identifier of the Antenna to be requested.
     """
+
     dajax = Dajax()
 
     # is retrieved the current block status of the application
     read_only = check_read_only(request)
 
-    # first the pad information is updated
+    # first the clo conf information is updated
     if configuration_id != '' and not read_only:
         clo = CentralloConfiguration.objects.get(id=configuration_id)
         if antenna_id == 'None' and clo.current_antenna is not None:
@@ -288,7 +319,7 @@ def clo_update_alerts(request, configuration_id='', antenna_id=''):
         clo.save()
         clo.update_restriction_errors()
 
-    # is loaded all current status of the centrallo configurations
+    # are loaded all current status of the centrallo configurations
     for clo in CentralloConfiguration.objects.all():
         if not clo.active:
             continue
@@ -325,14 +356,17 @@ def clo_update_alerts(request, configuration_id='', antenna_id=''):
 
     return dajax.json()
 
+
 @dajaxice_register
 def holo_update_alerts(request, holo_id='', antenna_id=''):
     """
-    Function that keeps updated the alerts of Correlator Configuration
+    Function that keeps updated the alerts of Holography Configuration
+
+    If configuration_id is not *None* then the configuration with id equal
+    to configuration_id assigned to the antenna with id equal to antenna_id
 
     Arguments:
-    `holo_id`: identifier of the holography configuration, each configuration
-    has only one line number associated
+    `holo_id`: identifier of the holography configuration.
     `antenna_id`: identifier of the Antenna to be requested
     """
     dajax = Dajax()
@@ -340,13 +374,15 @@ def holo_update_alerts(request, holo_id='', antenna_id=''):
     # is retrieved the current block status of the application
     read_only = check_read_only(request)
 
-    # first the pad information is updated
+    # first the holography configuration information is updated
     if holo_id != '' and not read_only:
         holo = HolographyConfiguration.objects.get(id=holo_id)
-        if antenna_id == 'None' and holo.current_antenna != None:
+        if antenna_id == 'None' and holo.current_antenna is not None:
             holo.assigned = False
             holo.requested_antenna = None
-        elif antenna_id != '' and antenna_id != 'None' and holo.current_antenna != Antenna.objects.get(id=antenna_id):
+        elif (antenna_id != ''
+              and antenna_id != 'None'
+              and holo.current_antenna != Antenna.objects.get(id=antenna_id)):
             holo.requested_antenna = Antenna.objects.get(id=antenna_id)
             holo.assigned = True
         else:
@@ -356,7 +392,7 @@ def holo_update_alerts(request, holo_id='', antenna_id=''):
         holo.request_date = datetime.now()
         holo.save()
 
-    # is loaded all current status of the centrallo configurations
+    # are loaded all current status of the holography configurations
     for holo in HolographyConfiguration.objects.all():
         if not holo.active:
             continue
