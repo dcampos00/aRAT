@@ -32,5 +32,4 @@ urlpatterns = patterns('aRAT.apps.webServices',
     url(r'^admin/apply_changes',
         'applyChanges.views.apply_changes_view',
         name='apply_changes_view'),
-)    
-    
+)

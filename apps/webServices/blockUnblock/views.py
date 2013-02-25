@@ -16,6 +16,7 @@ from spyne.decorator import rpc
 
 from aRAT.apps.common.models import Configuration
 
+
 class blockUnblockService(ServiceBase):
     """
     Web services that allow block and unblock the application.
@@ -25,6 +26,9 @@ class blockUnblockService(ServiceBase):
     def block(ctx):
         """
         Method that block the application changing the BLOCK setting in the DB
+
+        The method return *FAILURE* if the *BLOCK* configuration does not exist
+        and return *SUCCESS* if the application is blocked.
         """
         # is proved if exists the configuration in the DB
         if Configuration.objects.filter(setting='BLOCK') is None:
@@ -39,7 +43,12 @@ class blockUnblockService(ServiceBase):
     @rpc(_returns=String)
     def unblock(ctx):
         """
-        Method that unblock the application changing the BLOCK setting in the DB
+        Method that unblock the application changing the BLOCK setting
+        in the DB
+
+        The method return *FAILURE* if the *BLOCK* configuration does
+        not exist and return *SUCCESS* if the application is unblocked
+        successfully
         """
         # is proved if exists the configuration in the DB
         if Configuration.objects.filter(setting='BLOCK') is None:
@@ -62,17 +71,32 @@ block_unblock_service = csrf_exempt(
 
 from django.http import HttpResponse, HttpResponseRedirect
 
+
 def block_app_view(request):
+    """
+    Function that provide a view that allows to have access
+    to the blockUnblock web service, to block the application
+
+    Note: The view is used in the administration panel
+    """
     if request.method == "POST":
         form = request.POST
         if eval(form['block']):
             blockUnblockService.block("")
-            
+
             return HttpResponseRedirect("/admin")
-        
+
     return HttpResponse('Error!')
 
+
 def unblock_app_view(request):
+    """
+    Function that provide a view that allows to have access
+    to the blockUnblock web service, to unblock the application
+
+    Note: The view is used in the administration panel
+    """
+
     if request.method == "POST":
         form = request.POST
         if not eval(form['block']):

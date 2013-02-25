@@ -11,8 +11,13 @@ from spyne.decorator import rpc
 
 from datetime import datetime
 
-from aRAT.apps.home.models import History, Antenna, PAD, CorrelatorConfiguration, CentralloConfiguration, HolographyConfiguration
-from aRAT.apps.webServices.checkConsistency.views import checkConsistencyService
+from aRAT.apps.home.models import (History, Antenna, PAD,
+                                   CorrelatorConfiguration,
+                                   CentralloConfiguration,
+                                   HolographyConfiguration)
+from aRAT.apps.webServices.checkConsistency.views import (
+    checkConsistencyService)
+
 
 class applyChangesService(ServiceBase):
     """
@@ -26,8 +31,12 @@ class applyChangesService(ServiceBase):
         i.e. pass the requested configurations to current configurations
 
         Also this method stores the request text in the DB
+
+        The method return a string, *FAILURE* if exist consistency errors
+        and return *SUCCESS* if the method apply the changes with successfully
         """
 
+        # if exist consistency errors the method return *FAILURE*
         if checkConsistencyService.check(ctx) != 'SUCCESS':
             return 'FAILURE'
 
@@ -35,12 +44,12 @@ class applyChangesService(ServiceBase):
 
         # is applied the changes for the Antennas
         for antenna in Antenna.objects.all():
-            # if exist a request and the 
+            # if exist a request and the
             if (antenna.active
                 and antenna.is_requested()):
                 for status in antenna.text_status():
-                    _request_text += "%s\n"%status
-                
+                    _request_text += "%s\n" % status
+
                 # is saved the requested ste to current ste
                 if antenna.is_ste_request():
                     antenna.current_ste = antenna.requested_ste
@@ -62,7 +71,7 @@ class applyChangesService(ServiceBase):
             # if exist a request
             if pad.active and pad.is_requested():
                 for status in pad.text_status():
-                    _request_text += "%s\n"%status
+                    _request_text += "%s\n" % status
 
                 pad.current_antenna = pad.requested_antenna
                 pad.requested_antenna = None
@@ -75,7 +84,7 @@ class applyChangesService(ServiceBase):
         for corr_conf in CorrelatorConfiguration.objects.all():
             if corr_conf.active and corr_conf.is_requested():
                 for status in corr_conf.text_status():
-                    _request_text += "%s\n"%status
+                    _request_text += "%s\n" % status
 
                 corr_conf.current_antenna = corr_conf.requested_antenna
                 corr_conf.requested_antenna = None
@@ -88,7 +97,7 @@ class applyChangesService(ServiceBase):
         for clo_conf in CentralloConfiguration.objects.all():
             if clo_conf.active and clo_conf.is_requested():
                 for status in clo_conf.text_status():
-                    _request_text += "%s\n"%status
+                    _request_text += "%s\n" % status
 
                 clo_conf.current_antenna = clo_conf.requested_antenna
                 clo_conf.requested_antenna = None
@@ -101,7 +110,7 @@ class applyChangesService(ServiceBase):
         for holo in HolographyConfiguration.objects.all():
             if holo.active and holo.is_requested():
                 for status in holo.text_status():
-                    _request_text += "%s\n"%status
+                    _request_text += "%s\n" % status
 
                 holo.current_antenna = holo.requested_antenna
                 holo.requested_antenna = None
@@ -116,7 +125,6 @@ class applyChangesService(ServiceBase):
         _request_history.request = _request_text
         _request_history.save()
 
-
         return 'SUCCESS'
 
 apply_changes_service = csrf_exempt(
@@ -130,7 +138,14 @@ apply_changes_service = csrf_exempt(
 
 from django.http import HttpResponseRedirect, HttpResponse
 
+
 def apply_changes_view(request):
+    """
+    This function is a view that allows have access to the
+    applyChanges web service.
+
+    Note: The view is used in the admin panel
+    """
     if request.method == "POST":
         form = request.POST
         if eval(form['apply']):

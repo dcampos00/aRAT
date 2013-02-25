@@ -13,9 +13,11 @@ from aRAT.apps.home.models import History
 
 import re
 
+
 class changesPageService(ServiceBase):
-    """Class that expose the method changes, this method
-    returns a XML with the changes made in the lastest request
+    """
+    Class that expose the method changes, this method
+    returns a XML with the changes made in the latest request
     """
     @rpc(_returns=String)
     def changes(ctx):
@@ -25,14 +27,14 @@ class changesPageService(ServiceBase):
         request = request.split('\n')
 
         result = "<changes>"
-        
+
         # is created the XML
         _open = False
         for r in request:
-            if not _open and r: # if r is not empty
+            if not _open and r:  # if r is not empty
                 result += "\n<change>\n"
                 _open = True
-            result += "%s\n"%r
+            result += "%s\n" % r
             if re.match("-- Request", r) is not None:
                 result += "</change>"
                 _open = False
@@ -40,14 +42,6 @@ class changesPageService(ServiceBase):
         result += "</changes>"
 
         return result
-#        if debug:
-#            return 'FAILURE'
-#        else:
-#            result = '<changes>'
-#            for i in xrange(10):
-#                result += '<change>CHANGE # %s</change>'%(i)
-#            result += '</changes>'
-#            return result
 
 changes_page_service = csrf_exempt(
     DjangoApplication(Application([changesPageService],

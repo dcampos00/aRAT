@@ -10,16 +10,25 @@ from spyne.protocol.http import HttpRpc
 from spyne.application import Application
 from spyne.decorator import rpc
 
-from aRAT.apps.home.models import Antenna, PAD, CorrelatorConfiguration, CentralloConfiguration, HolographyConfiguration
+# are imported the models of the application
+from aRAT.apps.home.models import (Antenna, PAD,
+                                   CorrelatorConfiguration,
+                                   CentralloConfiguration,
+                                   HolographyConfiguration)
 
 import json
 
+
 class ResourcesStatus(ServiceBase):
     """
+    Class that expose a method that return the current status
+    of the request in JSON format
     """
     @rpc(_returns=String)
     def status_json(ctx):
         """
+        Return a String with the current status of the request
+        in JSON format
         """
 
         result = {'ste': {}}
@@ -32,12 +41,15 @@ class ResourcesStatus(ServiceBase):
             else:
                 ste = antenna.current_ste
 
+            # the method does not return nothing for the
+            # antennas in the *VENDOR* STE
             if ste == 'VENDOR':
                 continue
 
             if ste not in result['ste']:
                 result['ste'].setdefault(ste, [])
 
+            # is defined the default status of the antennas
             antenna_data = {'drxbbpr0': None,
                             'drxbbpr1': None,
                             'drxbbpr2': None,
@@ -54,25 +66,40 @@ class ResourcesStatus(ServiceBase):
                             'pad': None
                             }
 
-            # Correlator Data
-            corr_confs = CorrelatorConfiguration.objects.filter(Q(current_antenna=antenna, assigned=True) | Q(requested_antenna=antenna))
+            # the information of the correlator configuration is loaded
+            corr_confs = CorrelatorConfiguration.objects.filter(
+                Q(current_antenna=antenna, assigned=True)
+                | Q(requested_antenna=antenna))
             for corr_conf in corr_confs:
-                antenna_data['drxbbpr0'], antenna_data['drxbbpr1'], antenna_data['drxbbpr2'], antenna_data['drxbbpr3'] = corr_conf.drx_data()
-                antenna_data['dtsrbbpr0'], antenna_data['dtsrbbpr1'], antenna_data['dtsrbbpr2'], antenna_data['dtsrbbpr3'] = corr_conf.dtsr_data()
-                antenna_data['cai'], antenna_data['acacai'] = corr_conf.cai_acacai_data()
+                (antenna_data['drxbbpr0'],
+                 antenna_data['drxbbpr1'],
+                 antenna_data['drxbbpr2'],
+                 antenna_data['drxbbpr3']) = corr_conf.drx_data()
+                (antenna_data['dtsrbbpr0'],
+                 antenna_data['dtsrbbpr1'],
+                 antenna_data['dtsrbbpr2'],
+                 antenna_data['dtsrbbpr3']) = corr_conf.dtsr_data()
+                (antenna_data['cai'],
+                 antenna_data['acacai']) = corr_conf.cai_acacai_data()
 
-            # CentralLO Data
-            clo_confs = CentralloConfiguration.objects.filter(Q(current_antenna=antenna, assigned=True) | Q(requested_antenna=antenna))
+            # the information of the centrallo configuration is loaded
+            clo_confs = CentralloConfiguration.objects.filter(
+                Q(current_antenna=antenna, assigned=True)
+                | Q(requested_antenna=antenna))
             for clo_conf in clo_confs:
-                antenna_data['sas'] = "%s-%s"%(clo_conf.sas_ch(), clo_conf.sas_node())
-                antenna_data['llc'] = "%s-%s"%(clo_conf.llc_ch(), clo_conf.llc_node())
-            
-            # PAD Data
-            pads = PAD.objects.filter(Q(current_antenna=antenna, assigned=True) | Q(requested_antenna=antenna))
-            for pad in pads:
-                antenna_data['pad'] = "%s"%pad.name
+                antenna_data['sas'] = "%s-%s" % (
+                    clo_conf.sas_ch(), clo_conf.sas_node())
+                antenna_data['llc'] = "%s-%s" % (
+                    clo_conf.llc_ch(), clo_conf.llc_node())
 
-            # bands Data
+            # the PAD information is loaded
+            pads = PAD.objects.filter(
+                Q(current_antenna=antenna, assigned=True)
+                | Q(requested_antenna=antenna))
+            for pad in pads:
+                antenna_data['pad'] = "%s" % pad.name
+
+            # the bands data is loaded
             if antenna.is_band_request():
                 bands = antenna.requested_band
             else:
@@ -80,11 +107,14 @@ class ResourcesStatus(ServiceBase):
 
             antenna_data['bands'] = bands
 
-            result['ste'][ste].append({"%s"%antenna: antenna_data})
-            
-            if deleted and antenna.current_ste != 'VENDOR':
-                result['ste'][antenna.current_ste].append({"%s"%antenna: None})
+            result['ste'][ste].append({"%s" % antenna: antenna_data})
 
+            if deleted and antenna.current_ste != 'VENDOR':
+                result['ste'][antenna.current_ste].append(
+                    {"%s" % antenna: None})
+
+        # the dictionary is converted to a string with
+        # JSON format
         return json.dumps(result)
 
 resources_status_service = csrf_exempt(
