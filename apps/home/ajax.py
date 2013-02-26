@@ -7,10 +7,81 @@ from aRAT.apps.home.models import (Antenna, PAD,
                                    CorrelatorConfiguration,
                                    CentralloConfiguration,
                                    HolographyConfiguration)
-from aRAT.apps.common.models import Configuration
 
 from aRAT.apps.home.views import read_only as check_read_only
-from django.conf import settings
+
+
+@dajaxice_register
+def update_menu_status(request):
+    """
+    Return a Dajax JSON object that content the main menu status information
+    """
+
+    dajax = Dajax()
+
+    # Are defined the default status
+    ste_error = False
+    band_error = False
+    pad_error = False
+    corr_conf_error = False
+    clo_conf_error = False
+    holo_error = False
+
+    for antenna in Antenna.objects.all():
+        if not antenna.active:
+            continue
+
+        if antenna.exist_errors():
+            if antenna.exist_band_error():
+                band_error = True
+            if antenna.exist_ste_error():
+                ste_error = True
+
+        # if exist a band and ste error, then the loop is broke
+        if band_error and ste_error:
+            break
+
+    for pad in PAD.objects.all():
+        if not pad.active:
+            continue
+
+        if pad.exist_errors():
+            pad_error = True
+            break
+
+    for corr_conf in CorrelatorConfiguration.objects.all():
+        if not corr_conf.active:
+            continue
+
+        if corr_conf.exist_errors():
+            corr_conf_error = True
+            break
+
+    for clo_conf in CentralloConfiguration.objects.all():
+        if not clo_conf.active:
+            continue
+
+        if clo_conf.exist_errors():
+            clo_conf_error = True
+            break
+
+    for holo in HolographyConfiguration.objects.all():
+        if not holo.active:
+            continue
+
+        if holo.exist_errors():
+            holo_error = True
+            break
+
+    dajax.add_data({'ste_error': ste_error,
+                    'band_error': band_error,
+                    'pad_error': pad_error,
+                    'corr_conf_error': corr_conf_error,
+                    'clo_conf_error': clo_conf_error,
+                    'holo_error': holo_error},
+                   'menuStatus')
+
+    return dajax.json()
 
 
 @dajaxice_register

@@ -241,6 +241,20 @@ class Antenna(Resource):
     def is_requested(self):
         return self.is_ste_request() or self.is_band_request()
 
+    def exist_band_error(self):
+        if 5 in self.global_restriction_errors():
+            return True
+        elif 2 in self.global_restriction_errors():
+            return True
+        else:
+            return False
+
+    def exist_ste_error(self):
+        if 1 in self.global_restriction_errors():
+            return True
+        else:
+            return False
+
     def __unicode__(self):
         return '%s' % self.name
 

@@ -95,7 +95,7 @@ function update_status(data){
 
 	/** this part of the code is very infrecuent that have real use **/
 	tr.find(".text-antenna").text(data.current_antenna.name).data("antennaId", data.current_antenna.id);
-	/** **/
+	/** end of part **/
 
 	updateAlert(alerts, alert_type, data.status, data.resource.id, true);
     } else {
@@ -111,3 +111,52 @@ function update_status(data){
 	tr.find(".text-antenna").text(data.current_antenna.name).data("antennaId", data.current_antenna.id);
     }
 }
+
+function refreshMenuStatus() {
+    setInterval(function(){
+	Dajaxice.aRAT.apps.home.update_menu_status(Dajax.process);
+    }, 1000);
+}
+
+function menuStatus(data) {
+    if (data.ste_error) {
+	$("#steConfMenuOp").addClass("btn-danger");
+    } else {
+	$("#steConfMenuOp").removeClass("btn-danger");
+    }
+
+    if (data.band_error) {
+	$("#bandConfMenuOp").addClass("btn-danger");
+    } else {
+	$("#bandConfMenuOp").removeClass("btn-danger");
+    }
+
+    if (data.pad_error) {
+	$("#padConfMenuOp").addClass("btn-danger");
+    } else {
+	$("#padConfMenuOp").removeClass("btn-danger");
+    }
+
+    if (data.corr_conf_error) {
+	$("#corrConfMenuOp").addClass("btn-danger");
+    } else {
+	$("#corrConfMenuOp").removeClass("btn-danger");
+    }
+
+    if (data.clo_conf_error) {
+	$("#cloConfMenuOp").addClass("btn-danger");
+    } else {
+	$("#cloConfMenuOp").removeClass("btn-danger");
+    }
+
+    if (data.holo_error) {
+	$("#holoConfMenuOp").addClass("btn-danger");
+    } else {
+	$("#holoConfMenuOp").removeClass("btn-danger");
+    }
+}
+
+$(document).ready(function () {
+    refreshMenuStatus();
+});
+
