@@ -6,6 +6,7 @@ from aRAT.apps.home.models import (Antenna, PAD,
                                    CentralloConfiguration,
                                    HolographyConfiguration,
                                    TableHeader)
+from aRAT.apps.common.models import Configuration
 
 from django.contrib.admin.sites import AdminSite
 
