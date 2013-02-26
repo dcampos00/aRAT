@@ -512,7 +512,7 @@ class HolographyConfigurationAdmin(admin.ModelAdmin):
 
         file_lines = open(settings.CONFIGURATION_DIR + 'holography.cfg')
         file_lines = file_lines.readlines()
-        for line_number, line_string in file_lines:
+        for line_string in file_lines:
             line_string = line_string.strip()
             is_comment = line_string[0:2] == "//"
 
