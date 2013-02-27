@@ -1,77 +1,84 @@
 {% load dajaxice_templatetags %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <!--
-      Charisma v1.0.0
-      
-      Copyright 2012 Muhammad Usman
-      Licensed under the Apache License v2.0
-      http://www.apache.org/licenses/LICENSE-2.0
-      
-      http://usman.it
-      http://twitter.com/halalit_usman
-      -->
-      <meta charset="utf-8">
-      <title>Antenna Resource Assignment Tool {% block PageTitle %}{% endblock %}</title>
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      
-      <!-- The styles -->
-      <link id="bs-css" href="{{ STATIC_URL }}css/bootstrap-cyborg.min.css" rel="stylesheet">
-      <style type="text/css">
-	body {
-	padding-bottom: 40px;
-	}
-	.sidebar-nav {
-	padding: 9px 0;
-	}
-      </style>
-      <link href="{{ STATIC_URL }}css/bootstrap-responsive.min.css" rel="stylesheet">
-      <link href="{{ STATIC_URL }}css/select2.css" rel="stylesheet">
-      <link href="{{ STATIC_URL }}css/charisma-app.css" rel="stylesheet">
-      <link href="{{ STATIC_URL }}css/smoothness/jquery-ui-1.10.0.custom.css" rel="stylesheet">
-      <link href="{{ STATIC_URL }}css/opa-icons.css" rel="stylesheet">
-      <!-- The HTML5 shim, for IE6-8 support of HTML5 elements -->
-      <!--[if lt IE 9]>
-	  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-	  <![endif]-->
+  <head>
+    <!--
+    Charisma v1.0.0
 
-      <!-- The fav icon -->
-      <link rel="shortcut icon" href="{{ STATIC_URL }}img/favicon.ico">
-      <style type="text/css" media="screen">
-	.alert{
-	margin-bottom: 0.5%;  
-	}
-      </style>		
-</head>
+    Copyright 2012 Muhammad Usman
+    Licensed under the Apache License v2.0
+    http://www.apache.org/licenses/LICENSE-2.0
 
-<body>
-  {% block body %}
+    http://usman.it
+    http://twitter.com/halalit_usman
+    -->
+    <meta charset="utf-8">
+    <title>Antenna Resource Assignment Tool {% block PageTitle %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- The styles -->
+    <link id="bs-css" href="{{ STATIC_URL }}css/bootstrap-cyborg.min.css" rel="stylesheet">
+    <style type="text/css">
+    body {
+      padding-bottom: 40px;
+    }
+    .sidebar-nav {
+      padding: 9px 0;
+    }
+    </style>
+    <link href="{{ STATIC_URL }}css/bootstrap-responsive.min.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/select2.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/charisma-app.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/smoothness/jquery-ui-1.10.0.custom.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/opa-icons.css" rel="stylesheet">
+    <!-- The HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- The fav icon -->
+    <link rel="shortcut icon" href="{{ STATIC_URL }}img/favicon.ico">
+    <style type="text/css" media="screen">
+    .alert{
+      margin-bottom: 0.5%;
+    }
+    </style>
+  </head>
+
+  <body>
+    {% block body %}
     <!-- topbar starts -->
     <div class="navbar">
       <div class="navbar-inner">
 	<div class="container-fluid">
-	  <a class="btn btn-navbar" data-toggle="collapse" data-target=".top-nav.nav-collapse,.sidebar-nav.nav-collapse">
-	    <span class="icon-bar"></span>
-	    <span class="icon-bar"></span>
-	    <span class="icon-bar"></span>
-	  </a>
-	  <a href="/"> <img alt="logo" src="{{ STATIC_URL }}img/logo.gif" /> <span>Antenna Resource Assignment Tool</span></a>
-	  
-	  <div class="pull-right">
+          <div class="row-fluid">
+	    <a class="btn btn-navbar" data-toggle="collapse" data-target=".top-nav.nav-collapse,.sidebar-nav.nav-collapse">
+	      <span class="icon-bar"></span>
+	      <span class="icon-bar"></span>
+	      <span class="icon-bar"></span>
+	    </a>
+	    <a href="/"> <img alt="logo" src="{{ STATIC_URL }}img/logo.gif" /> <span>Antenna Resource Assignment Tool</span></a>
+
+	    <div class="pull-right">
             Welcome, <b>{{ user }}</b>
-            {% if user.is_superuser %}
-            <a href="/admin" class="btn btn-primary"><i class="icon-user"></i> Admin Panel</a>
-            {% endif %}
-	    <a href="logout" class="btn btn-danger"><i class="icon-remove-circle"></i> <b>Log Out</b></a>
-	  </div>
+              {% if user.is_superuser %}
+              <a href="/admin" class="btn btn-primary"><i class="icon-user"></i> Admin Panel</a>
+              {% endif %}
+	      <a href="logout" class="btn btn-danger"><i class="icon-remove-circle"></i> <b>Log Out</b></a>
+	    </div>
+          </div>
+          <div class="row-fluid">
+            <div class="span4"></div>
+            <div class="alert {{ status_message.type }} span4">{{ status_message.text }}</div>
+            <div class="span4"></div>
+          </div>
 	</div>
       </div>
     </div>
     <!-- topbar ends -->
     <div class="container-fluid">
       <div class="row-fluid">
-	
+
 	<!-- left menu starts -->
 	<div class="span2 main-menu-span">
 	  <div class="well nav-collapse sidebar-nav">
@@ -88,35 +95,35 @@
 	  </div><!--/.well -->
 	</div><!--/span-->
 	<!-- left menu ends -->
-	
+
 	<noscript>
 	  <div class="alert alert-block span10">
 	    <h4 class="alert-heading">Warning!</h4>
 	    <p>You need to have <a href="http://en.wikipedia.org/wiki/JavaScript" target="_blank">JavaScript</a> enabled to use this site.</p>
 	  </div>
 	</noscript>
-	
+
 	<div id="content" class="span10">
 	  <!-- content starts -->
-	  
+
 	  <div class="row-fluid">
 	    <div class="box span12">
 	      <div class="box-header well">
 		<h2>{% block ContentTitle %}{% endblock %}</h2>
 	      </div>
 	      <div class="box-content">
-		{% block Content %}  
+		{% block Content %}
 		{% endblock %}
 	      </div>
 	    </div><!--/span-->
-	    
+
 	  </div><!--/row-->
-	  
-	  
+
+
 	  <!-- external javascript
-	       ================================================== -->
+	  ================================================== -->
 	  <!-- Placed at the end of the document so the pages load faster -->
-	       
+
 	  <!-- jQuery -->
 	  <script src="{{ STATIC_URL }}js/jquery-1.9.0.min.js"></script>
 	  <!-- jQuery UI -->
@@ -136,6 +143,6 @@
 	  <!-- application aRAT script -->
           <script src="{{ STATIC_URL }}js/aRAT.js"></script>
 	  {% block Javascript %}{% endblock %}
-      {% endblock %}		
-</body>
+    {% endblock %}
+  </body>
 </html>
