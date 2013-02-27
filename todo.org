@@ -1,4 +1,4 @@
-#+TODO: TODO(t) IN-PROGRESS(p) | DONE(d!)
+#+TODO: TODO(t) IN-PROGRESS(p!) | DONE(d!)
 
 * CODE [100%] 
   Task that are refers to programming
@@ -62,6 +62,27 @@
     - State "DONE"       from "IN-PROGRESS" [2013-02-20 Wed 16:18]
 *** DONE add restriction that the bands cannot be empty
     - State "DONE"       from "IN-PROGRESS" [2013-02-22 Fri 10:56]
+** DONE Changes [2013-02-26 Tue] [100%]
+   - State "DONE"       from "IN-PROGRESS" [2013-02-27 Wed 17:30]
+   - State "IN-PROGRESS" from "TODO"       [2013-02-28 Thu]
+*** DONE Alerts in the main menu
+    - State "DONE"       from "IN-PROGRESS" [2013-02-26 Tue 18:14]
+*** DONE Fix in the bands
+    - State "DONE"       from "IN-PROGRESS" [2013-02-26 Tue 18:30]
+*** DONE Change bands confirmation
+    - State "DONE"       from "IN-PROGRESS" [2013-02-27 Wed 10:37]
+    - State "IN-PROGRESS" from "TODO"       [2013-02-27 Wed 10:12]
+*** DONE Show the current status of the application
+    - State "DONE"       from "IN-PROGRESS" [2013-02-27 Wed 10:40]
+    - State "IN-PROGRESS" from "TODO"       [2013-02-27 Wed 11:05]
+*** DONE Separate the order how assigned and unassigned
+    - State "DONE"       from "IN-PROGRESS" [2013-02-27 Wed 17:29]
+    - State "IN-PROGRESS" from "TODO"       [2013-02-27 Wed 12:07]
+    - [X] modify text of the alerts
+    - [X] modify web service resourcesStatus
+*** DONE Change the changesPage web service
+    - State "DONE"       from "IN-PROGRESS" [2013-02-27 Wed 12:01]
+    - State "IN-PROGRESS" from "TODO"       [2013-02-27 Wed 11:06]
 ** possible changes
 *** TODO generate better messages in the application
     with the possibility of change between resources alerts and antenna alerts
