@@ -5,13 +5,13 @@ from spyne.model.primitive import String
 from spyne.service import ServiceBase
 from spyne.interface.wsdl import Wsdl11
 from spyne.protocol.soap import Soap11
-from spyne.protocol.http import HttpRpc
 from spyne.application import Application
 from spyne.decorator import rpc
 
-from aRAT.apps.home.models import History
-
-import re
+from aRAT.apps.home.models import (PAD, Antenna,
+                                   CorrelatorConfiguration,
+                                   CentralloConfiguration,
+                                   HolographyConfiguration)
 
 
 class changesPageService(ServiceBase):
@@ -23,21 +23,58 @@ class changesPageService(ServiceBase):
     def changes(ctx):
         """Return a string with the XML of the last changes"""
         # is loaded the last request from the DB
-        request = History.objects.reverse()[:1][0].request
-        request = request.split('\n')
-
         result = "<changes>"
 
         # is created the XML
-        _open = False
-        for r in request:
-            if not _open and r:  # if r is not empty
+        for antenna in Antenna.objects.all():
+            if not antenna.active:
+                continue
+
+            if antenna.is_requested():
                 result += "\n<change>\n"
-                _open = True
-            result += "%s\n" % r
-            if re.match("-- Request", r) is not None:
+                for line in antenna.text_status():
+                    result += "%s\n" % line
                 result += "</change>"
-                _open = False
+
+        for pad in PAD.objects.all():
+            if not pad.active:
+                continue
+
+            if pad.is_requested():
+                result += "\n<change>\n"
+                for line in pad.text_status():
+                    result += "%s\n" % line
+                result += "</change>"
+
+        for corr_conf in CorrelatorConfiguration.objects.all():
+            if not corr_conf.active:
+                continue
+
+            if corr_conf.is_requested():
+                result += "\n<change>\n"
+                for line in corr_conf.text_status():
+                    result += "%s\n" % line
+                result += "</change>"
+
+        for clo_conf in CentralloConfiguration.objects.all():
+            if not corr_conf.active:
+                continue
+
+            if clo_conf.is_requested():
+                result += "\n<change>\n"
+                for line in clo_conf.text_status():
+                    result += "%s\n" % line
+                result += "</change>"
+
+        for holo in HolographyConfiguration.objects.all():
+            if not holo.active:
+                continue
+
+            if holo.is_requested():
+                result += "\n<change>\n"
+                for line in holo.text_status():
+                    result += "%s\n" % line
+                result += "</change>"
 
         result += "</changes>"
 

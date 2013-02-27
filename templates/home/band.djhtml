@@ -184,24 +184,17 @@ $(document).ready(function () {
       val_buttons.push(parseInt($(this).val()));
     });
 
-    console.log(val_buttons);
-
     button = $(this)
-    bootbox.confirm("Are you sure?", function (result) {
-      if (result) {
-        antenna_id = button.parents("tr.antenna").data("antennaId");
-        band_array = val_buttons;
-        if (band_array.length == 0) {
-          band_array = [-1];
-        }
+    antenna_id = button.parents("tr.antenna").data("antennaId");
+    band_array = val_buttons;
+    if (band_array.length == 0) {
+      band_array = [-1];
+    }
 
-        Dajaxice.aRAT.apps.home.band_update_alerts(Dajax.process,
-                                                   {'antenna_id': antenna_id,
-                                                    'band_array': band_array});
-      }
-
-      button.parents("div.antenna-change-apply").remove();
-    });
+    Dajaxice.aRAT.apps.home.band_update_alerts(Dajax.process,
+                                               {'antenna_id': antenna_id,
+                                                'band_array': band_array});
+    button.parents("div.antenna-change-apply").remove();
   });
 
   $(document).on("click", ".btn-cancel", function (e) {
