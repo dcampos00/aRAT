@@ -31,9 +31,9 @@ def read_only(request):
 def status_message(request):
     status_message = {'type': None,
                       'text': None}
-    if read_only():
+    if read_only(request):
         status_message['type'] = 'alert-error'
-        if not request.user.groups.filter(name='Requester'):
+        if request.user.groups.filter(name='Requester'):
             status_message['text'] = ('aRAT is blocked, '
                                       'Is not possible do changes.')
         else:
@@ -92,7 +92,7 @@ def home_view(request):
         return HttpResponseRedirect("/login")
 
     ctx = {'read_only': read_only(request),
-           'status_message': status_message()}
+           'status_message': status_message(request)}
     return render_to_response('home/index.djhtml',
                               ctx,
                               context_instance=RequestContext(request))
@@ -121,7 +121,7 @@ def ste_configuration_view(request):
 
     # variables are passed to the view
     ctx = {'error': error,
-           'status_message': status_message(),
+           'status_message': status_message(request),
            'read_only': read_only(request),
            'vendors': vendors,
            'stes': stes,
@@ -153,7 +153,7 @@ def band_configuration_view(request):
         antennas[antenna.vendor].append(antenna)
 
     ctx = {'error': error,
-           'status_message': status_message(),
+           'status_message': status_message(request),
            'read_only': read_only(request),
            'vendors': vendors,
            'bands': bands,
@@ -189,7 +189,7 @@ def pad_configuration_view(request):
         pads[pad.location].append(pad)
 
     ctx = {'error': error,
-           'status_message': status_message(),
+           'status_message': status_message(request),
            'read_only': read_only(request),
            'locations': locations,
            'pads': pads,
@@ -228,7 +228,7 @@ def corr_configuration_view(request):
         corr_confs[corr_config.correlator].append(corr_config)
 
     ctx = {'error': error,
-           'status_message': status_message(),
+           'status_message': status_message(request),
            'read_only': read_only(request),
            'correlators': correlators,
            'corr_confs': corr_confs,
@@ -263,7 +263,7 @@ def clo_configuration_view(request):
         clo_confs[clo_config.centrallo].append(clo_config)
 
     ctx = {'error': error,
-           'status_message': status_message(),
+           'status_message': status_message(request),
            'read_only': read_only(request),
            'centrallos': centrallos,
            'clo_confs': clo_confs,
@@ -293,7 +293,7 @@ def holography_configuration_view(request):
         holos.append(holo)
 
     ctx = {'error': error,
-           'status_message': status_message(),
+           'status_message': status_message(request),
            'read_only': read_only(request),
            'holos': holos,
            'antennas': antennas
