@@ -672,15 +672,23 @@ class CorrelatorConfiguration(Resource):
             if configuration[-2] != " " else None)
         return dtsrbbpr0, dtsrbbpr1, dtsrbbpr2, dtsrbbpr3
 
-    def cai_acacai_data(self):
+    def cai_data(self):
         """
-        Return a tuple of strings where the first element correspond
-        to the cai and the second element correspond to the acacai
+        Return a string corresponds to the cai
         """
         if self.correlator != 'ACA-Corr':
-            return self.caimap, None
+            return self.caimap
         else:
-            return None, self.caimap
+            return None
+
+    def acacai_data(self):
+        """
+        Return a string that corresponds to the acacai
+        """
+        if self.correlator == 'ACA-Corr':
+            return self.caimap
+        else:
+            return None
 
     def __unicode__(self):
         conf1, conf2, conf3, conf4 = self.drx_data()

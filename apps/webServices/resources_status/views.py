@@ -6,7 +6,6 @@ from spyne.model.primitive import String
 from spyne.service import ServiceBase
 from spyne.interface.wsdl import Wsdl11
 from spyne.protocol.soap import Soap11
-from spyne.protocol.http import HttpRpc
 from spyne.application import Application
 from spyne.decorator import rpc
 
@@ -33,24 +32,14 @@ class ResourcesStatus(ServiceBase):
 
         result = {'ste': {}}
 
+        antennas = {}
+
         for antenna in Antenna.objects.all():
-            deleted = False
-            if antenna.is_ste_request():
-                ste = antenna.requested_ste
-                deleted = True
-            else:
-                ste = antenna.current_ste
+            show_antenna = False
 
-            # the method does not return nothing for the
-            # antennas in the *VENDOR* STE
-            if ste == 'VENDOR':
-                continue
-
-            if ste not in result['ste']:
-                result['ste'].setdefault(ste, [])
-
-            # is defined the default status of the antennas
-            antenna_data = {'drxbbpr0': None,
+            antenna_data = {'show_antenna': False,
+                            'ste': None,
+                            'drxbbpr0': None,
                             'drxbbpr1': None,
                             'drxbbpr2': None,
                             'drxbbpr3': None,
@@ -66,56 +55,203 @@ class ResourcesStatus(ServiceBase):
                             'pad': None
                             }
 
-            # the information of the correlator configuration is loaded
-            corr_confs = CorrelatorConfiguration.objects.filter(
-                Q(current_antenna=antenna, assigned=True)
-                | Q(requested_antenna=antenna))
-            for corr_conf in corr_confs:
-                (antenna_data['drxbbpr0'],
-                 antenna_data['drxbbpr1'],
-                 antenna_data['drxbbpr2'],
-                 antenna_data['drxbbpr3']) = corr_conf.drx_data()
-                (antenna_data['dtsrbbpr0'],
-                 antenna_data['dtsrbbpr1'],
-                 antenna_data['dtsrbbpr2'],
-                 antenna_data['dtsrbbpr3']) = corr_conf.dtsr_data()
-                (antenna_data['cai'],
-                 antenna_data['acacai']) = corr_conf.cai_acacai_data()
+            ste = antenna.current_ste
 
-            # the information of the centrallo configuration is loaded
-            clo_confs = CentralloConfiguration.objects.filter(
-                Q(current_antenna=antenna, assigned=True)
-                | Q(requested_antenna=antenna))
-            for clo_conf in clo_confs:
-                antenna_data['sas'] = "%s-%s" % (
+            if antenna.is_requested():
+                show_antenna = True
+                if antenna.is_ste_request():
+                    ste = antenna.requested_ste
+
+                    if antenna.current_ste != 'VENDOR':
+                        if antenna.current_ste not in result['ste']:
+                            result['ste'].setdefault(antenna.current_ste, [])
+
+                        result['ste'][antenna.current_ste].append(
+                            {"%s" % antenna: None})
+
+            # is added the bands information
+            antenna_data['bands'] = antenna.current_band
+            if antenna.is_band_request():
+                antenna_data['bands'] = antenna.requested_band
+
+            antenna_data['ste'] = ste
+            antenna_data['show_antenna'] = show_antenna
+
+            antennas.setdefault("%s" % antenna, antenna_data)
+
+        # PAD Information
+        for pad in PAD.objects.all():
+            if pad.is_requested():
+                if pad.requested_antenna is not None:
+                    antennas["%s" % pad.requested_antenna]['show_antenna'] = True
+                    antennas["%s" % pad.requested_antenna]['pad'] = ("%s" % pad.name)
+                elif pad.current_antenna is not None:
+                    antennas["%s" % pad.current_antenna]['show_antenna'] = True
+            elif pad.current_antenna is not None:
+                antennas["%s" % pad.current_antenna]['pad'] = ("%s" % pad.name)
+
+        # Corr Conf Information
+        for corr_conf in CorrelatorConfiguration.objects.all():
+            if corr_conf.is_requested():
+                if corr_conf.requested_antenna is not None:
+                    antenna = antennas["%s" % corr_conf.requested_antenna]
+                    antenna['show_antenna'] = True
+                    if corr_conf.correlator != 'ACA-Corr':
+                        (antenna['drxbbpr0'],
+                         antenna['drxbbpr1'],
+                         antenna['drxbbpr2'],
+                         antenna['drxbbpr3']) = corr_conf.drx_data()
+                        antenna['cai'] = corr_conf.cai_data()
+                    else:
+                        (antenna['dtsrbbpr0'],
+                         antenna['dtsrbbpr1'],
+                         antenna['dtsrbbpr2'],
+                         antenna['dtsrbbpr3']) = corr_conf.dtsr_data()
+                        antenna['acacai'] = corr_conf.acacai_data()
+                elif corr_conf.current_antenna is not None:
+                    antenna = antennas["%s" % corr_conf.current_antenna]
+                    antenna['show_antenna'] = True
+            elif corr_conf.current_antenna is not None:
+                antenna = antennas["%s" % corr_conf.current_antenna]
+                if corr_conf.correlator != 'ACA-Corr':
+                    (antenna['drxbbpr0'],
+                     antenna['drxbbpr1'],
+                     antenna['drxbbpr2'],
+                     antenna['drxbbpr3']) = corr_conf.drx_data()
+                    antenna['cai'] = corr_conf.cai_data()
+                else:
+                    (antenna['dtsrbbpr0'],
+                     antenna['dtsrbbpr1'],
+                     antenna['dtsrbbpr2'],
+                     antenna['dtsrbbpr3']) = corr_conf.dtsr_data()
+                    antenna['acacai'] = corr_conf.acacai_data()
+
+        # CentralLO information
+        for clo_conf in CentralloConfiguration.objects.all():
+            if clo_conf.is_requested():
+                if clo_conf.requested_antenna is not None:
+                    antenna = antennas["%s" % clo_conf.requested_antenna]
+                    antenna['show_antenna'] = True
+
+                    antenna['sas'] = "%s-%s" % (
+                        clo_conf.sas_ch(), clo_conf.sas_node())
+                    antenna['llc'] = "%s-%s" % (
+                        clo_conf.llc_ch(), clo_conf.llc_node())
+                elif clo_conf.current_antenna is not None:
+                    antenna = antennas["%s" % clo_conf.current_antenna]
+                    antenna['show_antenna'] = True
+            elif clo_conf.current_antenna is not None:
+                antenna = antennas["%s" % clo_conf.current_antenna]
+
+                antenna['sas'] = "%s-%s" % (
                     clo_conf.sas_ch(), clo_conf.sas_node())
-                antenna_data['llc'] = "%s-%s" % (
+                antenna['llc'] = "%s-%s" % (
                     clo_conf.llc_ch(), clo_conf.llc_node())
 
-            # the PAD information is loaded
-            pads = PAD.objects.filter(
-                Q(current_antenna=antenna, assigned=True)
-                | Q(requested_antenna=antenna))
-            for pad in pads:
-                antenna_data['pad'] = "%s" % pad.name
+        # -----------------------------------
+        # Holography Receptor Information
+        #
+        #          Not included
+        #
+        # -----------------------------------
 
-            # the bands data is loaded
-            if antenna.is_band_request():
-                bands = antenna.requested_band
-            else:
-                bands = antenna.current_band
+        for antenna_name, antenna_data in antennas.iteritems():
+            if antenna_data['ste'] == 'VENDOR':
+                continue
 
-            antenna_data['bands'] = bands
+            if antenna_data['show_antenna']:
+                ste = antenna_data['ste']
+                if ste not in result['ste']:
+                    result['ste'].setdefault(ste, [])
 
-            result['ste'][ste].append({"%s" % antenna: antenna_data})
+                del antenna_data['show_antenna']
+                del antenna_data['ste']
 
-            if deleted and antenna.current_ste != 'VENDOR':
-                result['ste'][antenna.current_ste].append(
-                    {"%s" % antenna: None})
+                result['ste'][ste].append({"%s" % antenna_name: antenna_data})
+
+        return json.dumps(result)
+#        for antenna in Antenna.objects.all():
+#            deleted = False
+#           if antenna.is_ste_request():
+#               ste = antenna.requested_ste
+#               deleted = True
+#           else:
+#               ste = antenna.current_ste
+#
+#           # the method does not return nothing for the
+#           # antennas in the *VENDOR* STE
+#           if ste == 'VENDOR':
+#               continue
+#
+#           if ste not in result['ste']:
+#               result['ste'].setdefault(ste, [])
+#
+#           # is defined the default status of the antennas
+#           antenna_data = {'drxbbpr0': None,
+#                           'drxbbpr1': None,
+#                           'drxbbpr2': None,
+#                           'drxbbpr3': None,
+#                           'dtsrbbpr0': None,
+#                           'dtsrbbpr1': None,
+#                           'dtsrbbpr2': None,
+#                           'dtsrbbpr3': None,
+#                           'cai': None,
+#                           'acacai': None,
+#                           'bands': None,
+#                           'sas': None,
+#                           'llc': None,
+#                           'pad': None
+#                           }
+#
+#           # the information of the correlator configuration is loaded
+#           corr_confs = CorrelatorConfiguration.objects.filter(
+#               Q(current_antenna=antenna, assigned=True)
+#               | Q(requested_antenna=antenna))
+#           for corr_conf in corr_confs:
+#               (antenna_data['drxbbpr0'],
+#                antenna_data['drxbbpr1'],
+#                antenna_data['drxbbpr2'],
+#                antenna_data['drxbbpr3']) = corr_conf.drx_data()
+#               (antenna_data['dtsrbbpr0'],
+#                antenna_data['dtsrbbpr1'],
+#                antenna_data['dtsrbbpr2'],
+#                antenna_data['dtsrbbpr3']) = corr_conf.dtsr_data()
+#               (antenna_data['cai'],
+#                antenna_data['acacai']) = corr_conf.cai_acacai_data()
+#
+#           # the information of the centrallo configuration is loaded
+#           clo_confs = CentralloConfiguration.objects.filter(
+#               Q(current_antenna=antenna, assigned=True)
+#               | Q(requested_antenna=antenna))
+#           for clo_conf in clo_confs:
+#               antenna_data['sas'] = "%s-%s" % (
+#                   clo_conf.sas_ch(), clo_conf.sas_node())
+#               antenna_data['llc'] = "%s-%s" % (
+#                   clo_conf.llc_ch(), clo_conf.llc_node())
+#
+#           # the PAD information is loaded
+#           pads = PAD.objects.filter(
+#               Q(current_antenna=antenna, assigned=True)
+#               | Q(requested_antenna=antenna))
+#           for pad in pads:
+#               antenna_data['pad'] = "%s" % pad.name
+#
+#           # the bands data is loaded
+#           if antenna.is_band_request():
+#               bands = antenna.requested_band
+#           else:
+#               bands = antenna.current_band
+#
+#           antenna_data['bands'] = bands
+#
+#
+#           if deleted and antenna.current_ste != 'VENDOR':
+#               result['ste'][antenna.current_ste].append(
+#                   {"%s" % antenna: None})
 
         # the dictionary is converted to a string with
         # JSON format
-        return json.dumps(result)
+#        return json.dumps(result)
 
 resources_status_service = csrf_exempt(
     DjangoApplication(Application([ResourcesStatus],
