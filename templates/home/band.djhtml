@@ -71,7 +71,10 @@ function update_status(data){
   tr.find("button").removeClass("btn-success");
 
   if (data.is_requested) {
-    tr.find("button").removeClass("btn-success active");
+    tr.find("button").removeClass("btn-success");
+    if (tr.find(".antenna-change-apply").length <= 0 || !tr.find(".antenna-change-apply").is(":visible")) {
+      tr.find("button").removeClass("active");
+    }
     requested_band = eval(data.requested_band);
     for (i=0; i < requested_band.length; ++i) {
       band_button = tr.find("button[value='"+requested_band[i]+"']");
