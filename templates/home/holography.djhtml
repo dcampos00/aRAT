@@ -10,35 +10,33 @@ Holography Configuration
 
 
 {% block Content %}
-<div id="debug">DEBUG DIV</div>
-
 {% if holos %}
 <div class="tab-pane">
   <div id="alerts-holography" class="row-fluid alerts-container"></div>
   <!-- <div class="row-fluid"><form class="pull-right"><input type="text" class="filter" placeholder="Filter by PAD"></form></div> -->
-    <div class="row-fluid">
-      <div class="row-fluid span6">
-        <table class="table table-bordered datatable">
-          <thead>
-	    <tr>
-	      <th>Holography Receptor</th><th>Antenna</th>
-	    </tr>
-          </thead>
-          <tbody>
-	    {% for holo_config in holos %}
-	    <tr class="holo-container" data-resource-id="{{ holo_config.id }}">
-	      <td>
-                {{ holo_config.name }}
-              </td>
-	      <td class="droppable change-antenna">
-                <div class="draggable text-antenna" data-antenna-id="{{ holo_config.current_antenna.id }}">{{ holo_config.current_antenna }}</div>
-	      </td>
-	    </tr>
-	    {% endfor %}
-          </tbody>
-        </table>
-      </div>
+  <div class="row-fluid">
+    <div class="row-fluid span6">
+      <table class="table table-bordered datatable">
+        <thead>
+	  <tr>
+	    <th>Holography Receptor</th><th>Antenna</th>
+	  </tr>
+        </thead>
+        <tbody>
+	  {% for holo_config in holos %}
+	  <tr class="holo-container" data-resource-id="{{ holo_config.id }}">
+	    <td>
+              {{ holo_config.name }}
+            </td>
+	    <td class="droppable change-antenna">
+              <div class="draggable text-antenna" data-antenna-id="{{ holo_config.current_antenna.id }}">{{ holo_config.current_antenna }}</div>
+	    </td>
+	  </tr>
+	  {% endfor %}
+        </tbody>
+      </table>
     </div>
+  </div>
 </div>
 {% endif %}
 
@@ -60,14 +58,14 @@ var antennas = [{id: 'None', text: 'None'},
 {% endif %}
 
 $(document).ready(function () {
-  
+
   /* Is selected the first tab in the page */
   $("#antennasTab a:first").tab('show');
   $("#antennasTab a").click(function (e){
     e.preventDefault();
     $(this).tab('show');
   });
-  
+
   /* custimized filter for the datatable */
   $(".filter").bind("keyup", function(e){
     $(".filter").not(this).val($(this).val());
@@ -122,7 +120,7 @@ $(document).ready(function () {
         change_content.data("original-parent").append(current_content);
         $(this).append(change_content);
 
-        
+
         /* is requested the confirmation */
         bootbox.confirm("Are you sure?", function(result) {
           if(result){
@@ -130,7 +128,7 @@ $(document).ready(function () {
             antenna_id_1 = change_content.data("antennaId");
             holo_id_2 = droppable.parent().data("resourceId");
             antenna_id_2 = current_content.data("antennaId");
-            
+
             Dajaxice.aRAT.apps.home.holo_update_alerts(Dajax.process, {'holo_id': holo_id_1, 'antenna_id': antenna_id_2});
             Dajaxice.aRAT.apps.home.holo_update_alerts(Dajax.process, {'holo_id': holo_id_2, 'antenna_id': antenna_id_1});
             refresh(true);
@@ -157,7 +155,7 @@ $(document).ready(function () {
       $(this).children(".text-antenna").hide();
 
       if($(this).children(".antenna-change-select")[0]){
-        $(this).children(".antenna-change-select").show();    
+        $(this).children(".antenna-change-select").show();
       } else {
         $(this).append($(".antenna-change-select.original").clone());
         $(this).children(".antenna-change-select").removeClass('original').show();
@@ -173,7 +171,7 @@ $(document).ready(function () {
       $(this).parents("td").children(".text-antenna").show();
       $(this).parent(".antenna-change-select").remove();
     }
-    e.stopPropagation();    
+    e.stopPropagation();
   });
 
   $(document).on("click",".close-alert", function(e) {
@@ -183,7 +181,7 @@ $(document).ready(function () {
         holo_id = button.parents("div.alert").data("id");
         Dajaxice.aRAT.apps.home.holo_update_alerts(Dajax.process,
                                                    {'holo_id': holo_id,
-                                                   });
+        });
       }
     });
   });
@@ -198,12 +196,12 @@ $(document).ready(function () {
       if(holo_id == 0) holo_id = "0";
       if(holo_id != "" && antenna_id != ""){
         Dajaxice.aRAT.apps.home.holo_update_alerts(Dajax.process, {'antenna_id': antenna_id, 'holo_id': holo_id});
-        
+
         $(this).parents("td").children(".text-antenna").show();
         $(this).parent(".antenna-change-select").remove();
       }
     }
-    e.stopPropagation();    
+    e.stopPropagation();
   });
   {% endif %}
 

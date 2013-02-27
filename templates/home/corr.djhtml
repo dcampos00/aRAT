@@ -10,17 +10,15 @@
 {% endblock %}
 
 {% block Content %}
-<div id="debug">DIV DEBUG</div>
-
 <ul class="nav nav-tabs" id="correlatorsTab">
   {% for correlator in correlators %}
   <li><a href="#{{ correlator|lower }}">{{ correlator }}</a></li>
   {% endfor %}
-</ul>  
+</ul>
 
 <div class="tab-content" id="correlatorsContent">
   {% for correlator, corr_confs in corr_confs.items %}
-  <div class="tab-pane" id="{{ correlator|lower }}">  
+  <div class="tab-pane" id="{{ correlator|lower }}">
     <div class="row-fluid">
       <div id="alerts-{{ location|lower }}" class="row-fluid alerts-container"></div>
       <div class="row-fluid">
@@ -34,23 +32,23 @@
 	      {% if forloop.first %}
 	      <thead>
 		<tr>
-		  <th>Antenna</th>			
+		  <th>Antenna</th>
 		  {% for i in corr_conf.header.text|eval %}<th>{{ i }}</th>{% endfor %}
 		</tr>
 	      </thead>
 	      <tbody>
-	        {% endif %}
+	      {% endif %}
 	        <tr class="" data-resource-id="{{ corr_conf.id }}">
-		    <td class="change-antenna droppable">
-		      <div class="text-antenna draggable" data-antenna-id="{{ corr_conf.current_antenna.id }}">{{ corr_conf.current_antenna }}</div>
-		    </td>
-                    <td>{{ corr_conf.caimap }}</td>
-		    {% for i in corr_conf.configuration|eval %}<td>{{ i }}</td>{% endfor %}
+		  <td class="change-antenna droppable">
+		    <div class="text-antenna draggable" data-antenna-id="{{ corr_conf.current_antenna.id }}">{{ corr_conf.current_antenna }}</div>
+		  </td>
+                  <td>{{ corr_conf.caimap }}</td>
+		  {% for i in corr_conf.configuration|eval %}<td>{{ i }}</td>{% endfor %}
 	        </tr>
 	        {% if forloop.last %}</tbody>{% endif %}
 	      {% endfor %}
-	    </table>    
-	  </div>  
+	    </table>
+	  </div>
 	</div>
       </div>
     </div>
@@ -76,7 +74,7 @@ var antennas = [ {id: 'None', text: 'None'},
 {% endif %}
 
 $(document).ready(function () {
-  
+
   $("#correlatorsTab a:first").tab('show');
   $("#correlatorsTab a").click(function (e){
     e.preventDefault();
@@ -136,7 +134,7 @@ $(document).ready(function () {
         change_content.data("original-parent").append(current_content);
         $(this).append(change_content);
 
-        
+
         /* is requested the confirmation */
         bootbox.confirm("Are you sure?", function(result) {
           if(result){
@@ -144,7 +142,7 @@ $(document).ready(function () {
             antenna_id_1 = change_content.data("antennaId");
             corr_line_2 = droppable.parent().data("resourceId");
             antenna_id_2 = current_content.data("antennaId");
-            
+
             Dajaxice.aRAT.apps.home.corr_update_alerts(Dajax.process, {'configuration_id': corr_line_1, 'antenna_id': antenna_id_2});
             Dajaxice.aRAT.apps.home.corr_update_alerts(Dajax.process, {'configuration_id': corr_line_2, 'antenna_id': antenna_id_1});
             refresh(true);
@@ -172,7 +170,7 @@ $(document).ready(function () {
       $(this).children(".text-antenna").hide();
 
       if($(this).children(".antenna-change-select")[0]){
-        $(this).children(".antenna-change-select").show();    
+        $(this).children(".antenna-change-select").show();
       } else {
         $(this).append($(".antenna-change-select.original").clone());
         $(this).children(".antenna-change-select").removeClass('original').show();
@@ -189,11 +187,11 @@ $(document).ready(function () {
         corr_line = button.parents("div.alert").data("id");
         Dajaxice.aRAT.apps.home.corr_update_alerts(Dajax.process,
                                                    {'configuration_id': corr_line,
-                                                   });
+        });
       }
     });
   });
-  
+
   /* cancel the select form */
   $(document).on("click",".btn-cancel-select", function(e) {
     e.preventDefault();
@@ -201,7 +199,7 @@ $(document).ready(function () {
       $(this).parents("td").children(".text-antenna").show();
       $(this).parent(".antenna-change-select").remove();
     }
-    e.stopPropagation();    
+    e.stopPropagation();
   });
 
   /* apply selection in select form */
@@ -213,12 +211,12 @@ $(document).ready(function () {
 
       if(corr_line != "" && antenna_id != ""){
         Dajaxice.aRAT.apps.home.corr_update_alerts(Dajax.process, {'antenna_id': antenna_id, 'configuration_id': corr_line});
-        
+
         $(this).parents("td").children(".text-antenna").show();
         $(this).parent(".antenna-change-select").remove();
       }
     }
-    e.stopPropagation();    
+    e.stopPropagation();
   });
   {% endif %}
 

@@ -9,7 +9,7 @@ function ajax(argument){
 }
 
 function refresh(start, dajax_function){
-  if (start == true) {
+  if (start === true) {
     clearInterval(refreshTimer);
     refreshTimer = null;  
 
@@ -39,24 +39,24 @@ function updateAlert(alerts_div, type, text, id, read_only) {
 	/* if exist the content is updated */
 	alert_div.children(".alert-text").html(text);
 	alert_div.attr("class", "alert").addClass(type);
-	if (read_only){
-	    alert_div.find("button").remove();
+        if (read_only){
+            alert_div.find("button").remove();
 	} else {
-	    if (alert_div.find("button").length <= 0) {
+            if (alert_div.find("button").length <= 0) {
 		html_button = "<button type=\"button\" class=\"close close-alert\" data-dismiss=\"alert\">&times;</button>";
 		alert_div.prepend( html_button );
-	    }
+            }
 	}
     } else {
 	/* if does not exist the alert is created */
 	html_alert = "<div class=\"alert "+type+"\" data-id=\""+id+"\">";
 	if (!read_only) {
-	    html_alert += "<button type=\"button\" class=\"close close-alert\" data-dismiss=\"alert\">&times;</button>";
+            html_alert += "<button type=\"button\" class=\"close close-alert\" data-dismiss=\"alert\">&times;</button>";
 	}
 	html_alert += "<div class=\"alert-text\">"+text+"</div>";
 	html_alert += "</div>";
 	
-	new_alert = $(html_alert)
+	new_alert = $(html_alert);
 	alerts_div.append( new_alert );
 
     }
@@ -68,21 +68,21 @@ function update_status(data){
 
     if (data.is_requested) {
 
-	if(!data.resource.assigned){
-	    data.requested_antenna.name = "None";
-	    data.requested_antenna.id = "None";
-	}
+        if(!data.resource.assigned){
+            data.requested_antenna.name = "None";
+            data.requested_antenna.id = "None";
+        }
 
 	tr.find(".text-antenna").text(data.requested_antenna.name).data("antennaId", data.requested_antenna.id);
 	
 	alerts = tr.parents(".tab-pane").find(".alerts-container");
 
 	if (data.error){
-	    alert_type = "alert-error";
-            tr.addClass("btn-danger");	    
+            alert_type = "alert-error";
+            tr.addClass("btn-danger");
 	} else {
-	    alert_type = "alert-success";
-	    tr.addClass("btn-success");
+            alert_type = "alert-success";
+            tr.addClass("btn-success");
 	}
 
 	updateAlert(alerts, alert_type, data.status, data.resource.id, data.read_only);
@@ -91,7 +91,7 @@ function update_status(data){
 	alerts = tr.parents(".tab-pane").find(".alerts-container");
 
 	alert_type = "alert-error";
-        tr.addClass("btn-danger");	    
+        tr.addClass("btn-danger");
 
 	/** this part of the code is very infrecuent that have real use **/
 	tr.find(".text-antenna").text(data.current_antenna.name).data("antennaId", data.current_antenna.id);
@@ -102,11 +102,11 @@ function update_status(data){
 	alerts = tr.parents(".tab-pane").find(".alerts-container");
 	alert_div = alerts.find("[data-id='"+data.resource.id+"']");
 	if (alert_div.length > 0) {
-	    alert_div.remove();
+            alert_div.remove();
 	}
-	if(data.current_antenna.name == null){
-	    data.current_antenna.name = "None";
-	    data.current_antenna.id = "None";
+	if(data.current_antenna.name === null){
+            data.current_antenna.name = "None";
+            data.current_antenna.id = "None";
 	}
 	tr.find(".text-antenna").text(data.current_antenna.name).data("antennaId", data.current_antenna.id);
     }

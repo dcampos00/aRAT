@@ -6,7 +6,6 @@
 {% block ContentTitle %} PAD Configuration {% endblock %}
 
 {% block Content %}
-<div id="debug">DEBUG DIV</div>
 <ul class="nav nav-tabs" id="antennasTab">
   {% for location in locations %}
   <li><a href="#{{ location|lower }}">{{ location }}</a></li>

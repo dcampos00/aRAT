@@ -6,7 +6,6 @@
 {% block ContentTitle %} Band Configuration {% endblock %}
 
 {% block Content %}
-<div id="debug">DEBUG DIV {{ read_only }}</div>
 <div class="row-fluid alerts-container"></div>
 
 <ul class="nav nav-tabs" id="antennasTab">
@@ -114,7 +113,6 @@ function update_status(data){
     if (!(tr.find(".antenna-change-apply").length > 0 && tr.find(".antenna-change-apply").is(":visible"))) {
       for (i=0; i < current_band.length; ++i) {
         tr.find("button[value='"+current_band[i]+"']").addClass("btn-info active");
-        console.log(current_band[i]);
       }
     }
 
@@ -174,7 +172,6 @@ $(document).ready(function () {
   });
 
   $(document).on("click", ".btn-apply", function (e) {
-    console.log("click btn-apply");
     e.preventDefault();
 
     button_group = $(this).parents(".antenna-change-apply").siblings(".btn-group");
@@ -212,8 +209,6 @@ $(document).ready(function () {
         parent.find("button[value='"+default_bands[i]+"']").addClass("active");
       }
     }
-
-    console.log(parent.find(".btn-group").data("bandArrayReq"));
 
     $(this).parents("div.antenna-change-apply").remove();
   });
