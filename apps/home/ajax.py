@@ -462,6 +462,7 @@ def holo_update_alerts(request, holo_id='', antenna_id=''):
         holo.requester = request.user
         holo.request_date = datetime.now()
         holo.save()
+        holo.update_restriction_errors()
 
     # are loaded all current status of the holography configurations
     for holo in HolographyConfiguration.objects.all():
