@@ -54,6 +54,8 @@ class applyChangesService(ServiceBase):
                     antenna.current_ste = antenna.requested_ste
 
                 if antenna.is_band_request():
+                    if antenna.requested_band == "[-1]":
+                        antenna.requested_band = "[]"
                     antenna.current_band = antenna.requested_band
 
                 # is cleaned the request data
