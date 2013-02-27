@@ -1,4 +1,4 @@
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 
@@ -6,14 +6,11 @@ from django.shortcuts import render_to_response
 from aRAT.apps.home.models import (Antenna, PAD,
                                    CorrelatorConfiguration,
                                    CentralloConfiguration,
-                                   HolographyConfiguration,
-                                   TableHeader)
+                                   HolographyConfiguration)
 # is imported the model that contains all the configurations
 from aRAT.apps.common.models import Configuration
-from django.conf import settings
 
 # necessary imports to authenticate system
-import logging
 from django.contrib.auth import authenticate, login, logout
 
 
@@ -185,9 +182,6 @@ def corr_configuration_view(request):
 
     if not request.user.is_authenticated():
         return HttpResponseRedirect("/login")
-
-    block_status = Configuration.objects.get(setting='BLOCK')
-    is_requester = request.user.groups.filter(name='Requester').count()
 
     # the antennas are loaded from the db
     antennas = Antenna.objects.all()
