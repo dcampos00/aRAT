@@ -267,9 +267,9 @@ class PAD(Resource):
     assigned = models.BooleanField(default=True, blank=True)
 
     current_antenna = models.ForeignKey(Antenna,
-                                           related_name="current_pad_antenna",
-                                           null=True,
-                                           on_delete=models.SET_NULL)
+                                        related_name="current_pad_antenna",
+                                        null=True,
+                                        on_delete=models.SET_NULL)
     requested_antenna = models.ForeignKey(Antenna,
                                           related_name="requested_pad_antenna",
                                           null=True,
@@ -377,13 +377,16 @@ class PAD(Resource):
         text = None
         if (self.is_requested()):
             if self.assigned:
-                text = "%s will be changed to %s." % (
+                text = "%s will be assigned to %s." % (
                     self.requested_antenna, self)
-            else:
-                text = "The %s will be unassigned." % (self)
-            result.append(text)
+                result.append(text)
+
+            if self.current_antenna is not None:
+                text = "%s will be unassigned of %s." % (self.current_antenna,
+                                                         self)
+                result.append(text)
         else:
-            text = "The %s is assigned to %s" % (self, self.current_antenna)
+            text = "The %s is assigned to %s" % (self.current_antenna, self)
             result.append(text)
 
         if self.exist_errors():
@@ -410,8 +413,7 @@ class PAD(Resource):
             antenna = self.current_antenna
 
         for e in eval(self.errors):
-            text = "The Antenna "
-            text += "%s" % antenna
+            text = "%s" % antenna
             text += " also will be assigned to "
             text += "%s." % PAD.objects.get(id=e)
             error.append(text)
@@ -577,11 +579,13 @@ class CorrelatorConfiguration(Resource):
         text = None
         if (self.is_requested()):
             if self.assigned:
-                text = "%s will be changed to %s." % (
-                    self.requested_antenna, self)
-            else:
-                text = "The %s Configuration will be unassigned." % (self)
-            result.append(text)
+                text = "The Configuration %s will be assigned to %s." % (
+                    self, self.requested_antenna)
+                result.append(text)
+            if self.current_antenna is not None:
+                text = "The Configuration %s will be unassigned of %s." % (
+                    self, self.current_antenna)
+                result.append(text)
         else:
             text = "The %s Configuration is assigned to %s" % (
                 self, self.current_antenna)
@@ -605,11 +609,10 @@ class CorrelatorConfiguration(Resource):
         """
         error = []
         for e in eval(self.errors):
-            text = "The Antenna %s also will be assigned the %s" % (
+            text = "%s also will be assigned the configuration %s" % (
                 self.requested_antenna,
                 CorrelatorConfiguration.objects.get(id=e)
                 )
-            text += " Correlator Configuration."
             error.append(text)
 
         for e in self.global_restriction_errors():
@@ -639,18 +642,14 @@ class CorrelatorConfiguration(Resource):
         if self.correlator == 'ACA-Corr':
             return None, None, None, None
         configuration = eval(self.configuration)
-        drxbbpr0 = "%s-%s" % (
-            (configuration[-8], configuration[-7])
-            if configuration[-8] != " " else None)
-        drxbbpr1 = "%s-%s" % (
-            (configuration[-6], configuration[-5])
-            if configuration[-6] != " " else None)
-        drxbbpr2 = "%s-%s" % (
-            (configuration[-4], configuration[-3])
-            if configuration[-4] != " " else None)
-        drxbbpr3 = "%s-%s" % (
-            (configuration[-2], configuration[-1])
-            if configuration[-2] != " " else None)
+        drxbbpr0 = (("%s-%s" % (configuration[-8], configuration[-7]))
+                    if configuration[-8] != " " else None)
+        drxbbpr1 = (("%s-%s" % (configuration[-6], configuration[-5]))
+                    if configuration[-6] != " " else None)
+        drxbbpr2 = (("%s-%s" % (configuration[-4], configuration[-3]))
+                    if configuration[-4] != " " else None)
+        drxbbpr3 = (("%s-%s" % (configuration[-2], configuration[-1]))
+                    if configuration[-2] != " " else None)
         return drxbbpr0, drxbbpr1, drxbbpr2, drxbbpr3
 
     def dtsr_data(self):
@@ -663,17 +662,13 @@ class CorrelatorConfiguration(Resource):
         if self.correlator != 'ACA-Corr':
             return None, None, None, None
         configuration = eval(self.configuration)
-        dtsrbbpr0 = "%s-%s" % (
-            (configuration[-8], configuration[-7])
+        dtsrbbpr0 = (("%s-%s" % (configuration[-8], configuration[-7]))
             if configuration[-8] != " " else None)
-        dtsrbbpr1 = "%s-%s" % (
-            (configuration[-6], configuration[-5])
+        dtsrbbpr1 = (("%s-%s" % (configuration[-6], configuration[-5]))
             if configuration[-6] != " " else None)
-        dtsrbbpr2 = "%s-%s" % (
-            (configuration[-4], configuration[-3])
+        dtsrbbpr2 = (("%s-%s" % (configuration[-4], configuration[-3]))
             if configuration[-4] != " " else None)
-        dtsrbbpr3 = "%s-%s" % (
-            (configuration[-2], configuration[-1])
+        dtsrbbpr3 = (("%s-%s" % (configuration[-2], configuration[-1]))
             if configuration[-2] != " " else None)
         return dtsrbbpr0, dtsrbbpr1, dtsrbbpr2, dtsrbbpr3
 
@@ -688,8 +683,12 @@ class CorrelatorConfiguration(Resource):
             return None, self.caimap
 
     def __unicode__(self):
-        return "%s - %s" % (self.caimap,
-                               self.configuration)
+        conf1, conf2, conf3, conf4 = self.drx_data()
+        if self.correlator == 'ACA-Corr':
+            conf1, conf2, conf3, conf4 = self.dtsr_data()
+
+        return "%s - (%s, %s, %s, %s)" % (self.caimap,
+                              conf1, conf2, conf3, conf4)
 
 
 class CentralloConfiguration(Resource):
@@ -820,15 +819,17 @@ class CentralloConfiguration(Resource):
     def text_status(self):
         result = []
         text = None
-        if (self.is_requested()):
+        if self.is_requested():
             if self.assigned:
-                text = "%s will be changed to %s CentralLO Configuration." % (
-                    self.requested_antenna, self)
-            else:
-                text = "The %s Configuration will be unassigned." % (self)
-            result.append(text)
+                text = "The configuration %s will be assigned to %s." % (
+                    self, self.requested_antenna)
+                result.append(text)
+            if self.current_antenna is not None:
+                text = "The configuration %s will be unassigned of %s." % (
+                    self, self.current_antenna)
+                result.append(text)
         else:
-            text = "The %s Configuration is assigned to %s" % (
+            text = "The configuration %s is assigned to %s" % (
                 self, self.current_antenna)
             result.append(text)
 
@@ -849,7 +850,7 @@ class CentralloConfiguration(Resource):
         """
         error = []
         for e in eval(self.errors):
-            text = ("The Antenna %s also will be assigned "
+            text = ("%s also will be assigned "
                     "the %s CentralLO Configuration." % (
                     self.requested_antenna,
                     CentralloConfiguration.objects.get(id=e)))
@@ -889,7 +890,9 @@ class CentralloConfiguration(Resource):
         return eval(self.configuration)[3]
 
     def __unicode__(self):
-        return "%s - %s" % (self.identifier, self.configuration)
+        return "%s - (%s-%s, %s-%s)" % (
+            self.identifier,
+            self.sas_ch(), self.sas_node(), self.llc_ch(), self.llc_node())
 
 
 class HolographyConfiguration(Resource):
@@ -1014,11 +1017,13 @@ class HolographyConfiguration(Resource):
         text = None
         if self.is_requested():
             if self.assigned:
-                text = "%s will be assigned to %s." % (
+                text = "The %s will be assigned to %s." % (
                     self, self.requested_antenna)
-            else:
-                text = "The %s will be unassigned." % (self)
-            result.append(text)
+                result.append(text)
+            if self.current_antenna is not None:
+                text = "The %s will be unassigned of %s." % (
+                    self, self.current_antenna)
+                result.append(text)
         else:
             text = "The %s is assigned to %s" % (self, self.current_antenna)
             result.append(text)
