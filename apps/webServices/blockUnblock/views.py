@@ -1,16 +1,10 @@
-# Create your views here.
-
-# import logging
-
 from django.views.decorators.csrf import csrf_exempt
 
 from spyne.server.django import DjangoApplication
 from spyne.model.primitive import String
-from spyne.model.complex import Iterable
 from spyne.service import ServiceBase
 from spyne.interface.wsdl import Wsdl11
 from spyne.protocol.soap import Soap11
-from spyne.protocol.http import HttpRpc
 from spyne.application import Application
 from spyne.decorator import rpc
 
