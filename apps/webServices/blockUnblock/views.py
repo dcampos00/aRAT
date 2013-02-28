@@ -6,7 +6,7 @@ from spyne.service import ServiceBase
 from spyne.interface.wsdl import Wsdl11
 from spyne.protocol.soap import Soap11
 from spyne.application import Application
-from spyne.decorator import rpc
+from spyne.decorator import srpc
 
 from aRAT.apps.common.models import Configuration
 
@@ -16,8 +16,8 @@ class blockUnblockService(ServiceBase):
     Web services that allow block and unblock the application.
     This class expose two method one for block and one for unblock
     """
-    @rpc(_returns=String)
-    def block(ctx):
+    @srpc(_returns=String)
+    def block():
         """
         Method that block the application changing the BLOCK setting in the DB
 
@@ -34,8 +34,8 @@ class blockUnblockService(ServiceBase):
             block.save()
             return 'SUCCESS'
 
-    @rpc(_returns=String)
-    def unblock(ctx):
+    @srpc(_returns=String)
+    def unblock():
         """
         Method that unblock the application changing the BLOCK setting
         in the DB
@@ -76,7 +76,7 @@ def block_app_view(request):
     if request.method == "POST":
         form = request.POST
         if eval(form['block']):
-            blockUnblockService.block("")
+            blockUnblockService.block()
 
             return HttpResponseRedirect("/admin")
 
@@ -94,7 +94,7 @@ def unblock_app_view(request):
     if request.method == "POST":
         form = request.POST
         if not eval(form['block']):
-            blockUnblockService.unblock("")
+            blockUnblockService.unblock()
 
             return HttpResponseRedirect("/admin")
 

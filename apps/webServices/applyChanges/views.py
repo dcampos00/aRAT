@@ -6,7 +6,7 @@ from spyne.service import ServiceBase
 from spyne.interface.wsdl import Wsdl11
 from spyne.protocol.soap import Soap11
 from spyne.application import Application
-from spyne.decorator import rpc
+from spyne.decorator import srpc
 
 from datetime import datetime
 
@@ -23,8 +23,8 @@ class applyChangesService(ServiceBase):
     Class that provide a web service, that expose a method that allow apply
     the requested to the database
     """
-    @rpc(_returns=String)
-    def apply(ctx):
+    @srpc(_returns=String)
+    def apply():
         """
         Method that apply the requested changes permanently to the database
         i.e. pass the requested configurations to current configurations
@@ -36,7 +36,7 @@ class applyChangesService(ServiceBase):
         """
 
         # if exist consistency errors the method return *FAILURE*
-        if checkConsistencyService.check(ctx) != 'SUCCESS':
+        if checkConsistencyService.check() != 'SUCCESS':
             return 'FAILURE'
 
         _request_text = ""
@@ -150,7 +150,7 @@ def apply_changes_view(request):
     if request.method == "POST":
         form = request.POST
         if eval(form['apply']):
-            applyChangesService.apply("")
+            applyChangesService.apply()
 
             return HttpResponseRedirect("/admin")
 

@@ -19,10 +19,6 @@ from django.template.response import TemplateResponse
 from aRAT.apps.webServices.checkConsistency.views import (
     checkConsistencyService)
 
-# is imported the class that provide the blockUnblock
-# web service
-from aRAT.apps.webServices.blockUnblock.views import blockUnblockService
-
 
 class AntennaAdmin(admin.ModelAdmin):
     """
@@ -96,9 +92,12 @@ class AntennaAdmin(admin.ModelAdmin):
                                    % antenna)
                     antenna.delete()
 
+        consistent = checkConsistencyService.check() == "SUCCESS"
+
         ctx = {'title': 'Update Antennas',
                'changes': changes,
                'error': error,
+               'consistent': consistent
                }
 
         return TemplateResponse(request,
@@ -190,9 +189,12 @@ class PADAdmin(admin.ModelAdmin):
                 changes.append("The %s was deleted." % pad)
                 pad.delete()
 
+        consistent = checkConsistencyService.check() == "SUCCESS"
+
         ctx = {'title': 'Update PADs',
                'changes': changes,
                'error': error,
+               'consistent': consistent
                }
 
         return TemplateResponse(request,
@@ -318,9 +320,12 @@ class CorrelatorConfigurationAdmin(admin.ModelAdmin):
                 changes.append("The %s was deleted." % corr_config)
                 corr_config.delete()
 
+        consistent = checkConsistencyService.check() == "SUCCESS"
+
         ctx = {'title': 'Update Correlator Configurations',
                'changes': changes,
                'error': error,
+               'consistent': consistent
                }
         return TemplateResponse(request,
                                 "admin/update_configuration.html",
@@ -447,9 +452,12 @@ class CentralloConfigurationAdmin(admin.ModelAdmin):
                 changes.append("The %s was deleted." % clo_config)
                 clo_config.delete()
 
+        consistent = checkConsistencyService.check() == "SUCCESS"
+
         ctx = {'title': 'Update CentralLO Configurations',
                'changes': changes,
                'error': error,
+               'consistent': consistent
                }
 
         return TemplateResponse(request,
@@ -532,9 +540,12 @@ class HolographyConfigurationAdmin(admin.ModelAdmin):
                 changes.append("The %s was deleted." % holo)
                 holo.delete()
 
+        consistent = checkConsistencyService.check() == "SUCCESS"
+
         ctx = {'title': 'Update Holography Receptors',
                'changes': changes,
                'error': error,
+               'consistent': consistent
                }
 
         return TemplateResponse(request,
@@ -564,7 +575,7 @@ class CustomAdminSite(AdminSite):
             requester_group = Group(name='Requester')
             requester_group.save()
 
-        consistent = checkConsistencyService.check("") == "SUCCESS"
+        consistent = checkConsistencyService.check() == "SUCCESS"
 
         # are passed the read_only status and the consistency status to the
         # template

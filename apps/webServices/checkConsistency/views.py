@@ -5,9 +5,8 @@ from spyne.model.primitive import String
 from spyne.service import ServiceBase
 from spyne.interface.wsdl import Wsdl11
 from spyne.protocol.soap import Soap11
-from spyne.protocol.http import HttpRpc
 from spyne.application import Application
-from spyne.decorator import rpc
+from spyne.decorator import srpc
 
 from aRAT.apps.home.models import (Antenna, PAD,
                                    CorrelatorConfiguration,
@@ -21,8 +20,8 @@ class checkConsistencyService(ServiceBase):
     expose a method check that check the consistency of all
     resources
     """
-    @rpc(_returns=String)
-    def check(ctx):
+    @srpc(_returns=String)
+    def check():
         """
         Method that provide the functionality of check the
         consistency in all resources.
