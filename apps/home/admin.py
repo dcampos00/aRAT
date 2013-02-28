@@ -33,6 +33,27 @@ class AntennaAdmin(admin.ModelAdmin):
     search_fields = ['name']
     ordering = ['current_ste', 'requested_ste']
 
+    fieldsets = (
+        (None, {
+                'fields': ('active',),
+                'description': ('*the field active refers to if the Antenna '
+                                'can be used for a request (default: active)')
+                }),
+        ('Request Options', {
+                'classes': ('collapse',),
+                'fields': ('current_ste',
+                           'requested_ste',
+                           'current_band',
+                           'requested_band',
+                           'requester',
+                           'request_date'),
+                })
+        )
+
+    def has_add_permission(self, request):
+        "Nobody have permission to add a PAD"
+        return False
+
     def get_urls(self):
         """
         Update the urls to add update_antenna
@@ -111,7 +132,6 @@ class PADAdmin(admin.ModelAdmin):
     """
     actions = None
 
-    #list_display = ('line_number', 'name', 'location')
     list_display = ('name', 'location')
     list_display_links = ('name',)
     list_filter = ['location', 'active']
@@ -212,7 +232,7 @@ class CorrelatorConfigurationAdmin(admin.ModelAdmin):
     list_display = ('caimap', 'configuration', 'correlator')
     list_display_links = ('caimap', 'configuration')
     list_filter = ['correlator', 'active']
-    search_fields = ['line', 'correlator',
+    search_fields = ['caimap', 'correlator', 'configuration',
                      'current_antenna__name', 'requested_antenna__name']
     ordering = ['correlator', 'caimap']
 
