@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Feb 22, 2013 at 10:54 AM
+-- Generation Time: Feb 28, 2013 at 10:02 AM
 -- Server version: 5.5.29
 -- PHP Version: 5.4.6-1ubuntu1.1
 
@@ -26,6 +26,7 @@ SET time_zone = "+00:00";
 -- Table structure for table `auth_group`
 --
 
+DROP TABLE IF EXISTS `auth_group`;
 CREATE TABLE IF NOT EXISTS `auth_group` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(80) NOT NULL,
@@ -39,6 +40,7 @@ CREATE TABLE IF NOT EXISTS `auth_group` (
 -- Table structure for table `auth_group_permissions`
 --
 
+DROP TABLE IF EXISTS `auth_group_permissions`;
 CREATE TABLE IF NOT EXISTS `auth_group_permissions` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `group_id` int(11) NOT NULL,
@@ -55,6 +57,7 @@ CREATE TABLE IF NOT EXISTS `auth_group_permissions` (
 -- Table structure for table `auth_permission`
 --
 
+DROP TABLE IF EXISTS `auth_permission`;
 CREATE TABLE IF NOT EXISTS `auth_permission` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
@@ -122,6 +125,7 @@ INSERT INTO `auth_permission` (`id`, `name`, `content_type_id`, `codename`) VALU
 -- Table structure for table `auth_user`
 --
 
+DROP TABLE IF EXISTS `auth_user`;
 CREATE TABLE IF NOT EXISTS `auth_user` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(30) NOT NULL,
@@ -143,7 +147,7 @@ CREATE TABLE IF NOT EXISTS `auth_user` (
 --
 
 INSERT INTO `auth_user` (`id`, `username`, `first_name`, `last_name`, `email`, `password`, `is_staff`, `is_active`, `is_superuser`, `last_login`, `date_joined`) VALUES
-(1, 'admin', '', '', 'dcampos00@gmail.com', 'pbkdf2_sha256$10000$8f2KATkvXmTx$X0KUjBsQxQEC5TZnTtmh27OjfLLhkjQaZCSAW0bwHBA=', 1, 1, 1, '2013-02-22 13:54:09', '2013-02-22 13:54:09');
+(1, 'admin', '', '', 'admin@arat.alma.cl', 'pbkdf2_sha256$10000$bNtxKTNqaMZo$U5CgxZghlPS5tusJF4crNFRegaS3TyfN3eagkvmE8bc=', 1, 1, 1, '2013-02-28 12:45:46', '2013-02-28 12:45:46');
 
 -- --------------------------------------------------------
 
@@ -151,6 +155,7 @@ INSERT INTO `auth_user` (`id`, `username`, `first_name`, `last_name`, `email`, `
 -- Table structure for table `auth_user_groups`
 --
 
+DROP TABLE IF EXISTS `auth_user_groups`;
 CREATE TABLE IF NOT EXISTS `auth_user_groups` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
@@ -167,6 +172,7 @@ CREATE TABLE IF NOT EXISTS `auth_user_groups` (
 -- Table structure for table `auth_user_user_permissions`
 --
 
+DROP TABLE IF EXISTS `auth_user_user_permissions`;
 CREATE TABLE IF NOT EXISTS `auth_user_user_permissions` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
@@ -183,6 +189,7 @@ CREATE TABLE IF NOT EXISTS `auth_user_user_permissions` (
 -- Table structure for table `common_configuration`
 --
 
+DROP TABLE IF EXISTS `common_configuration`;
 CREATE TABLE IF NOT EXISTS `common_configuration` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `setting` varchar(5) NOT NULL,
@@ -197,6 +204,7 @@ CREATE TABLE IF NOT EXISTS `common_configuration` (
 -- Table structure for table `django_admin_log`
 --
 
+DROP TABLE IF EXISTS `django_admin_log`;
 CREATE TABLE IF NOT EXISTS `django_admin_log` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `action_time` datetime NOT NULL,
@@ -217,6 +225,7 @@ CREATE TABLE IF NOT EXISTS `django_admin_log` (
 -- Table structure for table `django_content_type`
 --
 
+DROP TABLE IF EXISTS `django_content_type`;
 CREATE TABLE IF NOT EXISTS `django_content_type` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
@@ -253,6 +262,7 @@ INSERT INTO `django_content_type` (`id`, `name`, `app_label`, `model`) VALUES
 -- Table structure for table `django_session`
 --
 
+DROP TABLE IF EXISTS `django_session`;
 CREATE TABLE IF NOT EXISTS `django_session` (
   `session_key` varchar(40) NOT NULL,
   `session_data` longtext NOT NULL,
@@ -267,6 +277,7 @@ CREATE TABLE IF NOT EXISTS `django_session` (
 -- Table structure for table `home_antenna`
 --
 
+DROP TABLE IF EXISTS `home_antenna`;
 CREATE TABLE IF NOT EXISTS `home_antenna` (
   `resource_ptr_id` int(11) NOT NULL,
   `name` varchar(5) NOT NULL,
@@ -285,6 +296,7 @@ CREATE TABLE IF NOT EXISTS `home_antenna` (
 -- Table structure for table `home_centralloconfiguration`
 --
 
+DROP TABLE IF EXISTS `home_centralloconfiguration`;
 CREATE TABLE IF NOT EXISTS `home_centralloconfiguration` (
   `resource_ptr_id` int(11) NOT NULL,
   `identifier` varchar(20) NOT NULL,
@@ -306,6 +318,7 @@ CREATE TABLE IF NOT EXISTS `home_centralloconfiguration` (
 -- Table structure for table `home_correlatorconfiguration`
 --
 
+DROP TABLE IF EXISTS `home_correlatorconfiguration`;
 CREATE TABLE IF NOT EXISTS `home_correlatorconfiguration` (
   `resource_ptr_id` int(11) NOT NULL,
   `caimap` int(11) NOT NULL,
@@ -327,6 +340,7 @@ CREATE TABLE IF NOT EXISTS `home_correlatorconfiguration` (
 -- Table structure for table `home_history`
 --
 
+DROP TABLE IF EXISTS `home_history`;
 CREATE TABLE IF NOT EXISTS `home_history` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `date_time` datetime NOT NULL,
@@ -340,6 +354,7 @@ CREATE TABLE IF NOT EXISTS `home_history` (
 -- Table structure for table `home_holographyconfiguration`
 --
 
+DROP TABLE IF EXISTS `home_holographyconfiguration`;
 CREATE TABLE IF NOT EXISTS `home_holographyconfiguration` (
   `resource_ptr_id` int(11) NOT NULL,
   `name` varchar(30) NOT NULL,
@@ -357,6 +372,7 @@ CREATE TABLE IF NOT EXISTS `home_holographyconfiguration` (
 -- Table structure for table `home_pad`
 --
 
+DROP TABLE IF EXISTS `home_pad`;
 CREATE TABLE IF NOT EXISTS `home_pad` (
   `resource_ptr_id` int(11) NOT NULL,
   `location` varchar(10) NOT NULL,
@@ -376,6 +392,7 @@ CREATE TABLE IF NOT EXISTS `home_pad` (
 -- Table structure for table `home_resource`
 --
 
+DROP TABLE IF EXISTS `home_resource`;
 CREATE TABLE IF NOT EXISTS `home_resource` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `active` tinyint(1) NOT NULL,
@@ -392,6 +409,7 @@ CREATE TABLE IF NOT EXISTS `home_resource` (
 -- Table structure for table `home_tableheader`
 --
 
+DROP TABLE IF EXISTS `home_tableheader`;
 CREATE TABLE IF NOT EXISTS `home_tableheader` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `text` longtext NOT NULL,
@@ -435,8 +453,8 @@ ALTER TABLE `auth_user_user_permissions`
 -- Constraints for table `django_admin_log`
 --
 ALTER TABLE `django_admin_log`
-  ADD CONSTRAINT `content_type_id_refs_id_288599e6` FOREIGN KEY (`content_type_id`) REFERENCES `django_content_type` (`id`),
-  ADD CONSTRAINT `user_id_refs_id_c8665aa` FOREIGN KEY (`user_id`) REFERENCES `auth_user` (`id`);
+  ADD CONSTRAINT `user_id_refs_id_c8665aa` FOREIGN KEY (`user_id`) REFERENCES `auth_user` (`id`),
+  ADD CONSTRAINT `content_type_id_refs_id_288599e6` FOREIGN KEY (`content_type_id`) REFERENCES `django_content_type` (`id`);
 
 --
 -- Constraints for table `home_antenna`
@@ -448,35 +466,35 @@ ALTER TABLE `home_antenna`
 -- Constraints for table `home_centralloconfiguration`
 --
 ALTER TABLE `home_centralloconfiguration`
-  ADD CONSTRAINT `requested_antenna_id_refs_resource_ptr_id_41754efb` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`resource_ptr_id`),
+  ADD CONSTRAINT `resource_ptr_id_refs_id_ca91c3bf` FOREIGN KEY (`resource_ptr_id`) REFERENCES `home_resource` (`id`),
   ADD CONSTRAINT `current_antenna_id_refs_resource_ptr_id_41754efb` FOREIGN KEY (`current_antenna_id`) REFERENCES `home_antenna` (`resource_ptr_id`),
   ADD CONSTRAINT `header_id_refs_id_f7792ecf` FOREIGN KEY (`header_id`) REFERENCES `home_tableheader` (`id`),
-  ADD CONSTRAINT `resource_ptr_id_refs_id_ca91c3bf` FOREIGN KEY (`resource_ptr_id`) REFERENCES `home_resource` (`id`);
+  ADD CONSTRAINT `requested_antenna_id_refs_resource_ptr_id_41754efb` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`resource_ptr_id`);
 
 --
 -- Constraints for table `home_correlatorconfiguration`
 --
 ALTER TABLE `home_correlatorconfiguration`
-  ADD CONSTRAINT `requested_antenna_id_refs_resource_ptr_id_ae9034c7` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`resource_ptr_id`),
+  ADD CONSTRAINT `resource_ptr_id_refs_id_c4a870f3` FOREIGN KEY (`resource_ptr_id`) REFERENCES `home_resource` (`id`),
   ADD CONSTRAINT `current_antenna_id_refs_resource_ptr_id_ae9034c7` FOREIGN KEY (`current_antenna_id`) REFERENCES `home_antenna` (`resource_ptr_id`),
   ADD CONSTRAINT `header_id_refs_id_d91d6b65` FOREIGN KEY (`header_id`) REFERENCES `home_tableheader` (`id`),
-  ADD CONSTRAINT `resource_ptr_id_refs_id_c4a870f3` FOREIGN KEY (`resource_ptr_id`) REFERENCES `home_resource` (`id`);
+  ADD CONSTRAINT `requested_antenna_id_refs_resource_ptr_id_ae9034c7` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`resource_ptr_id`);
 
 --
 -- Constraints for table `home_holographyconfiguration`
 --
 ALTER TABLE `home_holographyconfiguration`
-  ADD CONSTRAINT `requested_antenna_id_refs_resource_ptr_id_65ef957b` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`resource_ptr_id`),
+  ADD CONSTRAINT `resource_ptr_id_refs_id_b332d03f` FOREIGN KEY (`resource_ptr_id`) REFERENCES `home_resource` (`id`),
   ADD CONSTRAINT `current_antenna_id_refs_resource_ptr_id_65ef957b` FOREIGN KEY (`current_antenna_id`) REFERENCES `home_antenna` (`resource_ptr_id`),
-  ADD CONSTRAINT `resource_ptr_id_refs_id_b332d03f` FOREIGN KEY (`resource_ptr_id`) REFERENCES `home_resource` (`id`);
+  ADD CONSTRAINT `requested_antenna_id_refs_resource_ptr_id_65ef957b` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`resource_ptr_id`);
 
 --
 -- Constraints for table `home_pad`
 --
 ALTER TABLE `home_pad`
-  ADD CONSTRAINT `requested_antenna_id_refs_resource_ptr_id_f8b00e53` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`resource_ptr_id`),
+  ADD CONSTRAINT `resource_ptr_id_refs_id_f236381` FOREIGN KEY (`resource_ptr_id`) REFERENCES `home_resource` (`id`),
   ADD CONSTRAINT `current_antenna_id_refs_resource_ptr_id_f8b00e53` FOREIGN KEY (`current_antenna_id`) REFERENCES `home_antenna` (`resource_ptr_id`),
-  ADD CONSTRAINT `resource_ptr_id_refs_id_f236381` FOREIGN KEY (`resource_ptr_id`) REFERENCES `home_resource` (`id`);
+  ADD CONSTRAINT `requested_antenna_id_refs_resource_ptr_id_f8b00e53` FOREIGN KEY (`requested_antenna_id`) REFERENCES `home_antenna` (`resource_ptr_id`);
 
 --
 -- Constraints for table `home_resource`
