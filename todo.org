@@ -83,18 +83,34 @@
 *** DONE Change the changesPage web service
     - State "DONE"       from "IN-PROGRESS" [2013-02-27 Wed 12:01]
     - State "IN-PROGRESS" from "TODO"       [2013-02-27 Wed 11:06]
-** possible changes
+** DONE Fix Bugs [100%]
+   - State "DONE"       from "IN-PROGRESS" [2013-02-28 Thu 17:40]
+   - State "IN-PROGRESS" from "TODO"       [2013-02-28 Thu 16:35]
+*** DONE Problems with the Apply Changes button in administration panel :bug:solved:
+    - State "DONE"       from "IN-PROGRESS" [2013-02-28 Thu 17:12]
+    - State "IN-PROGRESS" from "TODO"       [2013-02-28 Thu 16:35]
+*** DONE Add all static files to administration panel	     :bug:production:
+    - State "DONE"       from "IN-PROGRESS" [2013-02-28 Thu 17:40]
+    - State "IN-PROGRESS" from "TODO"       [2013-02-28 Thu 17:35]
+*** DONE review errors with de Admin Models (Correlator)		:bug:
+    - State "DONE"       from "IN-PROGRESS" [2013-02-28 Thu 17:19]
+    - State "IN-PROGRESS" from "TODO"       [2013-02-28 Thu 17:19]
+** possible changes [1/3]
 *** TODO generate better messages in the application
     with the possibility of change between resources alerts and antenna alerts
 *** TODO write better comfirmation messages
-* DOCUMENTATION [50%]
+*** DONE improve the AntennaAdmin Model
+    - State "DONE"       from "IN-PROGRESS" [2013-02-28 Thu 17:19]
+    - State "IN-PROGRESS" from "TODO"       [2013-02-28 Thu 17:19]
+* DOCUMENTATION [100%]
   Tasks that are refers to document the project
-** IN-PROGRESS documents [0%]
-   - [ ] Administration manual
-   - [ ] Wiki project :: Something was did it
-   - [-] Installation documents [1/3]
-     - [ ] write the requirements to deploy the application
-     - [ ] write a little manual to deploy the application
+** DONE documents [100%]
+   - State "DONE"       from "IN-PROGRESS" [2013-02-28 Thu 18:03]
+   - [X] Administration manual
+   - [X] Wiki project
+   - [X] Installation documents [3/3]
+     - [X] write the requirements to deploy the application
+     - [X] write a little manual to deploy the application
      - [X] Create requirements.txt
 ** DONE documentation [100%]
    - State "DONE"       from "IN-PROGRESS" [2013-02-25 Mon 16:25]
