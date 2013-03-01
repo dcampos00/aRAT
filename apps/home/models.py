@@ -318,7 +318,8 @@ class PAD(Resource):
             if self != pad:
                 if self.requested_antenna is None:
                     if (self.current_antenna == pad.requested_antenna
-                        and self.current_antenna is not None):
+                        and self.current_antenna is not None
+                        and self.assigned):
                         pad_errors.append(pad)
                     elif (self.current_antenna is not None
                           and self.current_antenna == pad.current_antenna
@@ -509,7 +510,8 @@ class CorrelatorConfiguration(Resource):
                     if self.requested_antenna is None:
                         if (
                         self.current_antenna == corr_config.requested_antenna
-                        and self.current_antenna is not None):
+                        and self.current_antenna is not None
+                        and self.assigned):
                             configuration_errors.append(corr_config)
                         elif (
                         self.current_antenna is not None
@@ -765,7 +767,8 @@ class CentralloConfiguration(Resource):
             if self != clo_config and clo_config.active:
                 if self.requested_antenna is None:
                     if (self.current_antenna == clo_config.requested_antenna
-                        and self.current_antenna is not None):
+                        and self.current_antenna is not None
+                        and self.assigned):
                         configuration_errors.append(clo_config)
                     elif (
                      self.current_antenna is not None
@@ -964,7 +967,8 @@ class HolographyConfiguration(Resource):
             if self != holo_config and holo_config.active:
                 if self.requested_antenna is None:
                     if (self.current_antenna == holo_config.requested_antenna
-                        and self.current_antenna is not None):
+                        and self.current_antenna is not None
+                        and self.assigned):
                         configuration_errors.append(holo_config)
                     elif (
                     self.current_antenna is not None
