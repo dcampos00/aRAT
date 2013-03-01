@@ -39,49 +39,44 @@ class checkConsistencyService(ServiceBase):
         _errors = []
         # is checked the consistency for the STE and Bands
         for antenna in Antenna.objects.all():
-            if antenna.is_requested():
-                if antenna.exist_errors():
-                    _e_text = "\n"
-                    for e in antenna.text_status():
-                        _e_text += "%s\n" % e
-                    _errors.append(_e_text)
+            if antenna.exist_errors():
+                _e_text = "\n"
+                for e in antenna.text_status():
+                    _e_text += "%s\n" % e
+                _errors.append(_e_text)
 
         # is checked the consistency for the PADs
         for pad in PAD.objects.all():
-            if pad.requested_antenna is not None:  # if exist a request
-                if pad.exist_errors():  # if exist some error in the pad
-                    _e_text = "\n"
-                    # the list of string is passed as single string
-                    for e in pad.text_status():
-                        _e_text += "%s\n" % e
-                    _errors.append(_e_text)
+            if pad.exist_errors():  # if exist some error in the pad
+                _e_text = "\n"
+                # the list of string is passed as single string
+                for e in pad.text_status():
+                    _e_text += "%s\n" % e
+                _errors.append(_e_text)
 
         # is checked the consistency for the Correlator Configurations
         for corr_conf in CorrelatorConfiguration.objects.all():
-            if corr_conf.requested_antenna is not None:
-                if corr_conf.exist_errors():
-                    _e_text = "\n"
-                    for e in corr_conf.text_status():
-                        _e_text += "%s\n" % e
-                    _errors.append(_e_text)
+            if corr_conf.exist_errors():
+                _e_text = "\n"
+                for e in corr_conf.text_status():
+                    _e_text += "%s\n" % e
+                _errors.append(_e_text)
 
         # is checked the consistency for the CentralLO Configurations
         for clo_conf in CentralloConfiguration.objects.all():
-            if clo_conf.requested_antenna is not None:
-                if clo_conf.exist_errors():
-                    _e_text = "\n"
-                    for e in clo_conf.text_status():
-                        _e_text += "%s\n" % e
-                    _errors.append(_e_text)
+            if clo_conf.exist_errors():
+                _e_text = "\n"
+                for e in clo_conf.text_status():
+                    _e_text += "%s\n" % e
+                _errors.append(_e_text)
 
         # is checked the consistency for the Holography Receptors
         for holo in HolographyConfiguration.objects.all():
-            if holo.requested_antenna is not None:
-                if holo.exist_errors():
-                    _e_text = "\n"
-                    for e in holo.text_status():
-                        _e_text += "%s\n" % e
-                    _errors.append(_e_text)
+            if holo.exist_errors():
+                _e_text = "\n"
+                for e in holo.text_status():
+                    _e_text += "%s\n" % e
+                _errors.append(_e_text)
 
         if not _errors:
             return 'SUCCESS'
