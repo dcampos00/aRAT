@@ -83,8 +83,8 @@ class checkConsistencyService(ServiceBase):
         else:
             _result = '<errors>\n'
             for e in _errors:
-                _result += '<error>%s<error>\n' % e
-            _result += '<errors>'
+                _result += '<error>%s</error>\n' % e
+            _result += '</errors>'
             return _result
 
 check_consistency_service = csrf_exempt(
