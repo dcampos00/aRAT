@@ -12,7 +12,8 @@ from spyne.decorator import rpc
 from aRAT.apps.home.models import (Antenna, PAD,
                                    CorrelatorConfiguration,
                                    CentralloConfiguration)
-
+from aRAT.apps.webServices.checkConsistency.views import (
+    checkConsistencyService)
 import json
 
 
@@ -27,6 +28,10 @@ class ResourcesStatus(ServiceBase):
         Return a String with the current status of the request
         in JSON format
         """
+
+        if checkConsistencyService.check() != 'SUCCESS':
+            return ('FAILURE: The current status of the system '
+                    'is not consistent.')
 
         result = {'ste': {}}
 
@@ -168,7 +173,10 @@ class ResourcesStatus(ServiceBase):
 
                 result['ste'][ste].append({"%s" % antenna_name: antenna_data})
 
-        return json.dumps(result)
+        if result['ste'] != {}:
+            return json.dumps(result)
+        else:
+            return 'DOES NOT EXIST CHANGES.'
 
 resources_status_service = csrf_exempt(
     DjangoApplication(Application([ResourcesStatus],
