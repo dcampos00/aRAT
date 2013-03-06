@@ -86,7 +86,7 @@
 	      <li class="nav-header hidden-tablet">Main</li>
 	      <li id="homeMenuOp"><a href="{% url home_view %}"><i class="icon icon-home"></i><span class="hidden-tablet"> Home</span></a></li>
 	      <li id="steConfMenuOp"><a href="{% url ste_configuration_view %}"><i class="icon icon-gear"></i><span class="hidden-tablet"> STE</span></a></li>
-	      <li id="bandConfMenuOp"><a href="{% url band_configuration_view %}"><i class="icon icon-gear"></i><span class="hidden-tablet"> Band</span></a></li>
+	      <li id="bandConfMenuOp"><a href="{% url band_configuration_view %}"><i class="icon icon-gear"></i><span class="hidden-tablet"> FE Band</span></a></li>
 	      <li id="padConfMenuOp"><a href="{% url pad_configuration_view %}"><i class="icon icon-gear"></i><span class="hidden-tablet"> PAD</span></a></li>
 	      <li id="corrConfMenuOp"><a href="{% url corr_configuration_view %}"><i class="icon icon-gear"></i><span class="hidden-tablet"> Correlator</span></a></li>
 	      <li id="cloConfMenuOp"><a href="{% url clo_configuration_view %}"><i class="icon icon-gear"></i><span class="hidden-tablet"> CentralLO</span></a></li>

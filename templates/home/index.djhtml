@@ -20,7 +20,7 @@
         <center>There are no requests</center>
       </div>
       <div class="accordion-heading">
-        <a href="#corrRequests" data-toggle="collapse" class="accordion-toggle"><h3>Correlator Configurarion Requests</h3></a>
+        <a href="#corrRequests" data-toggle="collapse" class="accordion-toggle"><h3>Correlator Configuration Requests</h3></a>
       </div>
       <div id="corrRequests" class="accordion-body collapse in">
         <center>There are no requests</center>
