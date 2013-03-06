@@ -1,5 +1,6 @@
-aRAT
 Django==1.4.1
+mysql-python==1.2.3
+python-ldap==2.4.10
 django-auth-ldap==1.0.19
 django-dajaxice==0.5.2
 django-dajax==0.8.4
