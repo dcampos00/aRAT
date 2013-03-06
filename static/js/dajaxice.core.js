@@ -41,6 +41,10 @@ var Dajaxice = {
 
     pad_update_alerts: function(callback_function, argv, custom_settings){
         Dajaxice.call('aRAT.apps.home.pad_update_alerts', 'POST', callback_function, argv, custom_settings);
+    },
+
+    update_menu_status: function(callback_function, argv, custom_settings){
+        Dajaxice.call('aRAT.apps.home.update_menu_status', 'POST', callback_function, argv, custom_settings);
     }
 
 
