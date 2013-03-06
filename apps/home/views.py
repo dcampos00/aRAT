@@ -32,14 +32,14 @@ def status_message(request):
         status_message['type'] = 'alert-error'
         if request.user.groups.filter(name='Requester'):
             status_message['text'] = ('aRAT is blocked, '
-                                      'Is not possible do changes.')
+                                      'Is not possible to do changes.')
         else:
             status_message['text'] = ('aRAT is unblocked, '
                                       'You aren\'t an authorized requester.')
     else:
         status_message['type'] = 'alert-success'
         status_message['text'] = ('aRAT is unblocked, '
-                                  'Is possible do changes.')
+                                  'Is possible to do changes.')
 
     return status_message
 
