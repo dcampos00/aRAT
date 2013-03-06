@@ -5,5 +5,4 @@ django-auth-ldap==1.0.19
 django-dajaxice==0.5.2
 django-dajax==0.8.4
 spyne==2.9.3
-# I do not know if this library will have problems
 lxml==2.3.5
