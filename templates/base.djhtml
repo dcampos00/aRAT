@@ -137,7 +137,7 @@
 	  <!-- selec2.min.js for better selects fields -->
 	  <script src="{{ STATIC_URL }}js/select2.min.js"></script>
 	  <!-- dajaxice.js -->
-	  {% dajaxice_js_import %}
+	  <script src="{{ STATIC_URL }}js/dajaxice.core.js"></script>
 	  <!-- jquery.dajax.core.js ajax django library -->
 	  <script src="{{ STATIC_URL }}js/jquery.dajax.core.js"></script>
 	  <!-- application aRAT script -->
